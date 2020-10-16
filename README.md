@@ -1,6 +1,4 @@
-=======================================
- README FOR HOLOCENE DATA ASSIMILATION
-=======================================
+# README FOR HOLOCENE DATA ASSIMILATION
 Written by:   Michael P. Erb
 Contact:      michael.erb@nau.edu
 Last updated: 10/7/2020
