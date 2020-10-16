@@ -63,6 +63,3 @@ Running the code as-is will run the default experiment.  To change options and s
 
 [Add explanation of variables.]
 
-## Miscellaneous (notes to self)
-
- - To make a new environment file: conda env export > environment_da.yml

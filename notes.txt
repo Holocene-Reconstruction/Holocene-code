@@ -1,0 +1,5 @@
+=============
+Notes to self
+=============
+
+ - To make a new environment file: conda env export > environment_da.yml
