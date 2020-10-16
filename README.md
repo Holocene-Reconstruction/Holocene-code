@@ -7,6 +7,8 @@ Last updated: 10/7/2020
 
 The code is part of the Holocene Reconstruction project.  It is a data assimilation method which uses proxy and model data to reconstruct climate over the past 12,000 years.
 
+This code and readmea are still under development.
+
 ## 2. Getting started
 
 The Holocene Reconstruction code is written in python3.  The instructions below will help you download the Holocene Reconstruction code, download the necessary data files, install python3, and get the code set up to run.
