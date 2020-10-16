@@ -1,7 +1,5 @@
 # README FOR HOLOCENE DATA ASSIMILATION
-Written by:   Michael P. Erb
-Contact:      michael.erb@nau.edu
-Last updated: 10/7/2020
+Written by: Michael P. Erb, Contact: michael.erb@nau.edu
 
 ## 1. Introduction
 
