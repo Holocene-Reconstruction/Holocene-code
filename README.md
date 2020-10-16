@@ -5,7 +5,7 @@ Written by: Michael P. Erb, Contact: michael.erb@nau.edu
 
 The code is part of the Holocene Reconstruction project.  It is a data assimilation method which uses proxy and model data to reconstruct climate over the past 12,000 years.
 
-This code and readmea are still under development.
+This code and readme are still under development.
 
 ## 2. Getting started
 
