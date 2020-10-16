@@ -23,7 +23,7 @@ Clone this code into your Linux environment with the command:
 
 The code uses climate model output as well as proxy data files.  To get this data, download the zip file from this link: [data on Google Drive](https://drive.google.com/file/d/1Iqfbpa4mhoIw_ccKYzfljkkTTz47HKzJ/view?usp=sharing)
 
-Put this fine in a convenient place and it using `unzip holocene_da_data.zip`.  It should contain the following subdirectories:
+Put this fine in a convenient place and unzip it using `unzip holocene_da_data.zip`.  It should contain the following subdirectories:
 
     models/   Model output
     proxies/  Proxy files
@@ -42,7 +42,7 @@ Most of the necessary packages should come with the standard Python 3 installati
 
 NOTE: If you have trouble installing the LiPD library, you can use the following workaround:
  1. Clone the github repository at [https://github.com/nickmckay/LiPD-utilities](https://github.com/nickmckay/LiPD-utilities) to a convenient location
- 2. Go to your Holocene Reconstruction directory and open config_default.yml.  Change the "lipd_dir" line near the top to specify the location of the newly-created lipd directory.  If you're not using this workaround, feel free to delete the 'lipd_dir' line in config_default.yml.
+ 2. Go to your Holocene Reconstruction directory and open config_default.yml.  Change the "lipd_dir" line near the top to specify the location of the newly created LiPD directory.  If you're not using this workaround, feel free to delete the 'lipd_dir' line in config_default.yml.
 
 ### 2.4. First-time setup
 
@@ -63,7 +63,52 @@ The code will update you on what it's doing as it runs.  However, since the code
 
 ### 3.1. Experimental options
 
-Running the code as-is will run the default experiment.  To change options and set up new experiments, change variables in the "config.py" file.  These variables are explained below.
+NOTE: THIS SECTION IS STILL BEING WRITTEN.  PLEASE FORGIVE ANY INCOMPLETE OR CONFUSING EXPLANATIONS.
 
-[Add explanation of variables.]
+Running the code as-is will run the default experiment.  To change options and set up new experiments, change variables in the `config.py` file.  Some of these variables are explained below, and some additional options can be seen in the config.py file.
 
+##### Age range to reconstruct
+
+By default, the Holocene Reconstruction code reconstructs the past 12,000 years.  This is set in the `age_range_to_reconstruct` variable (default: [0,12000]), but can be shortened or lengthened as requested.  The Temp12k proxy database contains some proxy data older than 12ka, but the quality of the reconstruction will decline as the number of available proxies diminish.  Another relavant variable is `reference_period` (default: [0,5000]), which defines the reference period used for every proxy.  Proxies without data in this reference period will not be used.
+
+##### Proxies to assimilate
+
+The variable `proxy_datasets_to_assimilate` (default: ['temp12k']) lists the proxy database(s) that should be assimilated.  For now, only Temp12k proxies are supported out-of-the-box.  Other proxy datasets, such as PAGES2k, may be added later.
+
+##### Models to use as the prior
+
+The variable `models_for_prior` (default: ['trace_regrid']) defines the model simulation(s) which will be used as the model prior.  Only TraCE is included in the download in section 2.2 above, but I'll add HadCM3 soon as well.
+
+##### The size of the prior 'window'
+
+The model prior consists of a set of model states chosen from the simulation specified above.  By default, the code does not use all of the modeled climate states, but selects a 'window' of time surrounding each year of the reconstruction.  The length of this window, in years, is set in the variable `prior_window` (default: 5010).  A smaller value will allow the prior to change more through time, but too few model years may result in a degraded reconstruction, and vice versa.  To use all climate states from the model prior (resulting in a prior that does not change with time) set this to 'all'.
+
+##### Time resolutions
+
+The Holocene Reconstruction uses a multi-timescale approach to data assimilation, which can assimilate proxies at a variety of timescales.  To set exactly how this works, the variables `time_resolution` (default: 10) and `maximum_resolution` (default: 1000) can be changed.  `time_resolution` defines the base temporal resolution that the code will use, in years.  Proxy data will be processed at this resolution, and the final reconstruction will be output at this resolution.  Few proxies in the Temp12k database have temporal resolution finer than this.  Altering this number should also affect the speed of the data assimilation, but this has not be well-tested.  `maximum_resolution` specifies the maximum temporal resolution for processing proxies, in years.  This option is a bit techinal, and does not affect which proxies are assimilated or not.  Instead, it only affects the timescale which is used when translating proxy data to the larger climate system; proxy data points which appear to respresent longer periods of time will be assumed to represent this amount of time instead.  [TODO: improve this explanation.]
+
+##### Localization radius
+
+If a localization radius is desired, set it in the `localization_radius` (default: None) variable.  The localization radius should be in meters.  For this to work, the variable `assimate_together` (default: True) should be set to False.  Doing this will significantly slow down the data assimilation, since assimilating proxies one at a time is more time-consuming, but must be done for a localization radius to work.
+
+##### Assimilating only a portion of the proxy database
+
+By default, all valid proxies are assimilated.  To change this, set the variable `percent_to_assimilate` (default: 100) to a lower number.
+
+## 4. Reconstruction output
+
+The Holocene Reconstruction is saved as a netCDF file.  When the code is done running, the output will be saved in the directory set in 'config.yml' as 'data_dir', under the subdirectory 'results'.  The filename contains the timestamp of when the reconstruction finished. 
+
+### 4.1. Output variables
+
+The variables saved in the output netCDF files as as follows:
+
+[Coming soon.]
+
+### 4.2. Basic analysis
+
+Within your Holocene Reconstruction directory, the subdirectory 'analysis' contains a Python 3 script for making a simple analysis.
+
+Before running this script, open the script in a text editory and update the `recon_dir` and `recon_filename` variables to point to your reconstruction netCDF output.
+
+Feel free to use this script as a starting point for more in-depth analysis.
