@@ -3,32 +3,20 @@ Written by:   Michael P. Erb
 Contact:      michael.erb@nau.edu
 Last updated: 10/7/2020
 
-===============
-1. Introduction
-===============
+## 1. Introduction
 
-The code is part of the Holocene Reconstruction project.  It is a data
-assimilation method which uses proxy and model data to reconstruct
-climate over the past 12,000 years.
+The code is part of the Holocene Reconstruction project.  It is a data assimilation method which uses proxy and model data to reconstruct climate over the past 12,000 years.
 
-==================
-2. Getting started
-==================
+## 2. Getting started
 
-The Holocene Reconstruction code is written in python3.  The instructions
-below will help you download the Holocene Reconstruction code, download
-the necessary data files, install python3, and get the code set up to run.
+The Holocene Reconstruction code is written in python3.  The instructions below will help you download the Holocene Reconstruction code, download the necessary data files, install python3, and get the code set up to run.
 
-  ---------------------------------------------
-  2.1. Getting the Holocene Reconstruction code
-  ---------------------------------------------
+### 2.1. Getting the Holocene Reconstruction code
 
 Clone this code into your Linux environment with the command:
-   git clone https://github.com/michaelerb/Holocene-DA.git
+    git clone https://github.com/michaelerb/Holocene-DA.git
 
-  -------------------------------------
-  2.2. Getting the necessary data files
-  -------------------------------------
+#### 2.2. Getting the necessary data files
 
 The code uses climate model output as well as proxy data files.  To get
 this data, download the zip file from this link:
