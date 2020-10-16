@@ -13,7 +13,9 @@ The Holocene Reconstruction code is written in python3.  The instructions below 
 
 ### 2.1. Getting the Holocene Reconstruction code
 
-Clone this code into your Linux environment with the command: `git clone https://github.com/michaelerb/Holocene-DA.git`
+Clone this code into your Linux environment with the command:
+
+    git clone https://github.com/michaelerb/Holocene-DA.git
 
 ### 2.2. Getting the necessary data files
 
@@ -21,11 +23,10 @@ The code uses climate model output as well as proxy data files.  To get this dat
 `https://drive.google.com/file/d/1Iqfbpa4mhoIw_ccKYzfljkkTTz47HKzJ/view?usp=sharing`
 
 Unzip the file using "unzip holocene_da_data.zip".  It should contain the following subdirectories:
-```
-models/   Model output
-proxies/  Proxy files
-results/  Results of the data assimilation (initially empty)
-```
+
+    models/   Model output
+    proxies/  Proxy files
+    results/  Results of the data assimilation (initially empty)
 
 The data currently includes only the TraCE model output and Temp12k proxies.  Other data may be added later.
 
@@ -34,10 +35,9 @@ The data currently includes only the TraCE model output and Temp12k proxies.  Ot
 Make sure that you have Python 3 installed.  If you don't already have it, one option is the package manager Anaconda: `https://docs.anaconda.com/anaconda/install/`
 
 Most of the necessary packages should come with the standard Python 3 installation.  The only ones you may need to install are "pyyaml" and "lipd".  Either install these yourself (note: LiPD can be installed with "pip install LiPD") or go to the Holocene Reconstruciton directory and use the commands below to create a new Python 3 environment with the necessary packages and switch to it:
-```
-   conda env create -f environment_da.py
-   conda activate python3_da
-```
+
+    conda env create -f environment_da.py
+    conda activate python3_da
 
 NOTE: If you have trouble installing the LiPD library, you can use the following workaround: clone the github repository at "https://github.com/nickmckay/LiPD-utilities" and then change the "lipd_dir" line near the top of config_default.yml to specify the location of that directory.  If you're not using this workaround, feel free to delete "lipd_dir" line in config_default.yml.
 
@@ -51,16 +51,12 @@ Before running the code for the first time, several things must be done:
 ## 3. Running the code
 
 You should now be ready to run the data assimilation code.  To run the code using the default options, go to the Holocene Reconstruction directory and execute the command:
-```
-python -u da_main_code.py config.yml > output_logfile.txt
-```
+
+    python -u da_main_code.py config.yml > output_logfile.txt
 
 If you use Slurm, you can use the run_da.sh file instead.  Run it with:
-```
-sbatch run_da.sh
-```
 
-    testing
+    sbatch run_da.sh
 
 ### 3.1. Experimental options
 
