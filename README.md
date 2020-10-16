@@ -146,3 +146,6 @@ Within your Holocene Reconstruction directory, the subdirectory 'analysis' conta
 Before running this script, open the script in a text editor and update the `recon_dir` and `recon_filename` variables to point to your reconstruction netCDF output.
 
 Feel free to use this script as a starting point for more in-depth analysis.
+
+
+Should something be added to this readme?  Let me know at michael.erb@nau.edu.
