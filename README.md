@@ -101,7 +101,7 @@ The Holocene Reconstruction is saved as a netCDF file.  When the code is done ru
 
 ### 5.1. Output variables
 
-The variables saved in the output netCDF files are as follows.  Values inside brackets indicates the dimensions of the output variables.  The data assimilation code produces an ensemble of climate states, which is indicated as the 'ens' dimension.  For some variables, a randomly selected subset of the ensemble members is saved to reduce the file size.
+The variables saved in the output netCDF files are described below.  Terms inside brackets describe the dimensions of the output variables.  Regarding ensemble members, the data assimilation code produces an ensemble of climate states, which is indicated as the 'ens' dimension.  Means and medians of the ensemble members are computed.  For some variables, a randomly selected subset of the ensemble members ('ens_selected') is saved to reduce the file size.
 
 For now, all reconstructed values and proxy inputs are temperature.
 
@@ -130,18 +130,17 @@ For now, all reconstructed values and proxy inputs are temperature.
 
 #### Additional outputs
 
-    options              [options]    Values of options set in the config.yml file when running the reconstruction
+    options              [options]    The values set in the config.yml file when running the reconstruction
     prior_gmt            [age,ens]    The global-mean of the prior for all ensemble members
     proxies_selected     [proxy]      The proxies which, in theory, were selected for assimilation according to 'percent_to_assimilate'
     proxies_assimilated  [age,proxy]  The proxies which were actually assimilated at each time step.  This may differ from 'proxies_selected' in some cases.
 
 ### 5.2. Basic analysis
 
-Within your Holocene Reconstruction directory, the subdirectory 'analysis' contains a Python 3 script for making a simple analysis.
+Within your Holocene Reconstruction directory, the subdirectory 'analysis' contains a Python 3 script for making a simple analysis.  Feel free to use this script as a starting point for more in-depth analysis.
 
-Before running this script, open the script in a text editor and update the `recon_dir` and `recon_filename` variables to point to your reconstruction netCDF output.
+Before running the script, open it in a text editor and update the `recon_dir` and `recon_filename` variables to point to the netCDF output you want to analyze.
 
-Feel free to use this script as a starting point for more in-depth analysis.
-
+---
 
 Should something be added to this readme?  Let me know at michael.erb@nau.edu.
