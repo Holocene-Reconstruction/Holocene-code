@@ -2,4 +2,5 @@ config.yml
 __pycache__/*
 *~
 output_logfile.txt
+output_logfile.out
 notes.txt
