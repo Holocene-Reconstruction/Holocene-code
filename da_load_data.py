@@ -49,12 +49,12 @@ def load_model_data(options):
         time_ndays_model_individual = handle_model['days_per_month_all'].values
         handle_model.close()
         #
-        # Trim the data
-        if (model == 'hadcm3_regrid') or (model == 'trace_regrid'):
-            indices_selected = np.where((age_model_individual >= 0) & (age_model_individual < 13000))[0]
-            tas_model_individual        = tas_model_individual[indices_selected,:,:,:]
-            time_ndays_model_individual = time_ndays_model_individual[indices_selected,:]
-            age_model_individual        = age_model_individual[indices_selected]
+        # Trim the data #TODO: I've commented this out.  What was it's original purpose?
+        #if (model == 'hadcm3_regrid') or (model == 'trace_regrid'):
+        #    indices_selected = np.where((age_model_individual >= 0) & (age_model_individual < 13000))[0]
+        #    tas_model_individual        = tas_model_individual[indices_selected,:,:,:]
+        #    time_ndays_model_individual = time_ndays_model_individual[indices_selected,:]
+        #    age_model_individual        = age_model_individual[indices_selected]
         #
         # In each model, central values will not be selected within max_resolution/2 of the edges
         valid_model_inds_individual = np.full((tas_model_individual.shape[0]),True,dtype=bool)

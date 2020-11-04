@@ -46,9 +46,11 @@ filtered_ts,collection_all = da_load_data.load_proxies(options)
 
 ### SET THINGS UP
 
-# Set age range to reconstruct
+# Set age range to reconstruct, as wel as the reference period
 age_bounds = np.arange(options['age_range_to_reconstruct'][0],options['age_range_to_reconstruct'][1]+1,options['time_resolution'])
 age_centers = (age_bounds[:-1]+age_bounds[1:])/2
+age_bounds_ref = np.arange(options['reference_period'][0],options['reference_period'][1]+1,options['time_resolution'])
+age_centers_ref = (age_bounds_ref[:-1]+age_bounds_ref[1:])/2
 
 # Get dimensions
 n_models  = len(options['models_for_prior'])
@@ -108,12 +110,17 @@ for i in range(n_proxies):
     proxy_age_bounds = np.append(proxy_age_bounds,end_oldest)
     #
     # Interpolate proxy data to the base resolution, using nearest-neighbor interpolation
+    #TODO: Consider removing the reference period before shortening the proxies, so that the code will still work if these two periods don't overlap.
     proxy_data_12ka = np.zeros((n_ages)); proxy_data_12ka[:] = np.nan
     proxy_res_12ka  = np.zeros((n_ages)); proxy_res_12ka[:]  = np.nan
+    proxy_data_12ka_ref = np.zeros((len(age_centers_ref))); proxy_data_12ka_ref[:] = np.nan
     for j in range(len(proxy_age_bounds)-1):
         indices_selected = np.where((age_centers >= proxy_age_bounds[j]) & (age_centers < proxy_age_bounds[j+1]))[0]
         proxy_data_12ka[indices_selected] = proxy_data[j]
         proxy_res_12ka[indices_selected]  = int(round((proxy_age_bounds[j+1] - proxy_age_bounds[j]) / options['time_resolution']))
+        #
+        indices_selected_ref = np.where((age_centers_ref >= proxy_age_bounds[j]) & (age_centers_ref < proxy_age_bounds[j+1]))[0]
+        proxy_data_12ka_ref[indices_selected_ref] = proxy_data[j]
     #
     #plt.plot(age_centers,proxy_data_12ka)
     #plt.show()
@@ -123,9 +130,8 @@ for i in range(n_proxies):
     proxy_res_12ka[proxy_res_12ka > max_res_value] = max_res_value
     #
     # Remove the mean of the reference period
-    indices_ref = np.where((age_centers >= options['reference_period'][0]) & (age_centers < options['reference_period'][1]))[0]
-    proxy_data_12ka_anom = proxy_data_12ka - np.nanmean(proxy_data_12ka[indices_ref])
-    if np.isnan(proxy_data_12ka[indices_ref]).all(): print('No data in reference period, index: '+str(i)); no_ref_data += 1
+    proxy_data_12ka_anom = proxy_data_12ka - np.nanmean(proxy_data_12ka_ref)
+    if np.isnan(proxy_data_12ka_ref).all(): print('No data in reference period, index: '+str(i)); no_ref_data += 1
     #
     # Save to common variables (y and ya)
     proxy_values_all[i,:]     = proxy_data_12ka_anom

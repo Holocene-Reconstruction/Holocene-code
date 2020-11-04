@@ -11,6 +11,14 @@ import glob
 import copy
 import netCDF4
 
+"""
+model_name         = 'cesm_lme'
+time_resolution    = 1
+age_range          = [101,1099]
+model_dir          = '/projects/pd_lab/data/data_assimilation/models/processed_model_data/'
+original_model_dir = '/projects/pd_lab/data/data_assimilation/models/original_model_data/'
+"""
+
 # A function to process model data
 def process_models(model_name,time_resolution,age_range,output_dir,original_model_dir):
     #
@@ -19,10 +27,11 @@ def process_models(model_name,time_resolution,age_range,output_dir,original_mode
     #
     # Set directories
     data_dir = {}
-    data_dir['hadcm3']            = original_model_dir+'/HadCM3B_transient21k/'
-    data_dir['trace']             = original_model_dir+'/TraCE_21ka/'
-    data_dir['gfdl_cm21_control'] = original_model_dir+'/GFDL_CM21_control/'
-    data_dir['ipsl_control']      = original_model_dir+'/IPSL_CM6A_LR_control/'
+    data_dir['hadcm3']            = original_model_dir+'HadCM3B_transient21k/'
+    data_dir['trace']             = original_model_dir+'TraCE_21ka/'
+    data_dir['cesm_lme']          = original_model_dir+'CESM_LME/'
+    data_dir['gfdl_cm21_control'] = original_model_dir+'GFDL_CM21_control/'
+    data_dir['ipsl_control']      = original_model_dir+'IPSL_CM6A_LR_control/'
     #
     print(' === Processing model data for '+model_name+', directory: '+data_dir[model_name]+' ===')
     #
@@ -38,7 +47,7 @@ def process_models(model_name,time_resolution,age_range,output_dir,original_mode
     if model_name == 'hadcm3':
         #
         # Load model surface air temperature
-        handle_model = xr.open_dataset(data_dir['hadcm3']+'deglh.vn1_0.temp_mm_1_5m.monthly.MON.001.nc',decode_times=False)
+        handle_model = xr.open_dataset(data_dir[model_name]+'deglh.vn1_0.temp_mm_1_5m.monthly.MON.001.nc',decode_times=False)
         tas_model = np.squeeze(handle_model['temp_mm_1_5m'].values)
         lat_model = handle_model['latitude'].values
         lon_model = handle_model['longitude'].values
@@ -55,7 +64,7 @@ def process_models(model_name,time_resolution,age_range,output_dir,original_mode
         #
     elif model_name == 'trace':
         #
-        filenames_model = sorted(glob.glob(data_dir['trace']+'trace*TREFHT*.nc'))
+        filenames_model = sorted(glob.glob(data_dir[model_name]+'trace*TREFHT*.nc'))
         age_model = -1*np.arange(-22000,40)  # Ages are shown as "before present," where present is 1950 CE.
         #
         # Set the number of days per month in every year
@@ -82,9 +91,29 @@ def process_models(model_name,time_resolution,age_range,output_dir,original_mode
             if filenum == 0: tas_model_yearsmonths = copy.deepcopy(tas_model_section_2d)
             else:            tas_model_yearsmonths = np.concatenate((tas_model_yearsmonths,tas_model_section_2d),axis=0)
         #
+    elif model_name == 'cesm_lme':
+        #
+        # Load model surface air temperature
+        handle_model = xr.open_dataset(data_dir[model_name]+'b.e11.BLMTRC5CN.f19_g16.001.cam.h0.TREFHT.085001-184912.nc',decode_times=False)
+        tas_model  = handle_model['TREFHT'].values
+        lat_model  = handle_model['lat'].values
+        lon_model  = handle_model['lon'].values
+        time_model = handle_model['time'].values
+        handle_model.close()
+        age_model = 1950 - (np.arange(850,1850,1) + 0.5)
+        #
+        # Set the number of days per month in every year
+        time_model = np.insert(time_model,0,0,axis=0)
+        time_ndays_model_all = time_model[1:] - time_model[:-1]
+        time_ndays_model_yearsmonths = np.reshape(time_ndays_model_all,(len(age_model),12))
+        time_ndays_model = np.mean(time_ndays_model_yearsmonths,axis=0)
+        #
+        # Reshape the HadMC3 array to have months and years on different axes.
+        tas_model_yearsmonths = np.reshape(tas_model,(int(len(age_model)),12,len(lat_model),len(lon_model)))
+        #
     elif model_name == 'gfdl_cm21_control':
         #
-        handle_model = xr.open_dataset(data_dir['gfdl_cm21_control']+'atmos.000101-400012.t_ref.nc',decode_times=False)
+        handle_model = xr.open_dataset(data_dir[model_name]+'atmos.000101-400012.t_ref.nc',decode_times=False)
         tas_model         = handle_model['t_ref'].values        # Temperature [months,lat,lon]
         lat_model         = handle_model['lat'].values          # Latitude [lat]
         lon_model         = handle_model['lon'].values          # Longitude [lon]
@@ -103,7 +132,7 @@ def process_models(model_name,time_resolution,age_range,output_dir,original_mode
         #
     elif model_name == 'ipsl_control':
         #
-        handle_model = xr.open_dataset(data_dir['ipsl_control']+'tas_Amon_IPSL-CM6A-LR_piControl_r1i1p1f1_gr_concat_185001-384912.nc',decode_times=False)
+        handle_model = xr.open_dataset(data_dir[model_name]+'tas_Amon_IPSL-CM6A-LR_piControl_r1i1p1f1_gr_concat_185001-384912.nc',decode_times=False)
         tas_model         = handle_model['tas'].values
         lat_model         = handle_model['lat'].values
         lon_model         = handle_model['lon'].values
@@ -127,7 +156,9 @@ def process_models(model_name,time_resolution,age_range,output_dir,original_mode
     print('tas variable shape:',tas_model_yearsmonths.shape)
     print('Model resolution:',np.mean(lat_model[:-1] - lat_model[1:]),np.mean(lon_model[1:] - lon_model[:-1]))
     print('Age bounds:',age_model[0],age_model[-1])
-    print('Mean temp',np.mean(tas_model_yearsmonths.flatten()))
+    j0 = np.argmin(np.abs(lat_model-0))
+    i0 = np.argmin(np.abs(lon_model-0))
+    print('Mean temp at '+str(lat_model[j0])+'N, '+str(lon_model[i0])+'E:',np.mean(tas_model_yearsmonths[:,:,j0,i0].flatten()))
     #
     # Check the number of days per month
     years_same = np.all(np.all(time_ndays_model_yearsmonths == time_ndays_model_yearsmonths[0,:],axis=0),axis=0)
