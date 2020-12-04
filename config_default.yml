@@ -13,19 +13,20 @@ assimate_together:      True        # If False, assimile proxies one at a time (
 localization_radius:    None        # Localization radius, in meters [None,15000]  Only works if assimate_together=False
 resolution_band:        [None,None] # Only assimiate proxies with median resolutions in this band.
 verbose_level:          0           # How much output to print to screen.  Higher numbers = more output.
-assign_seasonality:     False       # If something other than false, all proxies are set to sepecific seasonalities [False,'annual','summer','winter']
+assign_seasonality:     False       # If something other than false, all proxies are set to sepecific seasonalities [False,'annual','summer','winter','jja','djf']
 uncertainty_multiplier: 1           # Adjust the proxy uncertainties by multiplying them by this value [1,0.5,etc.]
 filename_mse:           None        # A file containing TSids and MSE values for each proxy.  [None,'path/to/file.txt']
+assimilate_region:      False       # Assimilate only the proxies in the given region.  False=global, or specify region as [lat_min,lat_max,lon_min,lon_max] using lons between 0-360.  
 percent_to_assimilate:  100         # What percentage of proxies to assimilate [100]
 seed_for_proxy_choice:  0           # This seed in only used if 'percent_to_assimilate' is below 100 [0]
 
-# Models for prior ['hadcm3','trace','gfdl_cm21_control','ipsl_control','hadcm3_regrid','trace_regrid','gfdl_cm21_control_regrid','ipsl_control_regrid']
+# Models for prior ['hadcm3','trace','cesm_lme','gfdl_cm21_control','ipsl_control'] (Add '_regrid' to the end of a model name for a regridded version)
 models_for_prior: ['trace_regrid']
 
-# Proxy datasets ['temp12k','pages2k','pages2k_screened']
+# Proxy datasets ['temp12k','pages2k','pages2k_screened','pseudoproxies_temp12k_generated_from_hadcm3','pseudoproxies_temp12k_generated_from_trace']
 proxy_datasets_to_assimilate: ['temp12k']
 
 # Age ranges
 age_range_to_reconstruct: [0,12000]
-reference_period:         [0,5000]
+reference_period:         [3000,5000]
 age_range_model:          [0,22000]

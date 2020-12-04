@@ -279,3 +279,25 @@ def global_mean(variable,lats,index_lat,index_lon):
     variable_global = np.average(variable_zonal,axis=index_lat,weights=lat_weights)
     return variable_global
 
+# This function takes a time-lat-lon variable and computes the mean for a given range of lon and lat.
+def spatial_mean(variable,lats,lons,lat_min,lat_max,lon_min,lon_max,index_lat,index_lon,verbose=False):
+    #
+    j_selected = np.where((lats >= lat_min) & (lats <= lat_max))[0]
+    i_selected = np.where((lons >= lon_min) & (lons <= lon_max))[0]
+    if verbose: print('Computing spatial mean. lats='+str(lats[j_selected[0]])+'-'+str(lats[j_selected[-1]])+', lons='+str(lons[i_selected[0]])+'-'+str(lons[i_selected[-1]])+'.  Points are inclusive.')
+    #
+    if   index_lon == 1: variable_zonal = np.nanmean(variable[:,i_selected],    axis=1)
+    elif index_lon == 2: variable_zonal = np.nanmean(variable[:,:,i_selected],  axis=2)
+    elif index_lon == 3: variable_zonal = np.nanmean(variable[:,:,:,i_selected],axis=3)
+    else: print('Invalid lon dimension chosen'); return None
+    #
+    lat_weights = np.cos(np.radians(lats))
+    if index_lon < index_lat: index_lat = index_lat-1
+    if   index_lat == 0: variable_mean = np.average(variable_zonal[j_selected],    axis=0,weights=lat_weights[j_selected])
+    elif index_lat == 1: variable_mean = np.average(variable_zonal[:,j_selected],  axis=1,weights=lat_weights[j_selected])
+    elif index_lat == 2: variable_mean = np.average(variable_zonal[:,:,j_selected],axis=2,weights=lat_weights[j_selected])
+    else: print('Invalid lat dimension chosen'); return None
+    #
+    return variable_mean
+
+

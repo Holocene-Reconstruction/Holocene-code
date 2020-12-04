@@ -20,7 +20,7 @@ original_model_dir = '/projects/pd_lab/data/data_assimilation/models/original_mo
 """
 
 # A function to process model data
-def process_models(model_name,time_resolution,age_range,output_dir,original_model_dir):
+def process_models(model_name,time_resolution,age_range,output_dir,original_model_dir,return_variables=False):
     #
     # If the model name ends in "_regrid", remove that part of the model name.
     if model_name[-7:] == '_regrid': model_name = model_name[:-7]
@@ -166,6 +166,9 @@ def process_models(model_name,time_resolution,age_range,output_dir,original_mode
     #
     # Convert the model output from K to C
     tas_model_yearsmonths = tas_model_yearsmonths - 273.15
+    #
+    # Return variables if requested
+    if return_variables: return tas_model_yearsmonths,age_model,lat_model,lon_model,time_ndays_model_yearsmonths
     #
     # Make the prior years run from newest to oldest  #TODO: Why do I do this?
     #age_model             = np.flip(age_model,            axis=0)

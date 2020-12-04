@@ -7,6 +7,7 @@
 import sys
 import da_utils_lmr
 import da_process_models
+import da_pseudoproxies
 import numpy as np
 import pickle
 import xarray as xr
@@ -89,14 +90,14 @@ def load_proxies(options):
     # Set the necessary directories
     dir_proxies_temp12k = options['data_dir']+'proxies/temp12k/'
     dir_proxies_pages2k = options['data_dir']+'proxies/pages2k/'
+    dir_proxies_pseudo  = options['data_dir']+'proxies/pseudoproxies/'
     collection_all = []
     #
     append_proxies = False
     n_datasets = len(options['proxy_datasets_to_assimilate'])
     for i,proxy_dataset in enumerate(options['proxy_datasets_to_assimilate']):
+        print('Loading proxy dataset '+str(i+1)+'/'+str(n_datasets)+': '+proxy_dataset)
         if proxy_dataset == 'temp12k':
-            #
-            print('Loading proxy dataset '+str(i+1)+'/'+str(n_datasets)+': Temp12k')
             #
             # Load lipd
             if 'lipd_dir' in options: sys.path.append(options['lipd_dir'])
@@ -112,13 +113,22 @@ def load_proxies(options):
             filtered_ts_temp12k = lipd.filterTs(all_ts_12k,         'paleoData_inCompilation == Temp12k')
             filtered_ts         = lipd.filterTs(filtered_ts_temp12k,'paleoData_units == degC')
             #
+            #TODO: Make sure that the temporary fix below actually works
+            # Find the right GISP2 ages
+            for i in range(len(all_ts_12k)):
+                if (all_ts_12k[i]['dataSetName'] == 'Alley.GISP2.2000') & (all_ts_12k[i]['paleoData_variableName'] == 'age'): gisp2_ages = all_ts_12k[i]['paleoData_values']
+            #
+            # Fix the GISP2 ages
+            for i in range(len(filtered_ts)):
+                if (filtered_ts[i]['dataSetName'] == 'Alley.GISP2.2000') & (np.max(np.array(filtered_ts[i]['age']).astype(np.float)) < 50):
+                    print('Fixing GISP2 ages')
+                    filtered_ts[i]['age'] = gisp2_ages
+            #
             # Specify the collection
             collection_all = collection_all + ([proxy_dataset] * len(filtered_ts))
             append_proxies = True
             #
         elif proxy_dataset == 'pages2k':
-            #
-            print('Loading proxy dataset '+str(i+1)+'/'+str(n_datasets)+': PAGES2k')
             #
             # Load the PAGES2k proxies
             file_to_open = open(dir_proxies_pages2k+'proxies_pages2k_temp_with_psms.pkl','rb')
@@ -137,8 +147,6 @@ def load_proxies(options):
                 print('Skipping "pages2k_screened".')
                 continue
             #
-            print('Loading proxy dataset '+str(i+1)+'/'+str(n_datasets)+': PAGES2k_screened')
-            #
             # Load the screened PAGES2k proxies
             file_to_open = open(dir_proxies_pages2k+'proxies_pages2k_temp_with_psms_screened.pkl','rb')
             filtered_ts_pages2k_screened = pickle.load(file_to_open)
@@ -147,6 +155,31 @@ def load_proxies(options):
             collection_all = collection_all + ([proxy_dataset] * len(filtered_ts_pages2k_screened))
             if append_proxies == False: filtered_ts = filtered_ts_pages2k_screened
             else: filtered_ts = filtered_ts + filtered_ts_pages2k_screened
+            #
+        elif proxy_dataset[0:14] == 'pseudoproxies_':
+            #
+            # Check to see if the file exists.  If not, create it.
+            proxy_filename = proxy_dataset+'.pkl'
+            filenames_all = glob.glob(dir_proxies_pseudo+'*.pkl')
+            filenames_all = [filename.split('/')[-1] for filename in filenames_all]
+            if proxy_filename not in filenames_all:
+                print('File '+dir_proxies_pseudo+proxy_filename+' does not exist.  Creating it now.')
+                proxies_to_use = proxy_dataset.split('_')[1]
+                model_to_use   = proxy_dataset.split('_')[4]
+                da_pseudoproxies.make_pseudoproxies(proxies_to_use,model_to_use,options)
+                print('File '+dir_proxies_pseudo+proxy_filename+' created!')
+            #
+            # Load the pseudoproxies
+            file_to_open = open(dir_proxies_pseudo+proxy_filename,'rb')
+            filtered_ts_pseudo = pickle.load(file_to_open)
+            file_to_open.close()
+            #
+            collection_all = collection_all + ([proxy_dataset] * len(filtered_ts_pseudo))
+            if append_proxies == False: filtered_ts = filtered_ts_pseudo
+            else: filtered_ts = filtered_ts + filtered_ts_pseudo
+            #
+        else:
+            print('ERROR: invalid proxy dataset: '+proxy_dataset)
     #
     return filtered_ts,collection_all
 

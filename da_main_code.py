@@ -25,6 +25,7 @@ starttime_total = time.time() # Start timer
 # The config file can be speficied when running the code.
 if len(sys.argv) > 1: config_file = sys.argv[1]
 else: config_file = 'config_default.yml'
+#else: config_file = 'config.yml'
 print('Using configuration file: '+config_file)
 with open(config_file,'r') as file:
     options = yaml.load(file,Loader=yaml.FullLoader)
@@ -66,6 +67,8 @@ proxy_values_all       = np.zeros((n_proxies,n_ages));         proxy_values_all[
 proxy_resolution_all   = np.zeros((n_proxies,n_ages));         proxy_resolution_all[:]  = np.nan  # ya
 proxy_uncertainty_all  = np.zeros((n_proxies));                proxy_uncertainty_all[:] = np.nan  # R
 proxy_metadata_all     = np.zeros((n_proxies,8),dtype=object); proxy_metadata_all[:]    = np.nan
+proxy_lat_all          = np.zeros((n_proxies));                proxy_lat_all[:]         = np.nan
+proxy_lon_all          = np.zeros((n_proxies));                proxy_lon_all[:]         = np.nan
 proxy_estimates_all    = np.array([dict() for k in range(n_proxies)])  # HXb
 
 # Compute annual means of the model data
@@ -102,7 +105,7 @@ for i in range(n_proxies):
         proxy_data = np.flip(proxy_data)
         proxy_ages = np.flip(proxy_ages)
     #
-    # compute age bounds of the proxy observations as the midpoints between data
+    # Compute age bounds of the proxy observations as the midpoints between data
     proxy_age_bounds = (proxy_ages[1:]+proxy_ages[:-1])/2
     end_newest = proxy_ages[0]  - (proxy_ages[1]-proxy_ages[0])/2
     end_oldest = proxy_ages[-1] + (proxy_ages[-1]-proxy_ages[-2])/2
@@ -162,17 +165,25 @@ for i in range(n_proxies):
     elif options['assign_seasonality'] == 'winter':
         if proxy_lat >= 0: proxy_seasonality_array = np.array([-12,1,2])
         else:              proxy_seasonality_array = np.array([6,7,8])
+    elif options['assign_seasonality'] == 'jja':
+        proxy_seasonality_array = np.array([6,7,8])
+    elif options['assign_seasonality'] == 'djf':
+        proxy_seasonality_array = np.array([-12,1,2])
     #
     # Save some metadata to a common variable
+    if proxy_lon < 0: proxy_lon = proxy_lon+360
     proxy_uncertainty_all[i] = np.square(proxy_uncertainty)  # Proxy uncertainty was give as RMSE, but the code uses MSE
     proxy_metadata_all[i,0] = filtered_ts[i]['dataSetName']
     proxy_metadata_all[i,1] = filtered_ts[i]['paleoData_TSid']
-    proxy_metadata_all[i,2] = str(filtered_ts[i]['geo_meanLat'])
-    proxy_metadata_all[i,3] = str(filtered_ts[i]['geo_meanLon'])
+    proxy_metadata_all[i,2] = str(proxy_lat)
+    proxy_metadata_all[i,3] = str(proxy_lon)
     proxy_metadata_all[i,4] = str(proxy_seasonality_array)
     proxy_metadata_all[i,5] = proxy_seasonality_general
     proxy_metadata_all[i,6] = str(np.median(proxy_ages[1:]-proxy_ages[:-1]))
     proxy_metadata_all[i,7] = collection_all[i]
+    #
+    proxy_lat_all[i] = proxy_lat
+    proxy_lon_all[i] = proxy_lon
     #
     # If requested, adjust the uncertainty with a multiplier
     if options['uncertainty_multiplier'] != 1:
@@ -181,10 +192,13 @@ for i in range(n_proxies):
     # If requested, replace the uncertainty will a value from a file which contains TSids and MSE uncertainty values
     if options['filename_mse'] != 'None':
         index_uncertainty = np.where(filtered_ts[i]['paleoData_TSid'] == proxy_uncertainties_from_file[:,0])[0]
-        proxy_uncertainty_all[i] = proxy_uncertainties_from_file[index_uncertainty,1].astype(np.float)
+        if len(index_uncertainty) == 0:
+            print('No prescribed error value in file for proxy '+str(i)+', TSid: '+str(filtered_ts[i]['paleoData_TSid'])+'.  Setting to NaN.')
+            proxy_uncertainty_all[i] = np.nan
+        else:
+            proxy_uncertainty_all[i] = proxy_uncertainties_from_file[index_uncertainty,1].astype(np.float)
     #
     # Find the model gridpoint closest to the proxy location
-    if proxy_lon < 0: proxy_lon = proxy_lon+360
     lon_model_wrapped = np.append(lon_model,lon_model[0]+360)
     j_selected = np.argmin(np.abs(lat_model-proxy_lat))
     i_selected = np.argmin(np.abs(lon_model_wrapped-proxy_lon))
@@ -237,6 +251,8 @@ recon_mean    = np.zeros((n_state,n_ages));              recon_mean[:]    = np.n
 recon_median  = np.zeros((n_state,n_ages));              recon_median[:]  = np.nan
 recon_ens     = np.zeros((n_state,n_ens_tosave,n_ages)); recon_ens[:]     = np.nan
 recon_gmt_all = np.zeros((n_ages,n_ens));                recon_gmt_all[:] = np.nan
+recon_nh_all  = np.zeros((n_ages,n_ens));                recon_nh_all[:]  = np.nan
+recon_sh_all  = np.zeros((n_ages,n_ens));                recon_sh_all[:]  = np.nan
 prior_gmt_all = np.zeros((n_ages,n_ens));                prior_gmt_all[:] = np.nan
 ind_with_data_all = np.zeros((n_ages,n_proxies));        ind_with_data_all[:] = np.nan
 
@@ -251,6 +267,13 @@ else:
 
 proxy_ind_to_assimilate_boolean = np.full((n_proxies),False,dtype=bool)
 proxy_ind_to_assimilate_boolean[proxy_ind_to_assimilate] = True
+
+# If requested, select the proxies within the specified region
+if options['assimilate_region'] == False:
+    proxy_ind_in_region = np.full((n_proxies),True,dtype=bool)
+else:
+    region_lat_min,region_lat_max,region_lon_min,region_lon_max = options['assimilate_region']
+    proxy_ind_in_region = (proxy_lat_all >= region_lat_min) & (proxy_lat_all <= region_lat_max) & (proxy_lon_all >= region_lon_min) & (proxy_lon_all <= region_lon_max)
 
 # Loop through every age, doing the data assimilation with a time-varying prior
 print('Starting data assimilation')
@@ -301,7 +324,7 @@ for age_counter,age in enumerate(age_centers):
     Xb = np.transpose(prior)
     #
     # Select only the proxies which meet the criteria
-    ind_with_data = np.isfinite(proxy_uncertainty_all) & np.isfinite(proxy_values_for_age) & proxy_ind_to_assimilate_boolean
+    ind_with_data = np.isfinite(proxy_uncertainty_all) & np.isfinite(proxy_values_for_age) & proxy_ind_to_assimilate_boolean & proxy_ind_in_region
     proxy_med_res = proxy_metadata_all[:,6].astype(np.float)
     if options['resolution_band'][0] != 'None': ind_with_data = ind_with_data & (proxy_med_res >= options['resolution_band'][0])
     if options['resolution_band'][1] != 'None': ind_with_data = ind_with_data & (proxy_med_res < options['resolution_band'][1])
@@ -353,10 +376,14 @@ for age_counter,age in enumerate(age_centers):
     prior_gmt = da_utils.global_mean(tas_model_annual_for_prior,lat_model,1,2)
     prior_gmt_all[age_counter,:] = prior_gmt
     #
-    # Compute the global-mean of the reconstruction
+    # Compute the global and hemispheric means of the reconstruction
     Xa_latlon = np.reshape(Xa[:(n_lat*n_lon),:],(n_lat,n_lon,n_ens))
     recon_gmt = da_utils.global_mean(Xa_latlon,lat_model,0,1)
+    recon_nh = da_utils.spatial_mean(Xa_latlon,lat_model,lon_model,0,90,0,360,0,1)
+    recon_sh = da_utils.spatial_mean(Xa_latlon,lat_model,lon_model,-90,0,0,360,0,1)
     recon_gmt_all[age_counter,:] = recon_gmt
+    recon_nh_all[age_counter,:]  = recon_nh
+    recon_sh_all[age_counter,:]  = recon_sh
     #
     # Get the mean, median, and selected ensemble values
     recon_mean[:,age_counter]   = np.mean(Xa,axis=1)
@@ -414,6 +441,8 @@ output_proxyrecon_mean     = outputfile.createVariable('proxyrecon_mean',    'f4
 output_proxyrecon_median   = outputfile.createVariable('proxyrecon_median',  'f4',('age','proxy',))  
 output_proxyrecon_ens      = outputfile.createVariable('proxyrecon_ens',     'f4',('age','ens_selected','proxy',))
 output_recon_gmt           = outputfile.createVariable('recon_gmt',          'f4',('age','ens',))  
+output_recon_nh            = outputfile.createVariable('recon_nh_mean',      'f4',('age','ens',))  
+output_recon_sh            = outputfile.createVariable('recon_sh_mean',      'f4',('age','ens',))  
 output_prior_gmt           = outputfile.createVariable('prior_gmt',          'f4',('age','ens',))  
 output_ages                = outputfile.createVariable('ages',               'f4',('age',))
 output_lat                 = outputfile.createVariable('lat',                'f4',('lat',))
@@ -433,6 +462,8 @@ output_proxyrecon_mean[:]     = recon_mean_proxies
 output_proxyrecon_median[:]   = recon_median_proxies
 output_proxyrecon_ens[:]      = recon_ens_proxies
 output_recon_gmt[:]           = recon_gmt_all
+output_recon_nh[:]            = recon_nh_all
+output_recon_sh[:]            = recon_sh_all
 output_prior_gmt[:]           = prior_gmt_all
 output_ages[:]                = age_centers
 output_lat[:]                 = lat_model
