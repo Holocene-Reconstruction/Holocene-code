@@ -18,7 +18,7 @@ import yaml
 import matplotlib.pyplot as plt
 
 
-### OPTIONS
+#%% OPTIONS
 
 starttime_total = time.time() # Start timer
 
@@ -26,6 +26,7 @@ starttime_total = time.time() # Start timer
 if len(sys.argv) > 1: config_file = sys.argv[1]
 else: config_file = 'config_default.yml'
 #else: config_file = 'config.yml'
+
 print('Using configuration file: '+config_file)
 with open(config_file,'r') as file:
     options = yaml.load(file,Loader=yaml.FullLoader)
@@ -33,10 +34,11 @@ with open(config_file,'r') as file:
 # Print the options
 print('=== OPTIONS ===')
 for key in options.keys(): print(key+': '+str(options[key]))
+
 print('=== END OPTIONS ===')
 
 
-### LOAD DATA
+#%% LOAD DATA
 
 # Load the chosen proxy model data
 tas_model,age_model,time_ndays_model,valid_model_inds,model_num,lat_model,lon_model = da_load_data.load_model_data(options)
@@ -45,9 +47,20 @@ tas_model,age_model,time_ndays_model,valid_model_inds,model_num,lat_model,lon_mo
 filtered_ts,collection_all = da_load_data.load_proxies(options)
 
 
-### SET THINGS UP
+#%% SET THINGS UP
 
-# Set age range to reconstruct, as wel as the reference period
+"""
+# Note: This code removes the reference period from the model results.  As-is, uncommenting it will not change the default experiment,
+#       since a reference period is removed later.  However, it's included here in case I want to use it later.
+# Remove the mean of the reference period from the model data
+ind_model_ref = np.where((age_model >= options['reference_period'][0]) & (age_model <= options['reference_period'][1]))[0]
+for i in range(len(options['models_for_prior'])):
+    indices_for_model = np.where(model_num == (i+1))[0]
+    ind_model_ref_for_model = np.intersect1d(ind_model_ref,indices_for_model)
+    tas_model[indices_for_model,:,:,:] = tas_model[indices_for_model,:,:,:] - np.mean(tas_model[ind_model_ref_for_model,:,:,:],axis=0)[None,:,:,:]
+"""
+
+# Set age range to reconstruct, as well as the reference period
 age_bounds = np.arange(options['age_range_to_reconstruct'][0],options['age_range_to_reconstruct'][1]+1,options['time_resolution'])
 age_centers = (age_bounds[:-1]+age_bounds[1:])/2
 age_bounds_ref = np.arange(options['reference_period'][0],options['reference_period'][1]+1,options['time_resolution'])
@@ -113,7 +126,7 @@ for i in range(n_proxies):
     proxy_age_bounds = np.append(proxy_age_bounds,end_oldest)
     #
     # Interpolate proxy data to the base resolution, using nearest-neighbor interpolation
-    #TODO: Consider removing the reference period before shortening the proxies, so that the code will still work if these two periods don't overlap.
+    # Note: The reference period is removed using this somewhat-complicated way in case the reference period isn't contained within the reconstruction period.  #TODO: Check this.
     proxy_data_12ka = np.zeros((n_ages)); proxy_data_12ka[:] = np.nan
     proxy_res_12ka  = np.zeros((n_ages)); proxy_res_12ka[:]  = np.nan
     proxy_data_12ka_ref = np.zeros((len(age_centers_ref))); proxy_data_12ka_ref[:] = np.nan
@@ -236,7 +249,7 @@ for i in range(n_proxies):
 print('Finished preprocessing proxies and making model-based proxy estimates.')
 
 # Calculate the localization matrix, if needed
-proxy_localization_all = da_load_data.loc_matrix(options,lon_model,lat_model,proxy_metadata_all)
+proxy_localization_all = da_load_data.loc_matrix(options,lon_model,lat_model,filtered_ts)
 
 # Determine the number of ensemble members
 n_ens = len(da_load_data.get_age_indices_for_prior(options,age_model,0,valid_model_inds))
@@ -297,6 +310,7 @@ for age_counter,age in enumerate(age_centers):
         indices_for_model = np.where(model_num == (i+1))[0]
         age_indices_for_prior_model[i] = np.intersect1d(age_indices_for_prior,indices_for_model)
         tas_model_annual_for_prior_model = tas_model_annual[age_indices_for_prior_model[i],:,:] - np.mean(tas_model_annual[age_indices_for_prior_model[i],:,:],axis=0)  #TODO: Should the median be removed instead of the mean?
+        #tas_model_annual_for_prior_model = tas_model_annual[age_indices_for_prior_model[i],:,:]
         if i == 0: tas_model_annual_for_prior = tas_model_annual_for_prior_model
         else:      tas_model_annual_for_prior = np.concatenate((tas_model_annual_for_prior,tas_model_annual_for_prior_model),axis=0)
     #
@@ -308,6 +322,7 @@ for age_counter,age in enumerate(age_centers):
         model_estimates_chosen_all = proxy_estimates_all[j][int(res)]
         for i in range(n_models):
             model_estimates_chosen_model = model_estimates_chosen_all[age_indices_for_prior_model[i]] - np.mean(model_estimates_chosen_all[age_indices_for_prior_model[i]])
+            #model_estimates_chosen_model = model_estimates_chosen_all[age_indices_for_prior_model[i]]
             if i == 0: model_estimates_chosen = model_estimates_chosen_model
             else:      model_estimates_chosen = np.concatenate((model_estimates_chosen,model_estimates_chosen_model),axis=0)
         #
@@ -415,7 +430,7 @@ for key,value in options.items():
     options_list.append(key+':'+str(value))
 
 
-### SAVE THE OUTPUT
+#%% SAVE THE OUTPUT
 
 time_str = str(datetime.now()).replace(' ','_')
 output_filename = 'holocene_recon_'+time_str+'_timevarying_'+str(options['prior_window'])+'yr_prior'

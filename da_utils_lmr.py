@@ -277,6 +277,7 @@ def cov_localization(locRad, proxy_lat, proxy_lon, X_coords):
     X_lat = X_coords[:,0]
 
     # calculate distances for elements tagged as "localizeable". 
+    #print(site_lon,site_lat,type(site_lon),type(site_lat))
     dists[localizeable] = np.array(haversine(site_lon, site_lat,
                                                        X_lon[localizeable],
                                                        X_lat[localizeable]),dtype=np.float64)

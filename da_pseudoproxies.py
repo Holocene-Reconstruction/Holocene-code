@@ -25,7 +25,7 @@ options['lipd_dir'] = '/projects/pd_lab/mpe32/LiPD-utilities/Python/'
 # A funtion to make pseudoproxies
 def make_pseudoproxies(proxies_to_use,model_to_use,options):
     #
-    ### LOAD DATA
+    #%% LOAD DATA
     print(' === Generating pseudoproxies. Settings: Model: '+model_to_use+', Adding noise: none ===')
     #
     # Set the right options for loading data
@@ -42,7 +42,7 @@ def make_pseudoproxies(proxies_to_use,model_to_use,options):
     tas_model,ages_model,lat_model,lon_model,time_ndays_model = da_process_models.process_models(model_to_use,None,None,None,model_dir,return_variables=True)
     #
     #
-    ### CALCULATIONS
+    #%% CALCULATIONS
     #    
     # Loop through the proxies to generate pseudoproxies
     n_proxies = len(filtered_ts)
@@ -109,7 +109,7 @@ def make_pseudoproxies(proxies_to_use,model_to_use,options):
         # Save pseudoproxy data
         filtered_ts[i]['paleoData_values'] = tas_model_season_averaged
     #
-    ### OUTPUT
+    #%% OUTPUT
     proxy_dataset_names = '_'.join(options_new['proxy_datasets_to_assimilate'])
     #
     # Save the data into a format I can read in python2

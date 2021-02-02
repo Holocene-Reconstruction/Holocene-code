@@ -100,7 +100,7 @@ def load_proxies(options):
         if proxy_dataset == 'temp12k':
             #
             # Load lipd
-            if 'lipd_dir' in options: sys.path.append(options['lipd_dir'])
+            #if 'lipd_dir' in options: sys.path.append(options['lipd_dir'])
             import lipd
             #
             # Load the Temp12k proxy metadata
@@ -110,19 +110,18 @@ def load_proxies(options):
             #
             # Extract the time series and use only those which are in Temp12k and in units of degC
             all_ts_12k = lipd.extractTs(proxies_all_12k)
+            #
+            # Fix the GISP2 ages - Note: this is a temporary fix, since lipd isn't loading the right ages.
+            for i in range(len(all_ts_12k)):
+                if (all_ts_12k[i]['dataSetName'] == 'Alley.GISP2.2000') and (all_ts_12k[i]['paleoData_variableName'] == 'age'): gisp2_ages = all_ts_12k[i]['paleoData_values']
+            #
+            for i in range(len(all_ts_12k)):
+                if (all_ts_12k[i]['dataSetName'] == 'Alley.GISP2.2000') and (all_ts_12k[i]['paleoData_variableName'] == 'temperature') and (np.max(np.array(all_ts_12k[i]['age']).astype(np.float)) < 50):
+                    print('Fixing GISP2 ages:',all_ts_12k[i]['paleoData_variableName'],', Index:',i)
+                    all_ts_12k[i]['age'] = gisp2_ages
+            #
             filtered_ts_temp12k = lipd.filterTs(all_ts_12k,         'paleoData_inCompilation == Temp12k')
             filtered_ts         = lipd.filterTs(filtered_ts_temp12k,'paleoData_units == degC')
-            #
-            #TODO: Make sure that the temporary fix below actually works
-            # Find the right GISP2 ages
-            for i in range(len(all_ts_12k)):
-                if (all_ts_12k[i]['dataSetName'] == 'Alley.GISP2.2000') & (all_ts_12k[i]['paleoData_variableName'] == 'age'): gisp2_ages = all_ts_12k[i]['paleoData_values']
-            #
-            # Fix the GISP2 ages
-            for i in range(len(filtered_ts)):
-                if (filtered_ts[i]['dataSetName'] == 'Alley.GISP2.2000') & (np.max(np.array(filtered_ts[i]['age']).astype(np.float)) < 50):
-                    print('Fixing GISP2 ages')
-                    filtered_ts[i]['age'] = gisp2_ages
             #
             # Specify the collection
             collection_all = collection_all + ([proxy_dataset] * len(filtered_ts))
@@ -185,17 +184,16 @@ def load_proxies(options):
 
 
 # A function to compute a localization matrix
-def loc_matrix(options,lon_model,lat_model,proxy_metadata_all):
+def loc_matrix(options,lon_model,lat_model,filtered_ts):
     #
     # Get dimensions
-    n_proxies = proxy_metadata_all.shape[0]
+    n_proxies = len(filtered_ts)
     n_latlon  = len(lat_model) * len(lon_model)
     n_state = n_latlon + n_proxies
     #
     # Compute the localization values for every proxy
-    if options['localization_radius'] == 'None':
-        proxy_localization_all = np.ones((n_proxies,n_state))
-    else:
+    proxy_localization_all = np.ones((n_proxies,n_state))
+    if options['localization_radius'] != 'None':
         #
         # Get lat and lon values for the prior
         lon_model_2d,lat_model_2d = np.meshgrid(lon_model,lat_model)
@@ -204,14 +202,18 @@ def loc_matrix(options,lon_model,lat_model,proxy_metadata_all):
         prior_coords = np.concatenate((lat_prior[:,None],lon_prior[:,None]),axis=1)
         #
         # Include the proxy coordinates with the model coordinates
-        proxy_coords_all = proxy_metadata_all[:,2:4].astype(np.float)
+        proxy_coords_all = np.zeros((n_proxies,2)); proxy_coords_all[:] = np.nan
+        for i in range(n_proxies):
+            proxy_coords_all[i,0] = filtered_ts[i]['geo_meanLat']
+            proxy_coords_all[i,1] = filtered_ts[i]['geo_meanLon']
+        #
         prior_coords = np.append(prior_coords,proxy_coords_all,axis=0)
         #
         for i in range(n_proxies):
             #
             # Get proxy metdata
-            proxy_lat = proxy_metadata_all[i,2]
-            proxy_lon = proxy_metadata_all[i,3]
+            proxy_lat = filtered_ts[i]['geo_meanLat']
+            proxy_lon = filtered_ts[i]['geo_meanLon']
             #
             # Compute the localization values and save it to a common variable
             proxy_localization = da_utils_lmr.cov_localization(options['localization_radius'],proxy_lat,proxy_lon,prior_coords)

@@ -29,13 +29,14 @@ def process_models(model_name,time_resolution,age_range,output_dir,original_mode
     data_dir = {}
     data_dir['hadcm3']            = original_model_dir+'HadCM3B_transient21k/'
     data_dir['trace']             = original_model_dir+'TraCE_21ka/'
+    data_dir['famous']            = original_model_dir+'FAMOUS_glacial_cycle/'
     data_dir['cesm_lme']          = original_model_dir+'CESM_LME/'
     data_dir['gfdl_cm21_control'] = original_model_dir+'GFDL_CM21_control/'
     data_dir['ipsl_control']      = original_model_dir+'IPSL_CM6A_LR_control/'
     #
     print(' === Processing model data for '+model_name+', directory: '+data_dir[model_name]+' ===')
     #
-    ### LOAD DATA AND DO MODEL-SPECIFIC CALCULATIONS
+    #%% LOAD DATA AND DO MODEL-SPECIFIC CALCULATIONS
     #
     # Get the following variables
     #   - tas_model_yearsmonths [n_years,12,n_lat,n_lon]
@@ -90,6 +91,32 @@ def process_models(model_name,time_resolution,age_range,output_dir,original_mode
             #
             if filenum == 0: tas_model_yearsmonths = copy.deepcopy(tas_model_section_2d)
             else:            tas_model_yearsmonths = np.concatenate((tas_model_yearsmonths,tas_model_section_2d),axis=0)
+        #
+    elif model_name == 'famous':
+        #
+        # Load model surface air temperature
+        handle_model = xr.open_dataset(data_dir[model_name]+'ALL-5G-MON_3236.cdf',decode_times=False)
+        tas_model = handle_model['air_temperature'].values[1:-1,:,:]
+        lat_model = handle_model['latitude'].values
+        lon_model = handle_model['longitude'].values
+        age_model_monthly = -1*handle_model['time'].values[1:-1]
+        handle_model.close()
+        #
+        age_model = np.mean(np.reshape(age_model_monthly,(int(len(age_model_monthly)/12),12)),axis=1)
+        age_model = age_model*10   # The model was 10x accelleration
+        age_model = age_model-1950 # Make the time relative to 1950 CE
+        #TODO: Are the ages above right?  See email from 4/8/2019
+        #
+        # Set the number of days per month in every year
+        time_ndays_model = np.array([30,30,30,30,30,30,30,30,30,30,30,30])
+        time_ndays_model_yearsmonths = np.repeat(time_ndays_model[None,:],len(age_model),axis=0)
+        #
+        # Reshape the HadMC3 array to have months and years on different axes.
+        tas_model_yearsmonths = np.reshape(tas_model,(int(len(age_model)),12,len(lat_model),len(lon_model)))
+        #
+    elif model_name == 'ecbilt_clio':
+        #
+        print('!!!',model_name,'not available !!!')
         #
     elif model_name == 'cesm_lme':
         #
@@ -150,7 +177,7 @@ def process_models(model_name,time_resolution,age_range,output_dir,original_mode
         tas_model_yearsmonths = np.reshape(tas_model,(len(years_model),12,len(lat_model),len(lon_model)))
     #
     #
-    ### CALCULATIONS
+    #%% CALCULATIONS
     #
     # Print some model details
     print('tas variable shape:',tas_model_yearsmonths.shape)
@@ -177,25 +204,29 @@ def process_models(model_name,time_resolution,age_range,output_dir,original_mode
     # Remove the modern end of the simulation, since we want to minimize the anthropogenic signal as much as possible.
     age_indices_for_model_means = np.where((age_model >= age_range[0]) & (age_model < age_range[1]))[0]
     #
+    # The famous model is already decadal (it's an accelerated-forcing) simulation, so I define a new variable to account for this.
+    if model_name == 'famous': effective_time_resolution = int(time_resolution/10)
+    else:                      effective_time_resolution = time_resolution
+    #
     # Check to see if the time-averaging will work
-    if (len(age_indices_for_model_means)%time_resolution != 0): print('!!! WARNING: The selected data length is not a multiple of the time resolution. data length='+str(len(age_indices_for_model_means))+', time_resolution='+str(time_resolution))
+    if (len(age_indices_for_model_means)%effective_time_resolution != 0): print('!!! WARNING: The selected data length is not a multiple of the time resolution. data length='+str(len(age_indices_for_model_means))+', time_resolution='+str(time_resolution))
     #
     # Average the model data into the chosen time resolution
-    if time_resolution == 1:
+    if effective_time_resolution == 1:
         tas_model_yearsmonths_nyearmean = tas_model_yearsmonths[age_indices_for_model_means,:,:,:]
         age_model_nyearmean             = age_model[age_indices_for_model_means]
         time_ndays_model_nyearmean      = time_ndays_model_yearsmonths[age_indices_for_model_means,:]
     else:
-        n_means = int(len(age_indices_for_model_means)/time_resolution)
-        tas_model_yearsmonths_nyearmean = np.mean(np.reshape(tas_model_yearsmonths[age_indices_for_model_means,:,:,:],   (n_means,time_resolution,12,len(lat_model),len(lon_model))),axis=1)
-        age_model_nyearmean             = np.mean(np.reshape(age_model[age_indices_for_model_means],                     (n_means,time_resolution)),   axis=1)
-        time_ndays_model_nyearmean      = np.mean(np.reshape(time_ndays_model_yearsmonths[age_indices_for_model_means,:],(n_means,time_resolution,12)),axis=1)
+        n_means = int(len(age_indices_for_model_means)/effective_time_resolution)
+        tas_model_yearsmonths_nyearmean = np.mean(np.reshape(tas_model_yearsmonths[age_indices_for_model_means,:,:,:],   (n_means,effective_time_resolution,12,len(lat_model),len(lon_model))),axis=1)
+        age_model_nyearmean             = np.mean(np.reshape(age_model[age_indices_for_model_means],                     (n_means,effective_time_resolution)),   axis=1)
+        time_ndays_model_nyearmean      = np.mean(np.reshape(time_ndays_model_yearsmonths[age_indices_for_model_means,:],(n_means,effective_time_resolution,12)),axis=1)
     #
     # Regrid the models
     tas_model_regrid,lat_model_regrid,lon_model_regrid = da_utils.regrid_model(tas_model_yearsmonths_nyearmean,lat_model,lon_model,age_model_nyearmean)
     #
     #
-    ### SAVE DATA
+    #%% SAVE DATA
     #
     #ges_selected = age_model[age_indices_for_model_means]
     #age_range_txt = str(int(ages_selected[0]))+'-'+str(int(ages_selected[-1]))
