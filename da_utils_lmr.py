@@ -153,6 +153,7 @@ def Kalman_optimal(Y,vR,Ye,Xb,nsvs=None,transform_only=False,verbose=False):
     U,s,V = np.linalg.svd(Htp,full_matrices=True)
     if not nsvs:
         nsvs = len(s) - 1  #TODO: This line makes it differ from the other method.  Should this be "nsvs = len(s)" instead?
+        #nsvs = len(s)
     if verbose:
         print('ndof :'+str(ndof))
         print('U :'+str(U.shape))

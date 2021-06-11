@@ -10,6 +10,7 @@ import da_utils_lmr
 
 # A function to do the data assimilation.  It is based on '2_darecon.jl',
 # originally written by Nathan Steiger.
+#Xb,HXb,R,y = Xb,np.transpose(model_estimates_selected),R_diagonal,proxy_values_selected
 def damup(Xb,HXb,R,y):
     #
     # Data assimilation matrix update step, assimilating all observations
@@ -35,6 +36,12 @@ def damup(Xb,HXb,R,y):
     #
     HXbm = np.mean(HXb,axis=1)
     HXbp = HXb - HXbm[:,None]
+    #
+    #TODO: Go through this code to understand it better.
+    # Maybe compare it to LMR-turbo
+    # I might need to eliminate the non-diagonal portions of "HPbHTR" below
+    # The imaginary part of the complex array below appears to be 0, so maybe
+    # it's not important.
     #
     # Kalman gain for mean and matrix covariances (Eq. 2)
     PbHT   = np.dot(Xbp, np.transpose(HXbp))/(nens-1)
@@ -301,3 +308,47 @@ def spatial_mean(variable,lats,lons,lat_min,lat_max,lon_min,lon_max,index_lat,in
     return variable_mean
 
 
+# A function to compute a localization matrix
+def loc_matrix(options,model_data,proxy_data):
+    #
+    lon_model = model_data['lon']
+    lat_model = model_data['lat']
+    #
+    # Get dimensions
+    n_proxies = proxy_data['values_binned'].shape[0]
+    #n_vars    = len(options['vars_to_reconstruct'])
+    n_vars    = 1
+    n_latlon  = len(lat_model) * len(lon_model)
+    n_state = (n_latlon*n_vars) + n_proxies
+    #
+    # Compute the localization values for every proxy
+    proxy_localization_all = np.ones((n_proxies,n_state))
+    if options['localization_radius'] != 'None':
+        #
+        #TODO: Make it so that this works for multiple variables.  Right now it only works for one.
+        #
+        # Get lat and lon values for the prior
+        lon_model_2d,lat_model_2d = np.meshgrid(lon_model,lat_model)
+        lat_prior = np.reshape(lat_model_2d,(n_latlon))
+        lon_prior = np.reshape(lon_model_2d,(n_latlon))
+        prior_coords = np.concatenate((lat_prior[:,None],lon_prior[:,None]),axis=1)
+        #
+        # Include the proxy coordinates with the model coordinates
+        proxy_coords_all = np.zeros((n_proxies,2)); proxy_coords_all[:] = np.nan
+        for i in range(n_proxies):
+            proxy_coords_all[i,0] = proxy_data['lats'][i]
+            proxy_coords_all[i,1] = proxy_data['lons'][i]
+        #
+        prior_coords = np.append(prior_coords,proxy_coords_all,axis=0)
+        #
+        for i in range(n_proxies):
+            #
+            # Get proxy metdata
+            proxy_lat = proxy_data['lats'][i]
+            proxy_lon = proxy_data['lons'][i]
+            #
+            # Compute the localization values and save it to a common variable
+            proxy_localization = da_utils_lmr.cov_localization(options['localization_radius'],proxy_lat,proxy_lon,prior_coords)
+            proxy_localization_all[i,:] = proxy_localization
+    #
+    return proxy_localization_all

@@ -95,6 +95,15 @@ If a localization radius is desired, set it in the `localization_radius` (defaul
 
 By default, all valid proxies are assimilated.  To assimilate only a portion of the proxy database, set the variable `percent_to_assimilate` (default: 100) to a lower number.
 
+#### Using pseudoproxies
+
+To generate/use pseudoproxies, the string in 'proxy_datasets_to_assimilate' should be given in the form ['pseudo_VAR1_using_VAR2_noise_VAR3'], where:
+  VAR1: proxy dataset [e.g. 'temp12k','basicgrid10','basicgrid5']
+  VAR2: model [e.g. 'hadcm3','trace','famous']
+  VAR3: noise [e.g. 'none','whitesnr05','whiteproxyrmse']
+Example: ['pseudo_temp12k_using_hadcm3_noise_whiteproxyrmse']
+
+
 ## 5. Reconstruction output
 
 The Holocene Reconstruction is saved as a netCDF file.  When the code is done running, the output will be saved in the directory set in 'config.yml' as 'data_dir', under the subdirectory 'results'.  The filename contains the timestamp of when the reconstruction finished. 
