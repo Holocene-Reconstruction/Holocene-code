@@ -1,0 +1,2647 @@
+Using configuration file: config_15k.yml
+=== OPTIONS ===
+data_dir: /projects/pd_lab/data/data_assimilation/
+lipd_dir: /projects/pd_lab/mpe32/LiPD-utilities/Python/
+vars_to_reconstruct: ['tas']
+time_resolution: 10
+maximum_resolution: 1000
+prior_time_factor: 1
+prior_window: all
+assimate_together: False
+localization_radius: 15000
+model_processing: None
+verbose_level: 0
+assimilate_archives: ['all']
+assimilate_region: False
+resolution_band: ['None', 'None']
+percent_to_assimilate: 100
+seed_for_proxy_choice: 0
+assign_seasonality: False
+uncertainty_multiplier: 1
+filename_mse: None
+models_for_prior: ['hadcm3_regrid']
+proxy_datasets_to_assimilate: ['temp12k']
+age_range_to_reconstruct: [0, 12000]
+reconstruction_type: relative
+reference_period: [3000, 5000]
+age_range_model: [0, 12500]
+=== END OPTIONS ===
+Loading variable tas for model 1/1: hadcm3_regrid
+
+=== MODEL DATA LOADED ===
+Models loaded    (n=1):['hadcm3_regrid']
+Variables loaded (n=1):['tas']
+---
+Data stored in dictionary "model_data", with keys and dimensions:
+                 lat           (64,)
+                 lon           (96,)
+                 age         (1250,)
+          time_ndays      (1250, 12)
+                 tas (1250, 12, 64, 96)
+          valid_inds         (1250,)
+              number         (1250,)
+          tas_annual  (1250, 64, 96)
+=========================
+
+Model processing: 'None' - Returning data unchanged.
+Loading proxy dataset 1/1: temp12k
+extracting paleoData...
+extracting: 117_723A.Godad.2011
+extracting: 161_976.Martrat.2014
+extracting: 165_1002C.Herbert.2000
+extracting: 2005-804-006.Ledu.2010
+extracting: 31Lake.Eisner.1995
+extracting: 3MPond.Pellatt.2000
+extracting: 850Lake.Shemesh.2001
+extracting: 893A.Kennet.2007
+extracting: A7.Sun.2005
+extracting: Abalone.Cole.1994
+extracting: AdelaideTarn.Jara.2015
+extracting: Agassiz.Lecavalier.2017
+extracting: AgeroedsMosse.Nilsson.1964
+extracting: AjaxBog.Wilmshurst.2007
+extracting: AlanenLaanijarvi.Heinrichs.2005
+extracting: Alley.GISP2.2000
+extracting: AlltnaFeitheSheilich.Birks.1975
+extracting: AlpidiRobieiValBavona.Welten.1982
+extracting: Alsa.Mariscal.1993
+extracting: Alsopahok.Zatyko.2007
+extracting: Altenweiher.DeValk.1981
+extracting: Ammersee.vonGrafenstein.1996
+extracting: AMP112.vanderBilt.2016
+extracting: Andy.Szeicz.1995
+extracting: Arapisto.Sarmaja-Korjonen.2007
+extracting: Atocas.Gauthier.1981
+extracting: Austerkjosen.Seppa.2009
+extracting: AwengCo.Li.2017
+extracting: B997_321.Castaneda.2004
+extracting: B997_324.Castaneda.2004
+extracting: B997_327.Castaneda.2004
+extracting: BaiedeSeineestuary.Garnaud.2003
+extracting: BanksIsland-12.Gajewski.2000
+extracting: BanksIsland-15.Gajewski.2000
+extracting: BasadelaMoraLake.Tarrats.2018
+extracting: Basse-Ville.Voeltzel.1987
+extracting: Bastien.Bennett.1987
+extracting: BattleGround.Whitlock.1985
+extracting: BC01Lake.Peros.2010
+extracting: Beaverhouse.Ritchie.1976
+extracting: BebrukasLake.Shulija.1967
+extracting: BeefPasture.Petersen.1985
+extracting: BellsLake.Szeicz.1995
+extracting: Berkut.Ilyashuk.2005
+extracting: Berry.Whitehead.1979
+extracting: BI2Lake.Gajewski.1992
+extracting: BiglandTarn.Barber.2013
+extracting: Billys.Jacobson.1975
+extracting: BiskupinskieLake.Noryskiewicz.1995
+extracting: BJ8_03_10GGC.Linsley.2010
+extracting: BJ8_03_13GGC.Linsley.2010
+extracting: BJ8_03_70GGC.Linsley.2010
+extracting: Bjornfjell.Brooks.2006
+extracting: BledowoLake.Binka.1988
+extracting: BloodPond.Marsicek.2013
+extracting: BN7Lake.Gajewski.1991
+extracting: BoehnigseeGoldmoos.Markgraf.1969
+extracting: BolshieToroki.Zhilich.2017
+extracting: Boone.White.1986
+extracting: BorderBeacon.Lamb.1985
+extracting: BoundaryPond.Mott.1977
+extracting: BrayaSo.vonGunten.2012
+extracting: Breitnau-Neuhof.Roesch.2009
+extracting: brurskardstjorni.Velle.2005
+extracting: BS79_38.Cacho.2001
+extracting: BuntesMoor.Weirich.1980
+extracting: Cadagno.Niemann.2012
+extracting: Camp11.Brubaker.1975
+extracting: CandelabraLake.Cwynar.1995
+extracting: CangoCave.Talma.1992
+extracting: CapeGhir.Kim.2007
+extracting: Caribou-Qubec.Jett.1992
+extracting: CaribouHill.Lamb.1985
+extracting: CarletonLake.Upiter.2014
+extracting: Carp.Whitlock.1985
+extracting: CascadeFen.Maher.1963
+extracting: Castor.Larouche.NA
+extracting: CC04.Gibb.2015
+extracting: Century.Johnsen.1972
+extracting: CF8.Axford.2011
+extracting: CH2.Garralla.1992
+extracting: ChallaLake.Damst.2012
+extracting: Chaohu.Li.2018
+extracting: Chuna.Jones.2005
+extracting: Churruca.Caniupan.2014
+extracting: Clapeyret.deBeaulieu.1977
+extracting: ClarksJunction.Wilmshurst.2007
+extracting: ClearLakeIA.Baker.1992
+extracting: ClearLakeIN.Bailey.1972
+extracting: ClearPond.Hussey.1993
+extracting: CN01.Cheung.2017
+extracting: Coghill.King.1986
+extracting: Compass.Macpherson.1986
+extracting: Copley.Fall.1997
+extracting: CoppermineSaddleback.Nichols.1975
+extracting: Corser.Nichols.2014
+extracting: CottonwoodLake.Grimm.1987
+extracting: CottonwoodPassPond.Fall.1997
+extracting: Cranberry.McAndrews.NA
+extracting: D13882.Tierney
+extracting: DajiuhuPeatland.Huang.2013
+extracting: Dalene.Seppa.2009
+extracting: Dalmutladdo.Bjune.2004
+extracting: DANA12_11_2_GC01.VanNieuwenhove.2018
+extracting: DarzlubieForest.Polska-JasiewiczOwa.1996
+extracting: DavisLake.Barnosky.1981
+extracting: Decoy.Szeicz.1991
+extracting: Delorme1.Bouchard.1982
+extracting: Delorme2.Bouchard.1982
+extracting: Deltasoe.Axford.2019
+extracting: Demont.Kapp.NA
+extracting: DempsterPeatland.Porter.2019
+extracting: Devils.Shuman.2016
+extracting: DevonIceCap.Paterson.1977
+extracting: DevonIslandGlacier.McAndrews.1984
+extracting: DolgoeLake.Wolfe.2000
+extracting: DomeF.Uemura.2018
+extracting: Donvold.Nilssen.1983
+extracting: Duck.Winkler.1985
+extracting: Dura-Moor.Seiwald.1980
+extracting: Duranunlak.EPD
+extracting: DYE3.Dahl-Jensen.1998
+extracting: Dye3.Vinther.2006
+extracting: EagleTarn.Rees.2010
+extracting: EC1.Gajewski.1993
+extracting: EC2.Gajewski.1991
+extracting: EDML.Stenni.2010
+extracting: Egelsee.Larocque.2010
+extracting: ELake.Ritchie.1976
+extracting: Eldora.Maher.1969
+extracting: Eleanor.Gavin.2011
+extracting: Elfstadalsvatn.Langdon.2008
+extracting: ElGygytgynCrater.Schwamborn.2006
+extracting: EN32_PC6.Flower.2004
+extracting: Ennadai-1.Nichols.1967
+extracting: Ennadai-2.Nichols.1975
+extracting: EPICADomeC.Stenni.2010
+extracting: ERDC_092BX.Palmer.2003
+extracting: ESM-1.Mackay.2012
+extracting: Etangd'yCorMontana.Welten.1982
+extracting: EW0408_66JC.Praetorius.2015
+extracting: EW0408_85JC.Praetorius.2015
+extracting: FanLake.Foster.2016
+extracting: Farewell.Hu.1998
+extracting: FauskeCave.Linge.2009
+extracting: Ferndale.Albert.1981
+extracting: Flarken.Berglund.1966
+extracting: Flarken.Seppa.2005
+extracting: Flotatjonn.Seppa.2009
+extracting: FontaineHenry.Lespez.2008
+extracting: Frozen.Rosenberg.2004
+extracting: Gammelheimvatnet.Seppa.2009
+extracting: Gass.Webb.1983
+extracting: GB1.Gajewski.1991
+extracting: GB2.Gajewski.1993
+extracting: Gemini.Samartin.2017
+extracting: GeoB10042_1.Setiawan.2015
+extracting: GeoB10043_3.Setiawan.2015
+extracting: GeoB10053_7.Mohtadi.2010
+extracting: GeoB10069_3.Gibbons.2014
+extracting: GeoB1023_5.Kim.2002
+extracting: GeoB12605_3.Kuhnert.2014
+extracting: GeoB12615_4.Romahn.2014
+extracting: GeoB1711_4.Kirst.1999
+extracting: GeoB17419_1.Hollstein.2018
+extracting: GeoB3104_1.Arz.1998
+extracting: GeoB3129_1.Weldeab.2006
+extracting: GeoB33131.Lamy.2002
+extracting: GeoB3910_2.Arz.2001
+extracting: GeoB4905_4.Weldeab.2005
+extracting: GeoB5844_2.Arz.2003
+extracting: GeoB5901_2.Kim.2004
+extracting: GeoB65181_MBT.Weijers.2007
+extracting: GeoB6518_1.Schefu.2005
+extracting: GeoB7702_3.Castaneda.2010
+extracting: GeoB7926_2.Kim.2012
+extracting: GeoB9307_3.Weldeab.2014
+extracting: GeoB9310_4.Weldeab.2014
+extracting: GEOFAR_KF16_MgCa.Repschlager.2016
+extracting: GGC19.Farmer.2011
+extracting: Giecz.Milecka.2002
+extracting: Giering.Bortenschlager.1976
+extracting: GIK17049_6.Jung.1996
+extracting: GIK17051_3.Jung.1996
+extracting: GIK17748-2.Kim.2002
+extracting: GIK17940_2.Pelejero.1999
+extracting: GIK18287_3.Kienast.2001
+extracting: GiK18515_3
+extracting: GIK23258.Sarnthein.2003
+extracting: GIK23258_2.Martrat.2003
+extracting: Gilltjarnen.Antonsson.2006
+extracting: GISP2.Kobashi.2017
+extracting: Glaswaldsee.EPD
+extracting: Gloppsjon.Seppa.2009
+extracting: GodziszewskieLake.Miotk.1986
+extracting: GondoAlpjen.Welten.1982
+extracting: Gosciaz.Welten.1982
+extracting: Gould.Anderson.2008
+extracting: GraechenSee.Krisai.2006
+extracting: Graham.Fuller.1997
+extracting: GrandeBriere.Visset.1979
+extracting: GravelRidge.Lamb.1985
+extracting: GreatBasin.Salzer.2014
+extracting: Grenadier.McAndrews.1988
+extracting: GreyIslands.Cullen.2002
+extracting: GRIP.Vinther.2006
+extracting: Grostjorn.Eide.2009
+extracting: Gunnarsfjorden.Allen.2007
+extracting: GYXO.Self.2015
+extracting: H214.Samson.2005
+extracting: Haengstli.Heeb.1972
+extracting: Hail.Cwynar.1995
+extracting: Hallet.McKay.2009
+extracting: Hams.Bennett.1987
+extracting: Hamundarstadhahals.Caseldine.2006
+extracting: Hanging.Cwynar.1982
+extracting: Hani.Zheng.2017
+extracting: HAP0212.vanderBilt.2016
+extracting: Harrie.King.1986
+extracting: Haugtjern.Eide.2009
+extracting: Haukdalsvatn.Larsen.2013
+extracting: HavredeCrabec.Coutard.2006
+extracting: HawkeHillsKettle.Macpherson.1982
+extracting: HeihaiLake.Chang.2017
+extracting: HeshangCave.Wang.2018
+extracting: HiddenLakeCA.Potito.2006
+extracting: High.Fuller.1997
+extracting: Hinterburgsee.Heiri.2015
+extracting: Hinterburgseeli.EPD
+extracting: Hirvijaervi.Luoto.2010
+extracting: Hjort.Schmidt.2011
+extracting: HjortSo.Wagner.2008
+extracting: HLY03_05GC.Mohtadi.2008
+extracting: HLY0501.deVernal.2013
+extracting: HM03_133_25.Solignac.2008
+extracting: Holebudalen.Seppa.2009
+extracting: Holtjaernen.Giesecke.2008
+extracting: Holzmaar.Litt.2009
+extracting: HomesteadScarp.McGlone.2010
+extracting: Honeymoon.Cwynar.1991
+extracting: HopeSimpson.Engstrom.1985
+extracting: HU73_031_7.Keigwin.1995
+extracting: HU84.deVernal.2013
+extracting: HU87033_87017PC.Andrews.1999
+extracting: HU87033_87018PC.Andrews.1999
+extracting: HU90.deVernal.2013
+extracting: HU90_013_013.Hillaire-Marcel.1994
+extracting: HU91-039-008.Levac.2001
+extracting: Hudson.Clegg.2011
+extracting: HulunLake.Wen.2009
+extracting: HumberPond3.McAndrews.1989
+extracting: HumberPond5.McAndrews.1989
+extracting: HurlegLake.Zhao.2013
+extracting: Hvitarvatn.Larsen.2013
+extracting: Hypkana.Hajkova.2016
+extracting: Igaliku.Massa.2012
+extracting: Iglutalik.Kerwin.2004
+extracting: Indian.Bjorck.1985
+extracting: IOW225514BAY.Emeis.2003
+extracting: IOW225517BAY.Emeis.2003
+extracting: Irvin.Cushing.1982
+extracting: Isbenttjonn.Seppa.2009
+extracting: Isokaerret.Asplund.1989
+extracting: Jake.Kerwin.2005
+extracting: JamesRossIsland.Mulvaney.2012
+extracting: JinchueanBog.Yu.2013
+extracting: JM01-1199.Hald.2007
+extracting: JM96-1207.Solignac.2013
+extracting: JPC42.Caniupan.2014
+extracting: JPC67.Bertrand.2017
+extracting: JR01.Fortin.2017
+extracting: JR01Chironomid.Fortin.2017
+extracting: JR244_GC528.Roberts.2016
+extracting: JR51GC_35.Bendle.2007
+extracting: K2.Fallu.2005
+extracting: Kaartlamminsuo.Rankama.1988
+extracting: KaiteCobreMayor.MartinChivelet.2011
+extracting: Kansjon.EPD
+extracting: KardashinskiSwamp.Kremenetski.1995
+extracting: Karujarv.EPD
+extracting: Keele.Szeicz.1995
+extracting: Kenosee.Porter.1992
+extracting: KeystoneIronbog.Fall.1985
+extracting: Kharinei.Jones.2011
+extracting: Khatanga-12Lake.Syrykh.2017
+extracting: KinderlinskayaCave.Baker.2017
+extracting: Kinnshaugen.Seppa.2009
+extracting: Klotjaernen.Pollen.Sweden
+extracting: klotjarnen.Seppa.2009
+extracting: KNR159_5_36GGC.Carlson.2008
+extracting: KNR159_JPC26.Antonarakou.2015
+extracting: KNR166_14_11JPC.Elmore.2015
+extracting: KNR166_JPC26.Schmidt.2011
+extracting: KNR166_JPC51.Schmidt.2012
+extracting: KNR195_5_CDH23.Bova.2015
+extracting: KNR195_5_CDH26.Bova.2015
+extracting: KoeycegizGoelue.EPD
+extracting: Komosomolskaia.Ciais.1992
+extracting: Koucha.Herzschuh.2009
+extracting: KP2.Seppa.2009
+extracting: KR02Chironomid.Fortin.2010
+extracting: KR02Pollen.Peros.2008
+extracting: KT05_7_PC_02.Kawahata.2009
+extracting: Kurupa.Boldt.2015
+extracting: Kusawa.Chakraborty.2010
+extracting: KY07_04_PC1.Kubota.2010
+extracting: Kyutyunda.Biskaborn.2016
+extracting: KZAI_01.Hardy.2018
+extracting: LacAurelie.Bajolle.2018
+extracting: LacColin.Mott.1977
+extracting: LacduSommet.Hausmann.2011
+extracting: LacFaribault.Larouche.1981
+extracting: LacGras.King.1986
+extracting: LacLeonard.Labelle.1984
+extracting: LacMartyne.McAndrews.NA
+extracting: LacMeleze.MacDonald.1987
+extracting: LacPatricia.McAndrews.1983
+extracting: LacPetel.King.1986
+extracting: Ladd.Shane.1993
+extracting: LagodeAjo.Allen.1996
+extracting: LagoDellAccesa.Finsinger.2010
+extracting: LagoMoreno.Markgraf.2002
+extracting: LagoVerdarolo.Samartin.2011
+extracting: LagunaChaplin.Punyasena.2008
+extracting: LagunaSaladaChiprana.EPD
+extracting: Laihalampi.Giesecke.2008
+extracting: Laihalampi.Heikkila.2003
+extracting: LakeLyadhej-To.Andreev.2005
+extracting: LakeoftheWoods.Palmer.2002
+extracting: LakeStowell.Lemmen.2018
+extracting: LaPAS_KF02.Pivel.2013
+extracting: Lapland.Helama.2009
+extracting: LawDome.Dahl-Jensen.1999
+extracting: LB1.Gajewski.1993
+extracting: Lednica-1.Makohonienko.1991
+extracting: Lednica-2.Litt.1991
+extracting: LeFourneau.Barbier.1999
+extracting: LeGrandLemps.Clerc.1988
+extracting: Leviathan.Lachniet.2014
+extracting: LifebuoyLake.Solivieva.2015
+extracting: LiivjarveBog.Koff.1989
+extracting: Liltlvatn.Seppa.2009
+extracting: Lily.Cwynar.1990
+extracting: Lingreville.Billard.1995
+extracting: Little.Whitlock.1995
+extracting: LittleBass.Swain.NA
+extracting: LittleLochRoag.Birks.1979
+extracting: LittlePondRoyalston.Marsicek.2013
+extracting: Llet-T.liranta.2015
+extracting: LO09-14.Berner.2008
+extracting: Lobsigensee.Ammann.1985
+extracting: Lochnagar30.Dalton.2005
+extracting: LoneFoxLake.MacDonald.1985
+extracting: Lonespruce.Kaufman.2012
+extracting: Longwoods.Wilmshurst.2007
+extracting: LoonPond.Jacobson.Ja
+extracting: LostLake_MI.Brubaker.1975
+extracting: LoughMeenachrinna.Taylor.2018
+extracting: LouisePond.Mathewes.1994
+extracting: LR01.Gajewski.1993
+extracting: LR1.Gajewski.1993
+extracting: LR3.Gajewski.1992
+extracting: Luganskoe.Kvavadze.1994
+extracting: LV29_114_3.Riethdorf.2013
+extracting: Lyadhej-To.Andreev.2005
+extracting: Lynn.Nichols.1967
+extracting: M135_004_3.Salvatteci.2019
+extracting: M135_005_3.Salvatteci.2019
+extracting: M35003_4.R_hlemann.1999
+extracting: M39008_3.Eynaud.2009
+extracting: M40-4-SL78.Emeis.2003
+extracting: M75_3_137_3.Wang.2013
+extracting: M77_2_003_2.Salvatteci.2019
+extracting: M77_2_024_5.Salvatteci.2019
+extracting: M77_2_029_3.Salvatteci.2019
+extracting: M77_2_056_5.Neurnberg.2015
+extracting: M77_2_059_1.N_rnberg.2015
+extracting: Mackenzie.Woltering.2014
+extracting: Malawi.Johnson.2016
+extracting: MaleshevskaBog.Tonkov.1992
+extracting: Mansell.Shuman.2016
+extracting: MaraisdeKeswick.Larouche.1986
+extracting: MD01-2416.Sarnthien.2004
+extracting: MD01-2444.Martrat.2007
+extracting: MD01-2446.Salguero.2014
+extracting: MD01_2378.Xu.2008
+extracting: MD01_2390.Steinke.2008
+extracting: MD01_2412.Harada.2006
+extracting: MD01_2421.Isono.2009
+extracting: MD02_2503.Hill.2006
+extracting: MD02_2515.McClymont.2012
+extracting: MD02_2575BAY.Ziegler.2008
+extracting: MD02_2594.Dyez.2014
+extracting: MD03-2601.Kim.2012
+extracting: MD032601.Crosta.2007
+extracting: MD03_2607-Assemblage.LopesdosSantos.2013
+extracting: MD03_2607.LopesdosSantos.2013
+extracting: MD03_2611.Calvo.2007
+extracting: MD03_2699.Rodrigues.2010
+extracting: MD03_2707.Weldeab.2007
+extracting: MD06_3067.Bolliet.2011
+extracting: MD06_3075.Fraser.2014
+extracting: MD07-3088.Montade.2019
+extracting: MD07-3104.Montade.2019
+extracting: MD07-3124.Caniupan.2014
+extracting: MD07_3076Q.Gottschalk.2015
+extracting: MD79-257.Levi.2007
+extracting: MD79_257.Bard.1997
+extracting: MD84_527.Labracherie.1989
+extracting: MD84_527.Sarnthein.1988
+extracting: MD94_103BAY.Sicre.2005
+extracting: MD95_2002.Eynaud.2012
+extracting: MD95_2011.Risebrobakken.2003
+extracting: MD95_2011Assemblage.Risebrobakken.2003
+extracting: MD95_2015.Marchal.2002
+extracting: MD95_2043.Cacho.1999
+extracting: MD97_2120.Pahnke.2006
+extracting: MD97_2121.Pahnke.2006
+extracting: MD97_2141.Rosenthal.2003
+extracting: MD97_2146.Shintani.2011
+extracting: MD97_2151.Yamamoto.2013
+extracting: MD98_2161.Fan.2018
+extracting: MD98_2165.Levi.2007
+extracting: MD98_2176.Stott.2007
+extracting: MD98_2178.Fan.2018
+extracting: MD98_2181.Stott.2007
+extracting: MD98_2188.Dang.2012
+extracting: MD98_2195.Ijiri.2005
+extracting: MD99-2227.deVernal.2013
+extracting: MD99-2256.Jennings.2015
+extracting: MD99-2266.Moossen.2015
+extracting: MD99-2269.Justwan.2008
+extracting: MD99-2284.Risebrobakken.2009
+extracting: MD99-2322.Jennings.2011
+extracting: MD99_2251.Farmer.2008
+extracting: MD99_2269.Kristjnsd_ttir.2017
+extracting: MD99_2339.Eynaud.2009
+extracting: MD99_2341.Eynaud.2009
+extracting: ME0005A_43JC.Benway.2006
+extracting: Medvedevskoe.Nazarova.2018
+extracting: MeerfelderMaar.Litt.2009
+extracting: Mendota.Winkler.1986
+extracting: Menez-Cam.VanZeist.1964
+extracting: MiddenCluster1.Harbert.2018
+extracting: MiddenCluster2.Harbert.2018
+extracting: MiddenCluster3.Harbert.2018
+extracting: MiddenCluster4.Harbert.2018
+extracting: MiddenCluster5.Harbert.2018
+extracting: MiddenCluster6.Harbert.2018
+extracting: MiddenCluster7.Harbert.2018
+extracting: MiddenCluster8.Harbert.2018
+extracting: MiddenCluster9.Harbert.2018
+extracting: MilandreCave.Affolter.2019
+extracting: MinnetonkaCave.Lundeen.2013
+extracting: MireSaviku.Sarv.1975
+extracting: MittlereHellelen.Welten.1982
+extracting: MLake.Ritchie.1977
+extracting: Moanatuatua.Jara.2017
+extracting: Mohawk.Webb.1986
+extracting: MonheganIslandMeadow.Bostwick.1978
+extracting: Moon.Grimm.1996
+extracting: MoorAlpenrose.Weirich.1980
+extracting: MoorimWeissenstadterForst.Hahne.1992
+extracting: MooseLake.Clegg.2010
+extracting: Moraine.Hansen.1985
+extracting: MountHoney.McGlone.2010
+extracting: MR003-K03-PC01.Harada.2004
+extracting: MSM05-712.Muller.2013
+extracting: MSM055_712-2.Werner.2015
+extracting: MSM055_723-2.Werner.2015
+extracting: MSM05_5_712_2.Werner.2013
+extracting: MSM343300.Ouellet-Bernier.2014
+extracting: MV1014_09MC.Hertzberg.2016
+extracting: MV99_PC14.Marchitto.2010
+extracting: Myrtle.Janssen.1968
+extracting: Myrvatn.Seppa.2009
+extracting: NA87_22.Duplessy.1992
+extracting: Nalengcuo.Opitz.2015
+extracting: Naujg1.Willemse.1999
+extracting: Nautajarvi.Seppa.2009
+extracting: Nedlouc.Larouche.1981
+extracting: NevadoHuascaran.Thompson.1995
+extracting: NGRIP.NGRIP.2004
+extracting: Nikolay.Andreev.2004
+extracting: NikolayLake.Andreev.2004
+extracting: NIOP_C2_905_PC.Huguet.2006
+extracting: Njakajaure.Bigler.2006
+extracting: Njulla.Larocque.2004
+extracting: NorthCraterLake.Palmer.2002
+extracting: NorthGRIP.Gkinis.2014
+extracting: NorthLake.Axford.2013
+extracting: NorthPond.Whitehead.1978
+extracting: NussbaumerSeen.Rsch.1995
+extracting: Nutt.Bennett.1987
+extracting: OCE326_GGC26.Keigwin.2005
+extracting: OCE326_GGC30.Sachs.2007
+extracting: ODP162_984.Came.2007
+extracting: ODP658C.deMenocal.1997
+extracting: ODP658C_UK37.Zhao.1995
+extracting: ODP_165_999A.Schmidt.2004
+extracting: ODP_167_1019C.Barron.2003
+extracting: ODP_175_1078C.Kim.2003
+extracting: ODP_175_1084B.Farmer.2005
+extracting: ODP_178_1098B.Shevenell.2011
+extracting: Olive-backedLake.Self.2015
+extracting: OltushLake.EPD
+extracting: OregonCaves.Ersek.2012
+extracting: Ospitale.Watson.1996
+extracting: Ostrowite.Milecka.2002
+extracting: P1003.Sejrup.2011
+extracting: P178_15P.Tierney.2016
+extracting: P1B3.deVernal.2005
+extracting: PannelBridge.Waller.1993
+extracting: ParkPond1.Lynch.1998
+extracting: PathLake.Neil.2014
+extracting: PC6.Minoshima.2007
+extracting: PC_1.Chang.2015
+extracting: PeatlandKlukva.Novenko.2015
+extracting: PechoraLake.Andren.2015
+extracting: Pella.Lim.2016
+extracting: Penny.Fisher.1998
+extracting: PerchLake_Manitoba.Ritchie.NA
+extracting: PerchLake_ON.Terasmae.1975
+extracting: Pingwang.Li.2018
+extracting: Pixie.Brown.2002
+extracting: PL-96.Voronina.2013
+extracting: PL07_39PC.Lea.2003
+extracting: PlateauRemote.MosleyThompson.1996
+extracting: PlatypusTarn.Rees.2010
+extracting: PogoniaBog.Cushing.1979
+extracting: PointEscuminac.Warner.1991
+extracting: PolandSpring.Jacobson.Ja
+extracting: PolevaCave.Constantin.2007
+extracting: Posy.Shafer.1989
+extracting: PotrokAike.Massaferro.2013
+extracting: PP10-07.Mary.2016
+extracting: PrazRodet.Shotyk.1997
+extracting: PSh-5159N.Risebrobakken.2011
+extracting: PTHE.Self.2015
+extracting: PuertodeLosTornos.Penalba.1989
+extracting: PupukeChironomid.VandenBos.2018
+extracting: PupukePollen.VandenBos.2018
+extracting: PusciznaRekowianska.Obidowicz.1993
+extracting: Qinghai.Hou.2016
+extracting: Qipisarqo.Frechette.2009
+extracting: Quartz.Wooller.2012
+extracting: Queens.Moser.1990
+extracting: Radtke.Webb.1983
+extracting: Raigastvere.Seppa.2004
+extracting: RaigastvereLake.Pirrus.1987
+extracting: rainbow.Clegg.2011
+extracting: Ranger.Brubaker.1983
+extracting: Rapid.Fall.1994
+extracting: RAPiD_12_1K.Thornalley.2010
+extracting: Ratasjoen.Velle.2005
+extracting: RC12-10.Poore.2003
+extracting: RC24_08GC.Arbuszewski.2013
+extracting: RC27_23.Overpeck.1996
+extracting: RC27_28.Overpeck.1996
+extracting: RedRock.Maher.1972
+extracting: Reiarsdalvatnet.Seppa.2009
+extracting: Reidel.Almquist-Jacobson.1992
+extracting: Renland.Johnsen.1992
+extracting: RiviereFeuilles2.Larouche.1981
+extracting: RR1313_23PC.MoffaSanchez.2019
+extracting: Ruila.Seppa.2004
+extracting: Rukatunturi.Hicks.1985
+extracting: s53s52.KaislahtiTillman.2010
+extracting: SacredLake.Loomis.2012
+extracting: SaegistalseePollen.Wick.2003
+extracting: SaharaSandWetland.Rao.2019
+extracting: Saint-JeanOrleans.Richard.1981
+extracting: SaintCalixte.Larouche.NA
+extracting: SaintThomas.Voeltzel.1987
+extracting: SaintViaudContin.Bernard.1996
+extracting: SaladaPequena.EPD
+extracting: SchwarzseeobSoelden.Ilyashuk.2011
+extracting: SchwarzseeReschenscheideck.Welten.1982
+extracting: ScreamingLynxLake.Clegg.2011
+extracting: SecretLake.Lasher.2017
+extracting: Sfl4-1.Willemse.1999
+extracting: Sharkey.Shuman.2016
+extracting: SihailongwanMaar.Stebich.2015
+extracting: SipleDomeA.Das.2008
+extracting: Sixteen.Futyma.1986
+extracting: sjuuodjijaure.Rosen.2001
+extracting: SK237_GC04.Saraswat.2013
+extracting: Skrzetuszewskie.Litt.2001
+extracting: Sluggan.Smith.1991
+extracting: SN-6.Tiwari.2015
+extracting: SO136_GC11.Barrows.2007
+extracting: SO189_039KL.Mohtadi.2014
+extracting: SO189_119KL.Mohtadi.2014
+extracting: SO189_144KL.Mohtadi.2014
+extracting: SO42_74KL.Huguet.2006
+extracting: SO90_56KA.Doose-Rolinski.2001
+extracting: SO90_63KA.Staubwasser.2003
+extracting: Sokli.Shala.2017
+extracting: SouthAfricanRainfallZone.Chevalier.2015
+extracting: SouthernCalifornia.Ohlwein.2012
+extracting: SouthIsland.Williams.2005
+extracting: Soylegrotta.Lauritzen.1999
+extracting: SP02.Adams.2010
+extracting: Spaime.Hammarlund.2004
+extracting: Spannagel.Fohlmeister.2012
+extracting: SprucePond.Shuman.2016
+extracting: SSDP_102.Kim.2004
+extracting: StaroselskyMoch.Novenko.2018
+extracting: Starvatn.Andresen.2008
+extracting: Station803.Bringue.2012
+extracting: Stazersee.Heiri.2015
+extracting: Steel.Shuman.2016
+extracting: StellaLake.Reinemann.2009
+extracting: Straldzhamire.Tonkov.2009
+extracting: SU81_18.Bard.2000
+extracting: SudobleLake.Elovicheva.1985
+extracting: Sutherland.Shuman.2016
+extracting: SV04.Rigual-Hernndez.2017
+extracting: Svanavatnet.Bjune.2008
+extracting: Svartvatnet-Norway.Seppa.2009
+extracting: Svartvatnet-Svalbard.Luoto.2018
+extracting: SwienskuhleDAHIII.Behre.1986
+extracting: SwietokrzyskieLake.Makohonienko.1991
+extracting: Szymbark.Szczepanek.1989
+extracting: TALDICE.Mezgec.2017
+extracting: TalkinTarn.Langdon.2004
+extracting: TanaLake.Loomis.2015
+extracting: Tanganyika.Tierney.2008
+extracting: TangledUpLake.Anderson.2001
+extracting: Tarnowiec.Harmata.1987
+extracting: TauldintreBrazi.Toth.2015
+extracting: TaulMuced.Diaconu.2017
+extracting: Temje.Nazarova.2013
+extracting: TiancaiLake.Zhang.2017
+extracting: Tiavatnet.Seppa.2009
+extracting: Tibetanus.Hammarlund.2002
+extracting: Tigalmamine.Cheddadi.1998
+extracting: TK2.Porinchu.2019
+extracting: TN057-17.Nielsen.2004
+extracting: TN062-0550.Barron.2018
+extracting: Topptjonna.Paus.2011
+extracting: Tornetrask.Grudd.2002
+extracting: Toskaljavri.Seppa.2002
+extracting: TourbieredeLanorieHenri.Comtois.1982
+extracting: TourbieredeLanorieStJean.Comtois.1982
+extracting: TR163_22.Lea.2006
+extracting: TR163_31.Dubois.2009
+extracting: Trehorningen.Antonsson.2007
+extracting: Trettetjorn.Bjune.2005
+extracting: Troll28-03.Klitgard-Kristensen.2001
+extracting: Trout.Irvine.2012
+extracting: Tsuolbmajavri.Korhola.2002
+extracting: TTR17_434G.Rodrigo-Gamiz.2014
+extracting: Tumbulovaty.Kultti.2004
+extracting: Turkana.Berke.2012
+extracting: TwoYourtsLake.Nazarova.2013
+extracting: Uitbergen.Verbruggen.1979
+extracting: UpperFly.Bunbury.2009
+extracting: Valiranta.Kharinei.2015
+extracting: Van.VanZeist.1978
+extracting: Vatnamyri.Holmes.2011
+extracting: Vernerovice.Peichlova.1979
+extracting: VestreOykjamyrtorn.EPD
+extracting: VestreOykjamytjorn.Velle.2005
+extracting: Victoria.Berke.2012
+extracting: vikjordvatnet.Balascio.2012
+extracting: VM12_107.Schmidt.2012
+extracting: VM21_30.Koutavas.2003
+extracting: VM28_122.Schmidt.2004
+extracting: Vostok.Vimeux.2002
+extracting: Vuoksjavratje.Berntsson.2014
+extracting: VuolepNjakajaure.Heinrichs.2006
+extracting: vuoskkujavri.Bigler.2002
+extracting: Wachel3.Doerfler.1989
+extracting: WachseldornUntermoos.Oeschger.1980
+extracting: WAISDivide.Cuffey.2016
+extracting: WAISDivide.Fegyveresi.2016
+extracting: Waskey.Levy.2004
+extracting: Waxeckalm.Huettemann.1987
+extracting: WCA3BGumboLimboFarTail.Willard.2001
+extracting: WCA3BGumboLimboMarsh.Willard.2001
+extracting: WestOkoboji.VanZant.1979
+extracting: WhitePond.Krause.2019
+extracting: WiggenhallSt.Germans.Waller.1994
+extracting: WilderSeebeimRuhestein.EPD
+extracting: WIND28K.Kiefer.2006
+extracting: Windy.Chase.2008
+extracting: Wonderkrater.Truc.2013
+extracting: Woryty.EPD
+extracting: Ximencuo.Herzschuh.2014
+extracting: XingyunLake.Wu.2018
+extracting: Yakumo.Leipe.2013
+extracting: Yanou.Foster.2016
+extracting: Yarnyshnoe.Seppa.2008
+extracting: Ylimysneva.Huttunen.1990
+extracting: Zabieniec.Plociennik.2011
+extracting: Zalozhtsy.Bezusko.1992
+extracting: Zbudovskablata.Rybnickova.1975
+Created time series: 5088 entries
+Fixing GISP2 ages: temperature , Index: 126
+Found 1319 matches from 5088 columns
+Found 1276 matches from 1319 columns
+No data in reference period, index: 269
+No data in reference period, index: 270
+/home/mpe32/analysis/15_Holocene_Reconstruction/data_assimilation/da_load_proxies.py:207: RuntimeWarning: Mean of empty slice
+  proxy_values_12ka = proxy_values_12ka - np.nanmean(proxy_values_12ka_ref)
+ATTENTION!  Seasonality text unknown, using annual.  Seasonality: |2 2 3 4 5 6 7 8 9 10 11 12|
+ATTENTION!  Seasonality text unknown, using annual.  Seasonality: |2 2 3 4 5 6 7 8 9 10 11 12|
+No data in reference period, index: 427
+No data in reference period, index: 499
+No data in reference period, index: 500
+No data in reference period, index: 501
+No data in reference period, index: 559
+No data in reference period, index: 732
+No data in reference period, index: 744
+No data in reference period, index: 745
+No data in reference period, index: 1167
+No data in reference period, index: 1179
+No data in reference period, index: 1200
+
+=== PROXY DATA LOADED ===
+Proxy datasets loaded (n=1):['temp12k']
+Proxies loaded        (n=1276)
+---
+Proxies without data in reference period (n=13)
+Proxies without uncertainty value        (n=10). Set to nan
+---
+Data stored in dictionary "proxy_data", with keys and dimensions:
+       values_binned    (1276, 1200)
+   resolution_binned    (1276, 1200)
+         uncertainty         (1276,)
+            metadata       (1276, 8)
+                lats         (1276,)
+                lons         (1276,)
+         archivetype         (1276,)
+           proxytype         (1276,)
+               units         (1276,)
+   seasonality_array            1276
+         age_centers         (1200,)
+=========================
+
+Proxy 0 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 1 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 2 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 3 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 4 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 5 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 6 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 7 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 8 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 9 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 10 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 11 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 12 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 13 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 14 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 15 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 16 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 17 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 18 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 19 PSM selected: get_tas | GlacierIce melt layer degC
+Proxy 20 PSM selected: get_tas | GlacierIce d18O degC
+Proxy 21 PSM selected: get_tas | Peat pollen degC
+Proxy 22 PSM selected: get_tas | Peat pollen degC
+Proxy 23 PSM selected: get_tas | Peat pollen degC
+Proxy 24 PSM selected: get_tas | Peat pollen degC
+Proxy 25 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 26 PSM selected: get_tas | GlacierIce hybrid-ice degC
+Proxy 27 PSM selected: get_tas | Peat pollen degC
+Proxy 28 PSM selected: get_tas | Peat pollen degC
+Proxy 29 PSM selected: get_tas | Peat pollen degC
+Proxy 30 PSM selected: get_tas | Peat pollen degC
+Proxy 31 PSM selected: get_tas | Peat pollen degC
+Proxy 32 PSM selected: get_tas | Peat pollen degC
+Proxy 33 PSM selected: get_tas | Peat pollen degC
+Proxy 34 PSM selected: get_tas | Peat pollen degC
+Proxy 35 PSM selected: get_tas | Peat pollen degC
+Proxy 36 PSM selected: get_tas | Peat pollen degC
+Proxy 37 PSM selected: get_tas | Peat pollen degC
+Proxy 38 PSM selected: get_tas | Peat pollen degC
+Proxy 39 PSM selected: get_tas | Peat pollen degC
+Proxy 40 PSM selected: get_tas | Peat pollen degC
+Proxy 41 PSM selected: get_tas | Peat pollen degC
+Proxy 42 PSM selected: get_tas | LakeSediment alkenone degC
+Proxy 43 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 44 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 45 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 46 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 47 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 48 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 49 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 50 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 51 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 52 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 53 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 54 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 55 PSM selected: get_tas | MarineSediment pollen degC
+Proxy 56 PSM selected: get_tas | MarineSediment pollen degC
+Proxy 57 PSM selected: get_tas | MarineSediment pollen degC
+Proxy 58 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 59 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 60 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 61 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 62 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 63 PSM selected: get_tas | Peat pollen degC
+Proxy 64 PSM selected: get_tas | Peat pollen degC
+Proxy 65 PSM selected: get_tas | Peat pollen degC
+Proxy 66 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 67 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 68 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 69 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 70 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 71 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 72 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 73 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 74 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 75 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 76 PSM selected: get_tas | Peat pollen degC
+Proxy 77 PSM selected: get_tas | Peat pollen degC
+Proxy 78 PSM selected: get_tas | Peat pollen degC
+Proxy 79 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 80 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 81 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 82 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 83 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 84 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 85 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 86 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 87 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 88 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 89 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 90 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 91 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 92 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 93 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 94 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 95 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 96 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 97 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 98 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 99 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 100 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 101 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 102 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 103 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 104 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 105 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 106 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 107 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 108 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 109 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 110 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 111 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 112 PSM selected: get_tas | Peat pollen degC
+Proxy 113 PSM selected: get_tas | Peat pollen degC
+Proxy 114 PSM selected: get_tas | Peat pollen degC
+Proxy 115 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 116 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 117 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 118 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 119 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 120 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 121 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 122 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 123 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 124 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 125 PSM selected: get_tas | LakeSediment chlorophyll degC
+Proxy 126 PSM selected: get_tas | Peat pollen degC
+Proxy 127 PSM selected: get_tas | Peat pollen degC
+Proxy 128 PSM selected: get_tas | Peat pollen degC
+Proxy 129 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 130 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 131 PSM selected: get_tas | Peat pollen degC
+Proxy 132 PSM selected: get_tas | Peat pollen degC
+Proxy 133 PSM selected: get_tas | Peat pollen degC
+Proxy 134 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 135 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 136 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 137 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 138 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 139 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 140 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 141 PSM selected: get_tas | Speleothem d18O degC
+Proxy 142 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 143 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 144 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 145 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 146 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 147 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 148 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 149 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 150 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 151 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 152 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 153 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 154 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 155 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 156 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 157 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 158 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 159 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 160 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 161 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 162 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 163 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 164 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 165 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 166 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 167 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 168 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 169 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 170 PSM selected: get_tas | Peat pollen degC
+Proxy 171 PSM selected: get_tas | Peat pollen degC
+Proxy 172 PSM selected: get_tas | Peat pollen degC
+Proxy 173 PSM selected: get_tas | Peat pollen degC
+Proxy 174 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 175 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 176 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 177 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 178 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 179 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 180 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 181 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 182 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 183 PSM selected: get_tas | Peat GDGT degC
+Proxy 184 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 185 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 186 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 187 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 188 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 189 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 190 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 191 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 192 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 193 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 194 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 195 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 196 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 197 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 198 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 199 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 200 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 201 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 202 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 203 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 204 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 205 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 206 PSM selected: get_tas | Peat C15 fatty alcohols degC
+Proxy 207 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 208 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 209 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 210 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 211 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 212 PSM selected: get_tas | Peat pollen degC
+Proxy 213 PSM selected: get_tas | Peat pollen degC
+Proxy 214 PSM selected: get_tas | Peat pollen degC
+Proxy 215 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 216 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 217 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 218 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 219 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 220 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 221 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 222 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 223 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 224 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 225 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 226 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 227 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 228 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 229 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 230 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 231 PSM selected: get_tas | Ice-other d18O degC
+Proxy 232 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 233 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 234 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 235 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 236 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 237 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 238 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 239 PSM selected: get_tas | GlacierIce d18O degC
+Proxy 240 PSM selected: get_tas | Peat pollen degC
+Proxy 241 PSM selected: get_tas | Peat pollen degC
+Proxy 242 PSM selected: get_tas | Peat pollen degC
+Proxy 243 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 244 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 245 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 246 PSM selected: get_tas | Peat pollen degC
+Proxy 247 PSM selected: get_tas | Peat pollen degC
+Proxy 248 PSM selected: get_tas | Peat pollen degC
+Proxy 249 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 250 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 251 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 252 PSM selected: get_tas | GlacierIce borehole degC
+Proxy 253 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 254 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 255 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 256 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 257 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 258 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 259 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 260 PSM selected: get_tas | GlacierIce deterium excess degC
+Proxy 261 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 262 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 263 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 264 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 265 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 266 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 267 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 268 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 269 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 270 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 271 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 272 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 273 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 274 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 275 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 276 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 277 PSM selected: get_tas | GlacierIce deterium excess degC
+Proxy 278 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 279 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 280 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 281 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 282 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 283 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 284 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 285 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 286 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 287 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 288 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 289 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 290 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 291 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 292 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 293 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 294 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 295 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 296 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 297 PSM selected: get_tas | Peat pollen degC
+Proxy 298 PSM selected: get_tas | Peat pollen degC
+Proxy 299 PSM selected: get_tas | Peat pollen degC
+Proxy 300 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 301 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 302 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 303 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 304 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 305 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 306 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 307 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 308 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 309 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 310 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 311 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 312 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 313 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 314 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 315 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 316 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 317 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 318 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 319 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 320 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 321 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 322 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 323 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 324 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 325 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 326 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 327 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 328 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 329 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 330 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 331 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 332 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 333 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 334 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 335 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 336 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 337 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 338 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 339 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 340 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 341 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 342 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 343 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 344 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 345 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 346 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 347 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 348 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 349 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 350 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 351 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 352 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 353 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 354 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 355 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 356 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 357 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 358 PSM selected: get_tas | Peat pollen degC
+Proxy 359 PSM selected: get_tas | Peat pollen degC
+Proxy 360 PSM selected: get_tas | Peat pollen degC
+Proxy 361 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 362 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 363 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 364 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 365 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 366 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 367 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 368 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 369 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 370 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 371 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 372 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 373 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 374 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 375 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 376 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 377 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 378 PSM selected: get_tas | GlacierIce gas degC
+Proxy 379 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 380 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 381 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 382 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 383 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 384 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 385 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 386 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 387 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 388 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 389 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 390 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 391 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 392 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 393 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 394 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 395 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 396 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 397 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 398 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 399 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 400 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 401 PSM selected: get_tas | Peat pollen degC
+Proxy 402 PSM selected: get_tas | Peat pollen degC
+Proxy 403 PSM selected: get_tas | Peat pollen degC
+Proxy 404 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 405 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 406 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 407 PSM selected: get_tas | Wood TRW degC
+Proxy 408 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 409 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 410 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 411 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 412 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 413 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 414 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 415 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 416 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 417 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 418 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 419 PSM selected: get_tas | Peat pollen degC
+Proxy 420 PSM selected: get_tas | Peat pollen degC
+Proxy 421 PSM selected: get_tas | Peat pollen degC
+Proxy 422 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 423 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 424 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 425 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 426 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 427 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 428 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 429 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 430 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 431 PSM selected: get_tas | Peat GDGT degC
+Proxy 432 PSM selected: get_tas | LakeSediment alkenone degC
+Proxy 433 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 434 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 435 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 436 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 437 PSM selected: get_tas | Peat pollen degC
+Proxy 438 PSM selected: get_tas | Peat pollen degC
+Proxy 439 PSM selected: get_tas | Peat pollen degC
+Proxy 440 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 441 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 442 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 443 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 444 PSM selected: get_tas | Speleothem 3-OH-Fatty Acids degC
+Proxy 445 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 446 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 447 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 448 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 449 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 450 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 451 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 452 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 453 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 454 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 455 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 456 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 457 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 458 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 459 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 460 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 461 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 462 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 463 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 464 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 465 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 466 PSM selected: get_tas | Peat pollen degC
+Proxy 467 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 468 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 469 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 470 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 471 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 472 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 473 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 474 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 475 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 476 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 477 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 478 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 479 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 480 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 481 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 482 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 483 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 484 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 485 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 486 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 487 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 488 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 489 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 490 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 491 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 492 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 493 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 494 PSM selected: get_tas | LakeSediment alkenone degC
+Proxy 495 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 496 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 497 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 498 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 499 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 500 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 501 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 502 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 503 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 504 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 505 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 506 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 507 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 508 PSM selected: get_tas | Peat pollen degC
+Proxy 509 PSM selected: get_tas | Peat pollen degC
+Proxy 510 PSM selected: get_tas | Peat pollen degC
+Proxy 511 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 512 PSM selected: get_tas | GlacierIce dD degC
+Proxy 513 PSM selected: get_tas | Peat d18O degC
+Proxy 514 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 515 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 516 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 517 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 518 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 519 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 520 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 521 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 522 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 523 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 524 PSM selected: get_tas | Peat pollen degC
+Proxy 525 PSM selected: get_tas | Peat pollen degC
+Proxy 526 PSM selected: get_tas | Peat pollen degC
+Proxy 527 PSM selected: get_tas | Speleothem d13C degC
+Proxy 528 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 529 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 530 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 531 PSM selected: get_tas | Peat pollen degC
+Proxy 532 PSM selected: get_tas | Peat pollen degC
+Proxy 533 PSM selected: get_tas | Peat pollen degC
+Proxy 534 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 535 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 536 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 537 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 538 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 539 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 540 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 541 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 542 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 543 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 544 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 545 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 546 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 547 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 548 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 549 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 550 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 551 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 552 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 553 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 554 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 555 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 556 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 557 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 558 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 559 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 560 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 561 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 562 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 563 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 564 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 565 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 566 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 567 PSM selected: get_tas | GlacierIce dD degC
+Proxy 568 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 569 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 570 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 571 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 572 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 573 PSM selected: get_tas | LakeSediment chlorophyll degC
+Proxy 574 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 575 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 576 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 577 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 578 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 579 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 580 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 581 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 582 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 583 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 584 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 585 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 586 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 587 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 588 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 589 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 590 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 591 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 592 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 593 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 594 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 595 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 596 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 597 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 598 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 599 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 600 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 601 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 602 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 603 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 604 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 605 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 606 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 607 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 608 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 609 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 610 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 611 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 612 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 613 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 614 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 615 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 616 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 617 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 618 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 619 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 620 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 621 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 622 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 623 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 624 PSM selected: get_tas | Wood TRW degC
+Proxy 625 PSM selected: get_tas | GlacierIce borehole degC
+Proxy 626 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 627 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 628 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 629 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 630 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 631 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 632 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 633 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 634 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 635 PSM selected: get_tas | Peat pollen degC
+Proxy 636 PSM selected: get_tas | Peat pollen degC
+Proxy 637 PSM selected: get_tas | Peat pollen degC
+Proxy 638 PSM selected: get_tas | Peat pollen degC
+Proxy 639 PSM selected: get_tas | Peat pollen degC
+Proxy 640 PSM selected: get_tas | Peat pollen degC
+Proxy 641 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 642 PSM selected: get_tas | Peat pollen degC
+Proxy 643 PSM selected: get_tas | Peat pollen degC
+Proxy 644 PSM selected: get_tas | Peat pollen degC
+Proxy 645 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 646 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 647 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 648 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 649 PSM selected: get_tas | MarineSediment pollen degC
+Proxy 650 PSM selected: get_tas | MarineSediment pollen degC
+Proxy 651 PSM selected: get_tas | MarineSediment pollen degC
+Proxy 652 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 653 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 654 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 655 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 656 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 657 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 658 PSM selected: get_tas | Peat pollen degC
+Proxy 659 PSM selected: get_tas | Peat pollen degC
+Proxy 660 PSM selected: get_tas | Peat pollen degC
+Proxy 661 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 662 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 663 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 664 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 665 PSM selected: get_tas | MarineSediment diatom degC
+Proxy 666 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 667 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 668 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 669 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 670 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 671 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 672 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 673 PSM selected: get_tas | Peat pollen degC
+Proxy 674 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 675 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 676 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 677 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 678 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 679 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 680 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 681 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 682 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 683 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 684 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 685 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 686 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 687 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 688 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 689 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 690 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 691 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 692 PSM selected: get_tas | Peat pollen degC
+Proxy 693 PSM selected: get_tas | Peat pollen degC
+Proxy 694 PSM selected: get_tas | Peat pollen degC
+Proxy 695 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 696 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 697 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 698 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 699 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 700 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 701 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 702 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 703 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 704 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 705 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 706 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 707 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 708 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 709 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 710 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 711 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 712 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 713 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 714 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 715 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 716 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 717 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 718 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 719 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 720 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 721 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 722 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 723 PSM selected: get_tas | Peat pollen degC
+Proxy 724 PSM selected: get_tas | Peat pollen degC
+Proxy 725 PSM selected: get_tas | Peat pollen degC
+Proxy 726 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 727 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 728 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 729 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 730 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 731 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 732 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 733 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 734 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 735 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 736 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 737 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 738 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 739 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 740 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 741 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 742 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 743 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 744 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 745 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 746 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 747 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 748 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 749 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 750 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 751 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 752 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 753 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 754 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 755 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 756 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 757 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 758 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 759 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 760 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 761 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 762 PSM selected: get_tas | MarineSediment pollen degC
+Proxy 763 PSM selected: get_tas | MarineSediment pollen degC
+Proxy 764 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 765 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 766 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 767 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 768 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 769 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 770 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 771 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 772 PSM selected: get_tas | MarineSediment diatom degC
+Proxy 773 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 774 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 775 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 776 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 777 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 778 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 779 PSM selected: get_tas | MarineSediment radiolaria degC
+Proxy 780 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 781 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 782 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 783 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 784 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 785 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 786 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 787 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 788 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 789 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 790 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 791 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 792 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 793 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 794 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 795 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 796 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 797 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 798 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 799 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 800 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 801 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 802 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 803 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 804 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 805 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 806 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 807 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 808 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 809 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 810 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 811 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 812 PSM selected: get_tas | MarineSediment diatom degC
+Proxy 813 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 814 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 815 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 816 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 817 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 818 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 819 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 820 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 821 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 822 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 823 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 824 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 825 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 826 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 827 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 828 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 829 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 830 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 831 PSM selected: get_tas | Peat pollen degC
+Proxy 832 PSM selected: get_tas | Peat pollen degC
+Proxy 833 PSM selected: get_tas | Peat pollen degC
+Proxy 834 PSM selected: get_tas | Midden macrofossils degC
+Proxy 835 PSM selected: get_tas | Midden macrofossils degC
+Proxy 836 PSM selected: get_tas | Midden macrofossils degC
+Proxy 837 PSM selected: get_tas | Midden macrofossils degC
+Proxy 838 PSM selected: get_tas | Midden macrofossils degC
+Proxy 839 PSM selected: get_tas | Midden macrofossils degC
+Proxy 840 PSM selected: get_tas | Midden macrofossils degC
+Proxy 841 PSM selected: get_tas | Midden macrofossils degC
+Proxy 842 PSM selected: get_tas | Midden macrofossils degC
+Proxy 843 PSM selected: get_tas | Speleothem dD degC
+Proxy 844 PSM selected: get_tas | Peat pollen degC
+Proxy 845 PSM selected: get_tas | Peat pollen degC
+Proxy 846 PSM selected: get_tas | Peat pollen degC
+Proxy 847 PSM selected: get_tas | Peat pollen degC
+Proxy 848 PSM selected: get_tas | Peat pollen degC
+Proxy 849 PSM selected: get_tas | Peat pollen degC
+Proxy 850 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 851 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 852 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 853 PSM selected: get_tas | Peat pollen degC
+Proxy 854 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 855 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 856 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 857 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 858 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 859 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 860 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 861 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 862 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 863 PSM selected: get_tas | Peat pollen degC
+Proxy 864 PSM selected: get_tas | Peat pollen degC
+Proxy 865 PSM selected: get_tas | Peat pollen degC
+Proxy 866 PSM selected: get_tas | Peat pollen degC
+Proxy 867 PSM selected: get_tas | Peat pollen degC
+Proxy 868 PSM selected: get_tas | Peat pollen degC
+Proxy 869 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 870 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 871 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 872 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 873 PSM selected: get_tas | Peat pollen degC
+Proxy 874 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 875 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 876 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 877 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 878 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 879 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 880 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 881 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 882 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 883 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 884 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 885 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 886 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 887 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 888 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 889 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 890 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 891 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 892 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 893 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 894 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 895 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 896 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 897 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 898 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 899 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 900 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 901 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 902 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 903 PSM selected: get_tas | LakeSediment diatom degC
+Proxy 904 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 905 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 906 PSM selected: get_tas | GlacierIce isotope diffusion degC
+Proxy 907 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 908 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 909 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 910 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 911 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 912 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 913 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 914 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 915 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 916 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 917 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 918 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 919 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 920 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 921 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 922 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 923 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 924 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 925 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 926 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 927 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 928 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 929 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 930 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 931 PSM selected: get_tas | Peat pollen degC
+Proxy 932 PSM selected: get_tas | Peat pollen degC
+Proxy 933 PSM selected: get_tas | Peat pollen degC
+Proxy 934 PSM selected: get_tas | Peat pollen degC
+Proxy 935 PSM selected: get_tas | Peat pollen degC
+Proxy 936 PSM selected: get_tas | Peat pollen degC
+Proxy 937 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 938 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 939 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 940 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 941 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 942 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 943 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 944 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 945 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 946 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 947 PSM selected: get_tas | Peat pollen degC
+Proxy 948 PSM selected: get_tas | Peat pollen degC
+Proxy 949 PSM selected: get_tas | Peat pollen degC
+Proxy 950 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 951 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 952 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 953 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 954 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 955 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 956 PSM selected: get_tas | Peat pollen degC
+Proxy 957 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 958 PSM selected: get_tas | Midden pollen degC
+Proxy 959 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 960 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 961 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 962 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 963 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 964 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 965 PSM selected: get_tas | Peat pollen degC
+Proxy 966 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 967 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 968 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 969 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 970 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 971 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 972 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 973 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 974 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 975 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 976 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 977 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 978 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 979 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 980 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 981 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 982 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 983 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 984 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 985 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 986 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 987 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 988 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 989 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 990 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 991 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 992 PSM selected: get_tas | Peat pollen degC
+Proxy 993 PSM selected: get_tas | Peat pollen degC
+Proxy 994 PSM selected: get_tas | Peat pollen degC
+Proxy 995 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 996 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 997 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 998 PSM selected: get_tas | Peat pollen degC
+Proxy 999 PSM selected: get_tas | Peat pollen degC
+Proxy 1000 PSM selected: get_tas | Peat pollen degC
+Proxy 1001 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1002 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1003 PSM selected: get_tas | Peat pollen degC
+Proxy 1004 PSM selected: get_tas | Peat pollen degC
+Proxy 1005 PSM selected: get_tas | Peat pollen degC
+Proxy 1006 PSM selected: get_tas | LakeSediment alkenone degC
+Proxy 1007 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1008 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1009 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1010 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1011 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1012 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1013 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1014 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1015 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1016 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1017 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1018 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1019 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1020 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1021 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1022 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1023 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1024 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1025 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 1026 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1027 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1028 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 1029 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 1030 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1031 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1032 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1033 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1034 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1035 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1036 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1037 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1038 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1039 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1040 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1041 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1042 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1043 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 1044 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1045 PSM selected: get_tas | Peat pollen degC
+Proxy 1046 PSM selected: get_tas | Peat pollen degC
+Proxy 1047 PSM selected: get_tas | Peat pollen degC
+Proxy 1048 PSM selected: get_tas | Peat d13C degC
+Proxy 1049 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 1050 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1051 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1052 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1053 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1054 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1055 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1056 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1057 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1058 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1059 PSM selected: get_tas | Peat pollen degC
+Proxy 1060 PSM selected: get_tas | Peat pollen degC
+Proxy 1061 PSM selected: get_tas | Peat pollen degC
+Proxy 1062 PSM selected: get_tas | Peat pollen degC
+Proxy 1063 PSM selected: get_tas | Peat pollen degC
+Proxy 1064 PSM selected: get_tas | Peat pollen degC
+Proxy 1065 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1066 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1067 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1068 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1069 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1070 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1071 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1072 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1073 PSM selected: get_tas | LakeSediment d18O degC
+Proxy 1074 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1075 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1076 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1077 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1078 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1079 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1080 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1081 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1082 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1083 PSM selected: get_tas | LakeSediment diatom degC
+Proxy 1084 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 1085 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1086 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1087 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1088 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1089 PSM selected: get_tas | Peat pollen degC
+Proxy 1090 PSM selected: get_tas | Peat pollen degC
+Proxy 1091 PSM selected: get_tas | Peat pollen degC
+Proxy 1092 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 1093 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 1094 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 1095 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1096 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 1097 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1098 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1099 PSM selected: get_tas | MarineSediment GDGT degC
+Proxy 1100 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 1101 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1102 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 1103 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 1104 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 1105 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 1106 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1107 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1108 PSM selected: get_tas | Peat pollen degC
+Proxy 1109 PSM selected: get_tas | Peat pollen degC
+Proxy 1110 PSM selected: get_tas | Speleothem d18O degC
+Proxy 1111 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1112 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1113 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1114 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1115 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 1116 PSM selected: get_tas | Peat pollen degC
+Proxy 1117 PSM selected: get_tas | MarineSediment dinocyst degC
+Proxy 1118 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1119 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1120 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1121 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1122 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1123 PSM selected: get_tas | Peat pollen degC
+Proxy 1124 PSM selected: get_tas | Peat pollen degC
+Proxy 1125 PSM selected: get_tas | Peat pollen degC
+Proxy 1126 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 1127 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1128 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1129 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1130 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1131 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1132 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1133 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 1134 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1135 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1136 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1137 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1138 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1139 PSM selected: get_tas | Peat pollen degC
+Proxy 1140 PSM selected: get_tas | Peat pollen degC
+Proxy 1141 PSM selected: get_tas | Peat pollen degC
+Proxy 1142 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1143 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1144 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1145 PSM selected: get_tas | Peat pollen degC
+Proxy 1146 PSM selected: get_tas | Peat pollen degC
+Proxy 1147 PSM selected: get_tas | Peat pollen degC
+Proxy 1148 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1149 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 1150 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 1151 PSM selected: get_tas | Peat pollen degC
+Proxy 1152 PSM selected: get_tas | Peat pollen degC
+Proxy 1153 PSM selected: get_tas | Peat pollen degC
+Proxy 1154 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1155 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1156 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1157 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1158 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1159 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1160 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1161 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1162 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1163 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1164 PSM selected: get_tas | MarineSediment diatom degC
+Proxy 1165 PSM selected: get_tas | MarineSediment diatom degC
+Proxy 1166 PSM selected: get_tas | MarineSediment diatom degC
+Proxy 1167 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1168 PSM selected: get_tas | Wood TRW degC
+Proxy 1169 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1170 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1171 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1172 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1173 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1174 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1175 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1176 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 1177 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 1178 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1179 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 1180 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1181 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1182 PSM selected: get_tas | MarineSediment foraminifera degC
+Proxy 1183 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1184 PSM selected: get_tas | LakeSediment diatom degC
+Proxy 1185 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1186 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1187 PSM selected: get_tas | MarineSediment long chain diol degC
+Proxy 1188 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 1189 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1190 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 1191 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1192 PSM selected: get_tas | Peat pollen degC
+Proxy 1193 PSM selected: get_tas | Peat pollen degC
+Proxy 1194 PSM selected: get_tas | Peat pollen degC
+Proxy 1195 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1196 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1197 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1198 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1199 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1200 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1201 PSM selected: get_tas | Peat pollen degC
+Proxy 1202 PSM selected: get_tas | Peat pollen degC
+Proxy 1203 PSM selected: get_tas | Peat pollen degC
+Proxy 1204 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1205 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1206 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1207 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1208 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 1209 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 1210 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1211 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 1212 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 1213 PSM selected: get_tas | MarineSediment alkenone degC
+Proxy 1214 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1215 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1216 PSM selected: get_tas | MarineSediment Mg/Ca degC
+Proxy 1217 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1218 PSM selected: get_tas | GlacierIce dD degC
+Proxy 1219 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1220 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1221 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1222 PSM selected: get_tas | LakeSediment diatom degC
+Proxy 1223 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1224 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1225 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1226 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1227 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1228 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1229 PSM selected: get_tas | Peat pollen degC
+Proxy 1230 PSM selected: get_tas | Peat pollen degC
+Proxy 1231 PSM selected: get_tas | Peat pollen degC
+Proxy 1232 PSM selected: get_tas | GlacierIce hybrid-ice degC
+Proxy 1233 PSM selected: get_tas | GlacierIce bubble frequency degC
+Proxy 1234 PSM selected: get_tas | Peat pollen degC
+Proxy 1235 PSM selected: get_tas | Peat pollen degC
+Proxy 1236 PSM selected: get_tas | Peat pollen degC
+Proxy 1237 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1238 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1239 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1240 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1241 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1242 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1243 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1244 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1245 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1246 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 1247 PSM selected: get_tas | Peat pollen degC
+Proxy 1248 PSM selected: get_tas | Peat pollen degC
+Proxy 1249 PSM selected: get_tas | Peat pollen degC
+Proxy 1250 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1251 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1252 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1253 PSM selected: get_tas | MarineSediment d18O degC
+Proxy 1254 PSM selected: get_tas | LakeSediment chironomid degC
+Proxy 1255 PSM selected: get_tas | Peat pollen degC
+Proxy 1256 PSM selected: get_tas | Peat pollen degC
+Proxy 1257 PSM selected: get_tas | Peat pollen degC
+Proxy 1258 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1259 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1260 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1261 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1262 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1263 PSM selected: get_tas | Peat pollen degC
+Proxy 1264 PSM selected: get_tas | LakeSediment GDGT degC
+Proxy 1265 PSM selected: get_tas | LakeSediment pollen degC
+Proxy 1266 PSM selected: get_tas | Peat pollen degC
+Proxy 1267 PSM selected: get_tas | Peat pollen degC
+Proxy 1268 PSM selected: get_tas | Peat pollen degC
+Proxy 1269 PSM selected: get_tas | Peat chironomid degC
+Proxy 1270 PSM selected: get_tas | Peat pollen degC
+Proxy 1271 PSM selected: get_tas | Peat pollen degC
+Proxy 1272 PSM selected: get_tas | Peat pollen degC
+Proxy 1273 PSM selected: get_tas | Peat pollen degC
+Proxy 1274 PSM selected: get_tas | Peat pollen degC
+Proxy 1275 PSM selected: get_tas | Peat pollen degC
+Finished preprocessing proxies and making model-based proxy estimates.
+Assimilating archive types:['all']
+ - Number of records: 1276
+Starting data assimilation
+Time step 0/1200 complete.  Time: 89.14 sec
+Time step 1/1200 complete.  Time: 92.51 sec
+Time step 2/1200 complete.  Time: 96.31 sec
+Time step 3/1200 complete.  Time: 97.89 sec
+Time step 4/1200 complete.  Time: 98.43 sec
+Time step 5/1200 complete.  Time: 100.28 sec
+Time step 6/1200 complete.  Time: 102.28 sec
+Time step 7/1200 complete.  Time: 104.09 sec
+Time step 8/1200 complete.  Time: 105.43 sec
+Time step 9/1200 complete.  Time: 106.44 sec
+Time step 10/1200 complete.  Time: 106.60 sec
+Time step 11/1200 complete.  Time: 107.44 sec
+Time step 12/1200 complete.  Time: 109.53 sec
+Time step 13/1200 complete.  Time: 111.98 sec
+Time step 14/1200 complete.  Time: 112.95 sec
+Time step 15/1200 complete.  Time: 114.27 sec
+Time step 16/1200 complete.  Time: 115.70 sec
+Time step 17/1200 complete.  Time: 116.93 sec
+Time step 18/1200 complete.  Time: 118.89 sec
+Time step 19/1200 complete.  Time: 119.78 sec
+Time step 20/1200 complete.  Time: 120.67 sec
+Time step 21/1200 complete.  Time: 121.92 sec
+Time step 22/1200 complete.  Time: 122.92 sec
+Time step 23/1200 complete.  Time: 124.26 sec
+Time step 24/1200 complete.  Time: 124.18 sec
+Time step 25/1200 complete.  Time: 123.99 sec
+Time step 26/1200 complete.  Time: 123.72 sec
+Time step 27/1200 complete.  Time: 125.28 sec
+Time step 28/1200 complete.  Time: 126.13 sec
+Time step 29/1200 complete.  Time: 126.13 sec
+Time step 30/1200 complete.  Time: 128.37 sec
+Time step 31/1200 complete.  Time: 130.17 sec
+Time step 32/1200 complete.  Time: 129.06 sec
+Time step 33/1200 complete.  Time: 130.88 sec
+Time step 34/1200 complete.  Time: 131.63 sec
+Time step 35/1200 complete.  Time: 130.64 sec
+Time step 36/1200 complete.  Time: 131.96 sec
+Time step 37/1200 complete.  Time: 132.87 sec
+Time step 38/1200 complete.  Time: 132.94 sec
+Time step 39/1200 complete.  Time: 134.52 sec
+Time step 40/1200 complete.  Time: 135.12 sec
+Time step 41/1200 complete.  Time: 134.68 sec
+Time step 42/1200 complete.  Time: 134.55 sec
+Time step 43/1200 complete.  Time: 136.68 sec
+Time step 44/1200 complete.  Time: 137.71 sec
+Time step 45/1200 complete.  Time: 136.44 sec
+Time step 46/1200 complete.  Time: 136.92 sec
+Time step 47/1200 complete.  Time: 137.31 sec
+Time step 48/1200 complete.  Time: 138.61 sec
+Time step 49/1200 complete.  Time: 138.13 sec
+Time step 50/1200 complete.  Time: 138.86 sec
+Time step 51/1200 complete.  Time: 138.35 sec
+Time step 52/1200 complete.  Time: 138.89 sec
+Time step 53/1200 complete.  Time: 138.45 sec
+Time step 54/1200 complete.  Time: 139.20 sec
+Time step 55/1200 complete.  Time: 139.73 sec
+Time step 56/1200 complete.  Time: 138.86 sec
+Time step 57/1200 complete.  Time: 140.07 sec
+Time step 58/1200 complete.  Time: 140.53 sec
+Time step 59/1200 complete.  Time: 140.84 sec
+Time step 60/1200 complete.  Time: 141.23 sec
+Time step 61/1200 complete.  Time: 141.06 sec
+Time step 62/1200 complete.  Time: 141.70 sec
+Time step 63/1200 complete.  Time: 142.20 sec
+Time step 64/1200 complete.  Time: 142.69 sec
+Time step 65/1200 complete.  Time: 141.86 sec
+Time step 66/1200 complete.  Time: 142.90 sec
+Time step 67/1200 complete.  Time: 143.05 sec
+Time step 68/1200 complete.  Time: 142.54 sec
+Time step 69/1200 complete.  Time: 143.67 sec
+Time step 70/1200 complete.  Time: 143.02 sec
+Time step 71/1200 complete.  Time: 143.56 sec
+Time step 72/1200 complete.  Time: 143.18 sec
+Time step 73/1200 complete.  Time: 145.42 sec
+Time step 74/1200 complete.  Time: 144.77 sec
+Time step 75/1200 complete.  Time: 145.15 sec
+Time step 76/1200 complete.  Time: 145.26 sec
+Time step 77/1200 complete.  Time: 144.90 sec
+Time step 78/1200 complete.  Time: 146.43 sec
+Time step 79/1200 complete.  Time: 146.01 sec
+Time step 80/1200 complete.  Time: 145.75 sec
+Time step 81/1200 complete.  Time: 145.55 sec
+Time step 82/1200 complete.  Time: 146.58 sec
+Time step 83/1200 complete.  Time: 144.05 sec
+Time step 84/1200 complete.  Time: 145.22 sec
+Time step 85/1200 complete.  Time: 145.11 sec
+Time step 86/1200 complete.  Time: 144.57 sec
+Time step 87/1200 complete.  Time: 144.53 sec
+Time step 88/1200 complete.  Time: 145.86 sec
+Time step 89/1200 complete.  Time: 146.07 sec
+Time step 90/1200 complete.  Time: 144.47 sec
+Time step 91/1200 complete.  Time: 144.57 sec
+Time step 92/1200 complete.  Time: 144.59 sec
+Time step 93/1200 complete.  Time: 144.47 sec
+Time step 94/1200 complete.  Time: 145.81 sec
+Time step 95/1200 complete.  Time: 147.32 sec
+Time step 96/1200 complete.  Time: 146.12 sec
+Time step 97/1200 complete.  Time: 146.66 sec
+Time step 98/1200 complete.  Time: 146.21 sec
+Time step 99/1200 complete.  Time: 146.99 sec
+Time step 100/1200 complete.  Time: 146.57 sec
+Time step 101/1200 complete.  Time: 147.48 sec
+Time step 102/1200 complete.  Time: 146.96 sec
+Time step 103/1200 complete.  Time: 148.51 sec
+Time step 104/1200 complete.  Time: 147.77 sec
+Time step 105/1200 complete.  Time: 150.14 sec
+Time step 106/1200 complete.  Time: 149.25 sec
+Time step 107/1200 complete.  Time: 149.84 sec
+Time step 108/1200 complete.  Time: 149.31 sec
+Time step 109/1200 complete.  Time: 150.02 sec
+Time step 110/1200 complete.  Time: 150.43 sec
+Time step 111/1200 complete.  Time: 149.82 sec
+Time step 112/1200 complete.  Time: 149.23 sec
+Time step 113/1200 complete.  Time: 150.73 sec
+Time step 114/1200 complete.  Time: 150.94 sec
+Time step 115/1200 complete.  Time: 149.80 sec
+Time step 116/1200 complete.  Time: 150.30 sec
+Time step 117/1200 complete.  Time: 149.73 sec
+Time step 118/1200 complete.  Time: 149.99 sec
+Time step 119/1200 complete.  Time: 150.32 sec
+Time step 120/1200 complete.  Time: 150.91 sec
+Time step 121/1200 complete.  Time: 149.27 sec
+Time step 122/1200 complete.  Time: 149.89 sec
+Time step 123/1200 complete.  Time: 150.30 sec
+Time step 124/1200 complete.  Time: 151.23 sec
+Time step 125/1200 complete.  Time: 151.11 sec
+Time step 126/1200 complete.  Time: 150.94 sec
+Time step 127/1200 complete.  Time: 151.90 sec
+Time step 128/1200 complete.  Time: 151.93 sec
+Time step 129/1200 complete.  Time: 151.58 sec
+Time step 130/1200 complete.  Time: 151.79 sec
+Time step 131/1200 complete.  Time: 151.39 sec
+Time step 132/1200 complete.  Time: 151.46 sec
+Time step 133/1200 complete.  Time: 152.15 sec
+Time step 134/1200 complete.  Time: 152.12 sec
+Time step 135/1200 complete.  Time: 151.73 sec
+Time step 136/1200 complete.  Time: 151.79 sec
+Time step 137/1200 complete.  Time: 153.03 sec
+Time step 138/1200 complete.  Time: 154.47 sec
+Time step 139/1200 complete.  Time: 151.45 sec
+Time step 140/1200 complete.  Time: 151.52 sec
+Time step 141/1200 complete.  Time: 157.19 sec
+Time step 142/1200 complete.  Time: 155.01 sec
+Time step 143/1200 complete.  Time: 151.97 sec
+Time step 144/1200 complete.  Time: 152.47 sec
+Time step 145/1200 complete.  Time: 152.05 sec
+Time step 146/1200 complete.  Time: 152.55 sec
+Time step 147/1200 complete.  Time: 151.65 sec
+Time step 148/1200 complete.  Time: 153.52 sec
+Time step 149/1200 complete.  Time: 152.81 sec
+Time step 150/1200 complete.  Time: 152.66 sec
+Time step 151/1200 complete.  Time: 151.80 sec
+Time step 152/1200 complete.  Time: 152.36 sec
+Time step 153/1200 complete.  Time: 152.39 sec
+Time step 154/1200 complete.  Time: 154.09 sec
+Time step 155/1200 complete.  Time: 154.38 sec
+Time step 156/1200 complete.  Time: 153.21 sec
+Time step 157/1200 complete.  Time: 154.03 sec
+Time step 158/1200 complete.  Time: 152.51 sec
+Time step 159/1200 complete.  Time: 153.73 sec
+Time step 160/1200 complete.  Time: 153.97 sec
+Time step 161/1200 complete.  Time: 152.82 sec
+Time step 162/1200 complete.  Time: 153.08 sec
+Time step 163/1200 complete.  Time: 152.48 sec
+Time step 164/1200 complete.  Time: 153.36 sec
+Time step 165/1200 complete.  Time: 153.22 sec
+Time step 166/1200 complete.  Time: 153.41 sec
+Time step 167/1200 complete.  Time: 152.46 sec
+Time step 168/1200 complete.  Time: 151.80 sec
+Time step 169/1200 complete.  Time: 151.33 sec
+Time step 170/1200 complete.  Time: 151.99 sec
+Time step 171/1200 complete.  Time: 153.82 sec
+Time step 172/1200 complete.  Time: 152.71 sec
+Time step 173/1200 complete.  Time: 153.49 sec
+Time step 174/1200 complete.  Time: 154.14 sec
+Time step 175/1200 complete.  Time: 153.76 sec
+Time step 176/1200 complete.  Time: 154.43 sec
+Time step 177/1200 complete.  Time: 152.96 sec
+Time step 178/1200 complete.  Time: 153.47 sec
+Time step 179/1200 complete.  Time: 153.78 sec
+Time step 180/1200 complete.  Time: 153.95 sec
+Time step 181/1200 complete.  Time: 153.71 sec
+Time step 182/1200 complete.  Time: 153.81 sec
+Time step 183/1200 complete.  Time: 152.85 sec
+Time step 184/1200 complete.  Time: 153.28 sec
+Time step 185/1200 complete.  Time: 152.66 sec
+Time step 186/1200 complete.  Time: 153.61 sec
+Time step 187/1200 complete.  Time: 153.42 sec
+Time step 188/1200 complete.  Time: 154.40 sec
+Time step 189/1200 complete.  Time: 154.04 sec
+Time step 190/1200 complete.  Time: 154.30 sec
+Time step 191/1200 complete.  Time: 154.02 sec
+Time step 192/1200 complete.  Time: 154.37 sec
+Time step 193/1200 complete.  Time: 153.99 sec
+Time step 194/1200 complete.  Time: 153.89 sec
+Time step 195/1200 complete.  Time: 155.21 sec
+Time step 196/1200 complete.  Time: 154.01 sec
+Time step 197/1200 complete.  Time: 154.78 sec
+Time step 198/1200 complete.  Time: 153.67 sec
+Time step 199/1200 complete.  Time: 153.78 sec
+Time step 200/1200 complete.  Time: 154.13 sec
+Time step 201/1200 complete.  Time: 154.73 sec
+Time step 202/1200 complete.  Time: 154.96 sec
+Time step 203/1200 complete.  Time: 154.60 sec
+Time step 204/1200 complete.  Time: 153.88 sec
+Time step 205/1200 complete.  Time: 155.69 sec
+Time step 206/1200 complete.  Time: 153.70 sec
+Time step 207/1200 complete.  Time: 154.26 sec
+Time step 208/1200 complete.  Time: 154.57 sec
+Time step 209/1200 complete.  Time: 153.64 sec
+Time step 210/1200 complete.  Time: 154.27 sec
+Time step 211/1200 complete.  Time: 153.72 sec
+Time step 212/1200 complete.  Time: 154.97 sec
+Time step 213/1200 complete.  Time: 154.97 sec
+Time step 214/1200 complete.  Time: 154.60 sec
+Time step 215/1200 complete.  Time: 154.47 sec
+Time step 216/1200 complete.  Time: 154.46 sec
+Time step 217/1200 complete.  Time: 154.44 sec
+Time step 218/1200 complete.  Time: 154.54 sec
+Time step 219/1200 complete.  Time: 154.98 sec
+Time step 220/1200 complete.  Time: 155.27 sec
+Time step 221/1200 complete.  Time: 154.18 sec
+Time step 222/1200 complete.  Time: 154.43 sec
+Time step 223/1200 complete.  Time: 155.29 sec
+Time step 224/1200 complete.  Time: 155.88 sec
+Time step 225/1200 complete.  Time: 155.75 sec
+Time step 226/1200 complete.  Time: 154.45 sec
+Time step 227/1200 complete.  Time: 154.92 sec
+Time step 228/1200 complete.  Time: 154.40 sec
+Time step 229/1200 complete.  Time: 154.85 sec
+Time step 230/1200 complete.  Time: 155.34 sec
+Time step 231/1200 complete.  Time: 154.04 sec
+Time step 232/1200 complete.  Time: 154.69 sec
+Time step 233/1200 complete.  Time: 155.80 sec
+Time step 234/1200 complete.  Time: 155.90 sec
+Time step 235/1200 complete.  Time: 156.41 sec
+Time step 236/1200 complete.  Time: 157.43 sec
+Time step 237/1200 complete.  Time: 156.28 sec
+Time step 238/1200 complete.  Time: 155.91 sec
+Time step 239/1200 complete.  Time: 157.72 sec
+Time step 240/1200 complete.  Time: 156.57 sec
+Time step 241/1200 complete.  Time: 157.49 sec
+Time step 242/1200 complete.  Time: 158.14 sec
+Time step 243/1200 complete.  Time: 157.81 sec
+Time step 244/1200 complete.  Time: 158.56 sec
+Time step 245/1200 complete.  Time: 158.70 sec
+Time step 246/1200 complete.  Time: 159.23 sec
+Time step 247/1200 complete.  Time: 158.97 sec
+Time step 248/1200 complete.  Time: 159.15 sec
+Time step 249/1200 complete.  Time: 158.57 sec
+Time step 250/1200 complete.  Time: 157.31 sec
+Time step 251/1200 complete.  Time: 158.44 sec
+Time step 252/1200 complete.  Time: 156.25 sec
+Time step 253/1200 complete.  Time: 155.70 sec
+Time step 254/1200 complete.  Time: 156.16 sec
+Time step 255/1200 complete.  Time: 155.94 sec
+Time step 256/1200 complete.  Time: 156.28 sec
+Time step 257/1200 complete.  Time: 155.53 sec
+Time step 258/1200 complete.  Time: 157.24 sec
+Time step 259/1200 complete.  Time: 157.79 sec
+Time step 260/1200 complete.  Time: 157.55 sec
+Time step 261/1200 complete.  Time: 156.42 sec
+Time step 262/1200 complete.  Time: 156.42 sec
+Time step 263/1200 complete.  Time: 157.02 sec
+Time step 264/1200 complete.  Time: 156.01 sec
+Time step 265/1200 complete.  Time: 157.11 sec
+Time step 266/1200 complete.  Time: 155.77 sec
+Time step 267/1200 complete.  Time: 156.73 sec
+Time step 268/1200 complete.  Time: 156.25 sec
+Time step 269/1200 complete.  Time: 157.06 sec
+Time step 270/1200 complete.  Time: 157.44 sec
+Time step 271/1200 complete.  Time: 157.45 sec
+Time step 272/1200 complete.  Time: 156.61 sec
+Time step 273/1200 complete.  Time: 156.97 sec
+Time step 274/1200 complete.  Time: 156.31 sec
+Time step 275/1200 complete.  Time: 156.12 sec
+Time step 276/1200 complete.  Time: 156.16 sec
+Time step 277/1200 complete.  Time: 156.48 sec
+Time step 278/1200 complete.  Time: 156.69 sec
+Time step 279/1200 complete.  Time: 157.34 sec
+Time step 280/1200 complete.  Time: 157.28 sec
+Time step 281/1200 complete.  Time: 156.60 sec
+Time step 282/1200 complete.  Time: 157.75 sec
+Time step 283/1200 complete.  Time: 157.25 sec
+Time step 284/1200 complete.  Time: 157.02 sec
+Time step 285/1200 complete.  Time: 156.21 sec
+Time step 286/1200 complete.  Time: 156.81 sec
+Time step 287/1200 complete.  Time: 156.94 sec
+Time step 288/1200 complete.  Time: 157.32 sec
+Time step 289/1200 complete.  Time: 156.37 sec
+Time step 290/1200 complete.  Time: 157.28 sec
+Time step 291/1200 complete.  Time: 156.59 sec
+Time step 292/1200 complete.  Time: 156.27 sec
+Time step 293/1200 complete.  Time: 156.39 sec
+Time step 294/1200 complete.  Time: 156.68 sec
+Time step 295/1200 complete.  Time: 156.74 sec
+Time step 296/1200 complete.  Time: 156.61 sec
+Time step 297/1200 complete.  Time: 156.71 sec
+Time step 298/1200 complete.  Time: 156.71 sec
+Time step 299/1200 complete.  Time: 157.14 sec
+Time step 300/1200 complete.  Time: 156.53 sec
+Time step 301/1200 complete.  Time: 156.37 sec
+Time step 302/1200 complete.  Time: 157.43 sec
+Time step 303/1200 complete.  Time: 156.49 sec
+Time step 304/1200 complete.  Time: 157.52 sec
+Time step 305/1200 complete.  Time: 156.25 sec
+Time step 306/1200 complete.  Time: 155.47 sec
+Time step 307/1200 complete.  Time: 154.91 sec
+Time step 308/1200 complete.  Time: 155.77 sec
+Time step 309/1200 complete.  Time: 157.90 sec
+Time step 310/1200 complete.  Time: 157.82 sec
+Time step 311/1200 complete.  Time: 159.17 sec
+Time step 312/1200 complete.  Time: 159.13 sec
+Time step 313/1200 complete.  Time: 158.19 sec
+Time step 314/1200 complete.  Time: 158.99 sec
+Time step 315/1200 complete.  Time: 157.99 sec
+Time step 316/1200 complete.  Time: 158.45 sec
+Time step 317/1200 complete.  Time: 158.82 sec
+Time step 318/1200 complete.  Time: 158.28 sec
+Time step 319/1200 complete.  Time: 158.99 sec
+Time step 320/1200 complete.  Time: 158.79 sec
+Time step 321/1200 complete.  Time: 158.55 sec
+Time step 322/1200 complete.  Time: 159.27 sec
+Time step 323/1200 complete.  Time: 159.38 sec
+Time step 324/1200 complete.  Time: 158.74 sec
+Time step 325/1200 complete.  Time: 159.23 sec
+Time step 326/1200 complete.  Time: 158.44 sec
+Time step 327/1200 complete.  Time: 158.97 sec
+Time step 328/1200 complete.  Time: 158.13 sec
+Time step 329/1200 complete.  Time: 158.45 sec
+Time step 330/1200 complete.  Time: 158.39 sec
+Time step 331/1200 complete.  Time: 158.18 sec
+Time step 332/1200 complete.  Time: 158.91 sec
+Time step 333/1200 complete.  Time: 156.52 sec
+Time step 334/1200 complete.  Time: 156.20 sec
+Time step 335/1200 complete.  Time: 157.15 sec
+Time step 336/1200 complete.  Time: 156.24 sec
+Time step 337/1200 complete.  Time: 157.22 sec
+Time step 338/1200 complete.  Time: 156.59 sec
+Time step 339/1200 complete.  Time: 157.91 sec
+Time step 340/1200 complete.  Time: 157.23 sec
+Time step 341/1200 complete.  Time: 157.62 sec
+Time step 342/1200 complete.  Time: 157.87 sec
+Time step 343/1200 complete.  Time: 157.89 sec
+Time step 344/1200 complete.  Time: 157.95 sec
+Time step 345/1200 complete.  Time: 157.77 sec
+Time step 346/1200 complete.  Time: 157.27 sec
+Time step 347/1200 complete.  Time: 157.17 sec
+Time step 348/1200 complete.  Time: 157.60 sec
+Time step 349/1200 complete.  Time: 157.57 sec
+Time step 350/1200 complete.  Time: 157.36 sec
+Time step 351/1200 complete.  Time: 156.26 sec
+Time step 352/1200 complete.  Time: 157.41 sec
+Time step 353/1200 complete.  Time: 157.30 sec
+Time step 354/1200 complete.  Time: 156.55 sec
+Time step 355/1200 complete.  Time: 156.44 sec
+Time step 356/1200 complete.  Time: 157.40 sec
+Time step 357/1200 complete.  Time: 156.43 sec
+Time step 358/1200 complete.  Time: 155.77 sec
+Time step 359/1200 complete.  Time: 156.72 sec
+Time step 360/1200 complete.  Time: 156.59 sec
+Time step 361/1200 complete.  Time: 155.68 sec
+Time step 362/1200 complete.  Time: 157.38 sec
+Time step 363/1200 complete.  Time: 157.62 sec
+Time step 364/1200 complete.  Time: 156.76 sec
+Time step 365/1200 complete.  Time: 156.78 sec
+Time step 366/1200 complete.  Time: 156.91 sec
+Time step 367/1200 complete.  Time: 157.82 sec
+Time step 368/1200 complete.  Time: 157.61 sec
+Time step 369/1200 complete.  Time: 157.31 sec
+Time step 370/1200 complete.  Time: 157.15 sec
+Time step 371/1200 complete.  Time: 157.30 sec
+Time step 372/1200 complete.  Time: 156.59 sec
+Time step 373/1200 complete.  Time: 156.76 sec
+Time step 374/1200 complete.  Time: 157.41 sec
+Time step 375/1200 complete.  Time: 155.83 sec
+Time step 376/1200 complete.  Time: 156.98 sec
+Time step 377/1200 complete.  Time: 156.91 sec
+Time step 378/1200 complete.  Time: 156.61 sec
+Time step 379/1200 complete.  Time: 157.09 sec
+Time step 380/1200 complete.  Time: 157.23 sec
+Time step 381/1200 complete.  Time: 157.29 sec
+Time step 382/1200 complete.  Time: 157.14 sec
+Time step 383/1200 complete.  Time: 157.07 sec
+Time step 384/1200 complete.  Time: 157.37 sec
+Time step 385/1200 complete.  Time: 158.29 sec
+Time step 386/1200 complete.  Time: 157.04 sec
+Time step 387/1200 complete.  Time: 156.14 sec
+Time step 388/1200 complete.  Time: 157.61 sec
+Time step 389/1200 complete.  Time: 156.65 sec
+Time step 390/1200 complete.  Time: 156.44 sec
+Time step 391/1200 complete.  Time: 156.64 sec
+Time step 392/1200 complete.  Time: 157.36 sec
+Time step 393/1200 complete.  Time: 157.22 sec
+Time step 394/1200 complete.  Time: 156.81 sec
+Time step 395/1200 complete.  Time: 155.68 sec
+Time step 396/1200 complete.  Time: 157.33 sec
+Time step 397/1200 complete.  Time: 156.51 sec
+Time step 398/1200 complete.  Time: 157.59 sec
+Time step 399/1200 complete.  Time: 157.28 sec
+Time step 400/1200 complete.  Time: 156.06 sec
+Time step 401/1200 complete.  Time: 157.71 sec
+Time step 402/1200 complete.  Time: 157.19 sec
+Time step 403/1200 complete.  Time: 157.69 sec
+Time step 404/1200 complete.  Time: 157.05 sec
+Time step 405/1200 complete.  Time: 156.72 sec
+Time step 406/1200 complete.  Time: 156.79 sec
+Time step 407/1200 complete.  Time: 156.72 sec
+Time step 408/1200 complete.  Time: 157.79 sec
+Time step 409/1200 complete.  Time: 157.43 sec
+Time step 410/1200 complete.  Time: 157.36 sec
+Time step 411/1200 complete.  Time: 156.78 sec
+Time step 412/1200 complete.  Time: 157.22 sec
+Time step 413/1200 complete.  Time: 157.45 sec
+Time step 414/1200 complete.  Time: 156.57 sec
+Time step 415/1200 complete.  Time: 156.41 sec
+Time step 416/1200 complete.  Time: 157.04 sec
+Time step 417/1200 complete.  Time: 157.21 sec
+Time step 418/1200 complete.  Time: 156.07 sec
+Time step 419/1200 complete.  Time: 157.66 sec
+Time step 420/1200 complete.  Time: 155.63 sec
+Time step 421/1200 complete.  Time: 155.47 sec
+Time step 422/1200 complete.  Time: 157.06 sec
+Time step 423/1200 complete.  Time: 156.94 sec
+Time step 424/1200 complete.  Time: 155.94 sec
+Time step 425/1200 complete.  Time: 156.15 sec
+Time step 426/1200 complete.  Time: 155.56 sec
+Time step 427/1200 complete.  Time: 155.86 sec
+Time step 428/1200 complete.  Time: 155.90 sec
+Time step 429/1200 complete.  Time: 155.47 sec
+Time step 430/1200 complete.  Time: 155.03 sec
+Time step 431/1200 complete.  Time: 155.46 sec
+Time step 432/1200 complete.  Time: 155.94 sec
+Time step 433/1200 complete.  Time: 156.06 sec
+Time step 434/1200 complete.  Time: 156.40 sec
+Time step 435/1200 complete.  Time: 155.02 sec
+Time step 436/1200 complete.  Time: 154.55 sec
+Time step 437/1200 complete.  Time: 155.61 sec
+Time step 438/1200 complete.  Time: 155.02 sec
+Time step 439/1200 complete.  Time: 156.58 sec
+Time step 440/1200 complete.  Time: 155.99 sec
+Time step 441/1200 complete.  Time: 155.03 sec
+Time step 442/1200 complete.  Time: 156.19 sec
+Time step 443/1200 complete.  Time: 154.16 sec
+Time step 444/1200 complete.  Time: 154.21 sec
+Time step 445/1200 complete.  Time: 155.35 sec
+Time step 446/1200 complete.  Time: 154.56 sec
+Time step 447/1200 complete.  Time: 155.17 sec
+Time step 448/1200 complete.  Time: 154.32 sec
+Time step 449/1200 complete.  Time: 155.71 sec
+Time step 450/1200 complete.  Time: 154.93 sec
+Time step 451/1200 complete.  Time: 155.33 sec
+Time step 452/1200 complete.  Time: 153.45 sec
+Time step 453/1200 complete.  Time: 154.58 sec
+Time step 454/1200 complete.  Time: 154.11 sec
+Time step 455/1200 complete.  Time: 153.05 sec
+Time step 456/1200 complete.  Time: 153.30 sec
+Time step 457/1200 complete.  Time: 155.02 sec
+Time step 458/1200 complete.  Time: 155.15 sec
+Time step 459/1200 complete.  Time: 154.49 sec
+Time step 460/1200 complete.  Time: 153.90 sec
+Time step 461/1200 complete.  Time: 154.13 sec
+Time step 462/1200 complete.  Time: 152.11 sec
+Time step 463/1200 complete.  Time: 153.07 sec
+Time step 464/1200 complete.  Time: 152.76 sec
+Time step 465/1200 complete.  Time: 152.59 sec
+Time step 466/1200 complete.  Time: 152.34 sec
+Time step 467/1200 complete.  Time: 151.78 sec
+Time step 468/1200 complete.  Time: 152.17 sec
+Time step 469/1200 complete.  Time: 152.05 sec
+Time step 470/1200 complete.  Time: 152.16 sec
+Time step 471/1200 complete.  Time: 152.07 sec
+Time step 472/1200 complete.  Time: 152.66 sec
+Time step 473/1200 complete.  Time: 153.08 sec
+Time step 474/1200 complete.  Time: 152.89 sec
+Time step 475/1200 complete.  Time: 152.94 sec
+Time step 476/1200 complete.  Time: 152.32 sec
+Time step 477/1200 complete.  Time: 152.69 sec
+Time step 478/1200 complete.  Time: 152.94 sec
+Time step 479/1200 complete.  Time: 152.75 sec
+Time step 480/1200 complete.  Time: 152.17 sec
+Time step 481/1200 complete.  Time: 152.41 sec
+Time step 482/1200 complete.  Time: 151.93 sec
+Time step 483/1200 complete.  Time: 151.74 sec
+Time step 484/1200 complete.  Time: 151.80 sec
+Time step 485/1200 complete.  Time: 151.71 sec
+Time step 486/1200 complete.  Time: 152.20 sec
+Time step 487/1200 complete.  Time: 152.55 sec
+Time step 488/1200 complete.  Time: 152.84 sec
+Time step 489/1200 complete.  Time: 153.12 sec
+Time step 490/1200 complete.  Time: 153.01 sec
+Time step 491/1200 complete.  Time: 152.68 sec
+Time step 492/1200 complete.  Time: 152.69 sec
+Time step 493/1200 complete.  Time: 152.81 sec
+Time step 494/1200 complete.  Time: 154.22 sec
+Time step 495/1200 complete.  Time: 155.13 sec
+Time step 496/1200 complete.  Time: 154.21 sec
+Time step 497/1200 complete.  Time: 154.29 sec
+Time step 498/1200 complete.  Time: 152.76 sec
+Time step 499/1200 complete.  Time: 154.86 sec
+Time step 500/1200 complete.  Time: 155.52 sec
+Time step 501/1200 complete.  Time: 155.25 sec
+Time step 502/1200 complete.  Time: 155.12 sec
+Time step 503/1200 complete.  Time: 153.55 sec
+Time step 504/1200 complete.  Time: 153.12 sec
+Time step 505/1200 complete.  Time: 153.24 sec
+Time step 506/1200 complete.  Time: 153.57 sec
+Time step 507/1200 complete.  Time: 150.51 sec
+Time step 508/1200 complete.  Time: 151.38 sec
+Time step 509/1200 complete.  Time: 150.30 sec
+Time step 510/1200 complete.  Time: 150.48 sec
+Time step 511/1200 complete.  Time: 150.18 sec
+Time step 512/1200 complete.  Time: 150.86 sec
+Time step 513/1200 complete.  Time: 150.44 sec
+Time step 514/1200 complete.  Time: 150.92 sec
+Time step 515/1200 complete.  Time: 149.83 sec
+Time step 516/1200 complete.  Time: 151.11 sec
+Time step 517/1200 complete.  Time: 150.29 sec
+Time step 518/1200 complete.  Time: 150.02 sec
+Time step 519/1200 complete.  Time: 149.92 sec
+Time step 520/1200 complete.  Time: 148.82 sec
+Time step 521/1200 complete.  Time: 149.70 sec
+Time step 522/1200 complete.  Time: 149.68 sec
+Time step 523/1200 complete.  Time: 149.56 sec
+Time step 524/1200 complete.  Time: 149.17 sec
+Time step 525/1200 complete.  Time: 149.82 sec
+Time step 526/1200 complete.  Time: 149.33 sec
+Time step 527/1200 complete.  Time: 148.39 sec
+Time step 528/1200 complete.  Time: 149.25 sec
+Time step 529/1200 complete.  Time: 148.82 sec
+Time step 530/1200 complete.  Time: 148.56 sec
+Time step 531/1200 complete.  Time: 151.34 sec
+Time step 532/1200 complete.  Time: 149.61 sec
+Time step 533/1200 complete.  Time: 148.08 sec
+Time step 534/1200 complete.  Time: 148.11 sec
+Time step 535/1200 complete.  Time: 148.10 sec
+Time step 536/1200 complete.  Time: 148.86 sec
+Time step 537/1200 complete.  Time: 147.89 sec
+Time step 538/1200 complete.  Time: 148.16 sec
+Time step 539/1200 complete.  Time: 148.24 sec
+Time step 540/1200 complete.  Time: 147.67 sec
+Time step 541/1200 complete.  Time: 147.25 sec
+Time step 542/1200 complete.  Time: 146.09 sec
+Time step 543/1200 complete.  Time: 146.34 sec
+Time step 544/1200 complete.  Time: 145.84 sec
+Time step 545/1200 complete.  Time: 147.04 sec
+Time step 546/1200 complete.  Time: 147.38 sec
+Time step 547/1200 complete.  Time: 146.98 sec
+Time step 548/1200 complete.  Time: 146.93 sec
+Time step 549/1200 complete.  Time: 147.75 sec
+Time step 550/1200 complete.  Time: 146.69 sec
+Time step 551/1200 complete.  Time: 146.30 sec
+Time step 552/1200 complete.  Time: 145.33 sec
+Time step 553/1200 complete.  Time: 147.23 sec
+Time step 554/1200 complete.  Time: 145.76 sec
+Time step 555/1200 complete.  Time: 146.48 sec
+Time step 556/1200 complete.  Time: 145.98 sec
+Time step 557/1200 complete.  Time: 146.70 sec
+Time step 558/1200 complete.  Time: 146.44 sec
+Time step 559/1200 complete.  Time: 146.77 sec
+Time step 560/1200 complete.  Time: 145.92 sec
+Time step 561/1200 complete.  Time: 145.85 sec
+Time step 562/1200 complete.  Time: 145.61 sec
+Time step 563/1200 complete.  Time: 145.55 sec
+Time step 564/1200 complete.  Time: 146.37 sec
+Time step 565/1200 complete.  Time: 146.36 sec
+Time step 566/1200 complete.  Time: 145.83 sec
+Time step 567/1200 complete.  Time: 145.99 sec
+Time step 568/1200 complete.  Time: 145.28 sec
+Time step 569/1200 complete.  Time: 144.75 sec
+Time step 570/1200 complete.  Time: 145.40 sec
+Time step 571/1200 complete.  Time: 145.58 sec
+Time step 572/1200 complete.  Time: 144.50 sec
+Time step 573/1200 complete.  Time: 144.77 sec
+Time step 574/1200 complete.  Time: 144.80 sec
+Time step 575/1200 complete.  Time: 143.62 sec
+Time step 576/1200 complete.  Time: 145.16 sec
+Time step 577/1200 complete.  Time: 145.83 sec

@@ -93,22 +93,8 @@ def get_age_indices_for_prior(options,model_data,age):
     valid_model_inds = model_data['valid_inds']
     #
     # Set age bounds for the prior
-    #edge_cushion = int(np.ceil(options['maximum_resolution']/2))
-    edge_cushion = int(np.ceil((options['maximum_resolution']*options['prior_time_factor'])/2))  #TODO: Check this.
-    #prior_age_bound_recent = min(age_model) + edge_cushion - (options['time_resolution']/2)  # The prior will never select ages more recent than this
-    #prior_age_bound_old    = max(age_model) - edge_cushion + (options['time_resolution']/2)  # The prior will never select ages older than this
-    prior_age_bound_recent = min(age_model) + edge_cushion - (options['time_resolution_adjusted']/2)  # The prior will never select ages more recent than this
-    prior_age_bound_old    = max(age_model) - edge_cushion + (options['time_resolution_adjusted']/2)  # The prior will never select ages older than this
-    #
-    # The code here doesn't agree with the code above, which is copied below
-    """
-    valid_model_inds_individual = np.full((tas_model_individual.shape[0]),True,dtype=bool)
-    #buffer = int(np.floor((options['maximum_resolution']/options['time_resolution'])/2))
-    buffer = int(np.floor((options['maximum_resolution']/options['time_resolution_adjusted'])/2))
-    if buffer > 0:
-        valid_model_inds_individual[:buffer]  = False
-        valid_model_inds_individual[-buffer:] = False
-    """
+    prior_age_bound_recent = min(age_model[valid_model_inds]) - (options['time_resolution_adjusted']/2)  # The prior will never select ages more recent than this
+    prior_age_bound_old    = max(age_model[valid_model_inds]) + (options['time_resolution_adjusted']/2)  # The prior will never select ages older than this
     #
     # Get the age intervals for the prior
     if options['prior_window'] == 'all':
