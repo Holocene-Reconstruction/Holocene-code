@@ -28,7 +28,7 @@ uncertainty_multiplier: 1           # Adjust the proxy uncertainties by multiply
 filename_mse:           None        # A file containing TSids and new MSE values for each proxy. Or use 'all_' followed by a number to assign uniform values. [None,'all_#','path/to/file.txt']
 
 # Models for prior ['hadcm3','trace','famous','cesm_lme','gfdl_cm21_control','ipsl_control'] (Add '_regrid' to the end of a model name for a regridded version)
-models_for_prior: ['trace_regrid']
+models_for_prior: ['hadcm3_regrid']
 
 # Proxy datasets ['temp12k','pages2k','temp12k_screened','pages2k_screened']
 proxy_datasets_to_assimilate: ['temp12k']
