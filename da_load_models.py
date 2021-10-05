@@ -11,7 +11,6 @@ import glob
 import da_utils
 import copy
 import netCDF4
-from scipy import signal
 from scipy import stats
 
 # A function to load model data
@@ -81,13 +80,14 @@ def load_model_data(options):
     print('Variables loaded (n='+str(len(options['vars_to_reconstruct']))+'):'+str(options['vars_to_reconstruct']))
     print('---')
     print('Data stored in dictionary "model_data", with keys and dimensions:')
-    for key in list(model_data.keys()): print('%20s %15s' % (key,str(model_data[key].shape)))
+    for key in list(model_data.keys()): print('%20s %-20s' % (key,str(model_data[key].shape)))
     print('=========================\n')
     #
     return model_data
 
-# A function to get the age indices for the prior
-def get_age_indices_for_prior(options,model_data,age):
+
+# A function to get the indices of the prior for selected ages
+def get_indices_for_prior(options,model_data,age):
     #
     age_model        = model_data['age']
     valid_model_inds = model_data['valid_inds']
@@ -110,9 +110,10 @@ def get_age_indices_for_prior(options,model_data,age):
             prior_age_window_old    = prior_age_bound_old
             prior_age_window_recent = prior_age_bound_old - options['prior_window']
     #
-    age_indices_for_prior = np.where((age_model >= prior_age_window_recent) & (age_model < prior_age_window_old) & valid_model_inds)[0]
+    indices_for_prior = np.where((age_model >= prior_age_window_recent) & (age_model < prior_age_window_old) & valid_model_inds)[0]
     #
-    return age_indices_for_prior
+    return indices_for_prior
+
 
 # A function to detrend the model data
 def detrend_model_data(model_data,options):
@@ -125,7 +126,7 @@ def detrend_model_data(model_data,options):
     # If desired, do a highpass filter on every location
     if options['model_processing'] == 'linear_global':
         #
-        #TODO: Should I handle individual months seperately?  Ask Luke what they did about this.
+        #TODO eventually: Should I handle individual months seperately?  Ask Luke what they did about this.
         print("Model processing: '"+options['model_processing']+"' - Removing the global mean trend from each grid point")
         for var_name in options['vars_to_reconstruct']:
             var_global = da_utils.global_mean(model_data[var_name+'_annual'],model_data['lat'],1,2)
@@ -186,6 +187,7 @@ def load_trace(var_txt,data_dir_model):
     #
     return var_model_yearsmonths,lat_model,lon_model
 
+
 # A function to process model data
 def process_models(model_name,var_name,time_resolution,age_range,output_dir,original_model_dir,return_variables=False):
     #
@@ -213,7 +215,7 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     data_dir['ipsl_control']      = original_model_dir+'IPSL_CM6A_LR_control/'
     #
     # Set the names of the variables
-    #TODO: Finish implementing this below.
+    #TODO eventually: Finish implementing this below.
     var_names = {}
     var_names['hadcm3']    = {'tas':'temp_mm_1_5m',   'precip':'precip_mm_srf',     'hght_500hpa':''}
     var_names['trace']     = {'tas':'TREFHT',         'precip':'special',           'hght_500hpa':''}
@@ -251,7 +253,7 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         var_model_yearsmonths = np.reshape(var_model,(int(len(age_model)),12,len(lat_model),len(lon_model)))
         #
         # Convert the model units to tas=C, precip=mm/day
-        #TODO: Implement this change for all of the models, and check them everywhere
+        #TODO eventually: Implement this change for all of the models, and check them everywhere
         if   var_name == 'tas':    var_model_yearsmonths = var_model_yearsmonths - 273.15
         elif var_name == 'precip': var_model_yearsmonths = var_model_yearsmonths*60*60*24
         #
@@ -292,7 +294,7 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         age_model = np.mean(np.reshape(age_model_monthly,(int(len(age_model_monthly)/12),12)),axis=1)
         age_model = age_model*10   # The model was 10x acceleration
         age_model = age_model-1950 # Make the time relative to 1950 CE
-        #TODO: Are the ages above right?  See email from 4/8/2019
+        #TODO eventually: Are the ages above right?  See email from 4/8/2019
         #
         # Set the number of days per month in every year
         time_ndays_model = np.array([30,30,30,30,30,30,30,30,30,30,30,30])
@@ -315,7 +317,7 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         handle_model.close()
         age_model = 1850 - (np.arange(850,2006,1) + 0.5)
         #
-        # Trim the data, since the first 150 years don't appear to have any data. #TODO: Revisit this later.
+        # Trim the data, since the first 150 years don't appear to have any data. #TODO eventually: Revisit this.
         var_model = var_model[150:,:,:]
         age_model = age_model[150:]
         #
@@ -323,7 +325,7 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         time_ndays_model = np.array([1,1,1,1,1,1,1,1,1,1,1,1])
         time_ndays_model_yearsmonths = np.repeat(time_ndays_model[None,:],len(age_model),axis=0)
         #
-        # Copy annual values into "months".  #TODO: Fix this when I get the actual monthly data.
+        # Copy annual values into "months".  #TODO eventually: Fix this when I get the actual monthly data.
         var_model_yearsmonths = np.repeat(var_model[:,None,:,:],12,axis=1)
         #
         # Convert the model units to tas=C, precip=mm/day
@@ -362,13 +364,12 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         lon_model         = handle_model['lon'].values          # Longitude [lon]
         time_bounds_model = handle_model['time_bounds'].values  # Days per month [months,2]
         handle_model.close()
-        #years_model = np.arange(1,4001)
         age_model = np.arange(3999,-1,-1)  # This is an arbitrary age model, since this is a control simlation that doesn't correspond to specific years
         #
         # Calculate the number of days in each month
         time_ndays_model_all = time_bounds_model[:,1] - time_bounds_model[:,0]
         time_ndays_model_yearsmonths = np.reshape(time_ndays_model_all,(len(age_model),12))
-        time_ndays_model = np.mean(time_ndays_model_yearsmonths,axis=0)  #TODO: Is there a better solution here?
+        time_ndays_model = np.mean(time_ndays_model_yearsmonths,axis=0)  #TODO eventually: Is there a better solution here?
         #
         # Reshape the HadMC3 array to have months and years on different axes.
         var_model_yearsmonths = np.reshape(var_model,(len(age_model),12,len(lat_model),len(lon_model)))
@@ -387,7 +388,7 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         # Calculate the number of days in each month
         time_ndays_model_all = time_bounds_model[:,1] - time_bounds_model[:,0]
         time_ndays_model_yearsmonths = np.reshape(time_ndays_model_all,(len(years_model),12))
-        time_ndays_model = np.mean(time_ndays_model_yearsmonths,axis=0)  #TODO: Is there a better solution here?
+        time_ndays_model = np.mean(time_ndays_model_yearsmonths,axis=0)  #TODO eventually: Is there a better solution here?
         #
         # Reshape the HadMC3 array to have months and years on different axes.
         var_model_yearsmonths = np.reshape(var_model,(len(years_model),12,len(lat_model),len(lon_model)))
@@ -407,16 +408,8 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     years_same = np.all(np.all(time_ndays_model_yearsmonths == time_ndays_model_yearsmonths[0,:],axis=0),axis=0)
     if years_same == False: print('Note: Months in different years have different numbers of days.')
     #
-    # Convert the model tas output from K to C
-    #if var_name == 'tas':
-    #    var_model_yearsmonths = var_model_yearsmonths - 273.15
-    #
     # Return variables if requested
     if return_variables: return var_model_yearsmonths,age_model,lat_model,lon_model,time_ndays_model_yearsmonths
-    #
-    # Make the prior years run from newest to oldest  #TODO: Why do I do this?
-    #age_model             = np.flip(age_model,            axis=0)
-    #var_model_yearsmonths = np.flip(var_model_yearsmonths,axis=0)
     #
     # Remove the modern end of the simulation, since we want to minimize the anthropogenic signal as much as possible.
     age_indices_for_model_means = np.where((age_model >= age_range[0]) & (age_model < age_range[1]))[0]

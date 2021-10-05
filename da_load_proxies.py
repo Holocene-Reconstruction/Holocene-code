@@ -123,6 +123,7 @@ def load_proxies(options):
     # Process proxy data
     return filtered_ts,collection_all
 
+
 # Process the proxy data
 def process_proxies(filtered_ts,collection_all,options):
     #
@@ -182,18 +183,23 @@ def process_proxies(filtered_ts,collection_all,options):
         proxy_age_bounds = np.append(proxy_age_bounds,end_oldest)
         #
         # Interpolate proxy data to the base resolution, using nearest-neighbor interpolation
-        # Note: The reference period is removed using this somewhat-complicated way in case the reference period isn't contained within the reconstruction period.  #TODO: Check this.
         proxy_values_12ka = np.zeros((n_ages)); proxy_values_12ka[:] = np.nan
-        proxy_res_12ka  = np.zeros((n_ages)); proxy_res_12ka[:]  = np.nan
-        if options['reconstruction_type'] == 'relative': proxy_values_12ka_ref = np.zeros((len(age_centers_ref))); proxy_values_12ka_ref[:] = np.nan
+        proxy_res_12ka    = np.zeros((n_ages)); proxy_res_12ka[:]    = np.nan
         for j in range(len(proxy_age_bounds)-1):
             indices_selected = np.where((age_centers >= proxy_age_bounds[j]) & (age_centers < proxy_age_bounds[j+1]))[0]
             proxy_values_12ka[indices_selected] = proxy_values[j]
-            proxy_res_12ka[indices_selected]  = int(round((proxy_age_bounds[j+1] - proxy_age_bounds[j]) / options['time_resolution']))
-            #
-            if options['reconstruction_type'] == 'relative':
+            proxy_res_12ka[indices_selected] = int(round((proxy_age_bounds[j+1] - proxy_age_bounds[j]) / options['time_resolution']))
+        #
+        # If the reconstruction type is "relative," remove the mean of the reference period
+        # Note: This is done using a somewhat-complicated way in case the reference period isn't contained within the reconstruction period.  #TODO: Check this.
+        if options['reconstruction_type'] == 'relative':
+            proxy_values_12ka_ref = np.zeros((len(age_centers_ref))); proxy_values_12ka_ref[:] = np.nan
+            for j in range(len(proxy_age_bounds)-1):
                 indices_selected_ref = np.where((age_centers_ref >= proxy_age_bounds[j]) & (age_centers_ref < proxy_age_bounds[j+1]))[0]
                 proxy_values_12ka_ref[indices_selected_ref] = proxy_values[j]
+            #
+            proxy_values_12ka = proxy_values_12ka - np.nanmean(proxy_values_12ka_ref)
+            if np.isnan(proxy_values_12ka_ref).all(): print('No data in reference period, index: '+str(i)); no_ref_data += 1
         #
         #plt.plot(age_centers,proxy_values_12ka)
         #plt.show()
@@ -202,24 +208,19 @@ def process_proxies(filtered_ts,collection_all,options):
         proxy_res_12ka[proxy_res_12ka == 0] = 1
         proxy_res_12ka[proxy_res_12ka > max_res_value] = max_res_value
         #
-        # Remove the mean of the reference period
-        if options['reconstruction_type'] == 'relative':
-            proxy_values_12ka = proxy_values_12ka - np.nanmean(proxy_values_12ka_ref)
-            if np.isnan(proxy_values_12ka_ref).all(): print('No data in reference period, index: '+str(i)); no_ref_data += 1
-        #
         # Save to common variables (y and ya)
         proxy_data['values_binned'][i,:]     = proxy_values_12ka
         proxy_data['resolution_binned'][i,:] = proxy_res_12ka
         #
         # Get proxy metdata
-        missing_uncertainty_value = np.nan
+        missing_uncertainty_value = np.nan  #TODO eventually: Should I be using nan or a number (2.1?) for unknown uncertainties?
         proxy_lat                 = filtered_ts[i]['geo_meanLat']
         proxy_lon                 = filtered_ts[i]['geo_meanLon']
         proxy_seasonality_txt     = filtered_ts[i]['paleoData_interpretation'][0]['seasonality']
         proxy_seasonality_general = filtered_ts[i]['paleoData_interpretation'][0]['seasonalityGeneral']
         try:    proxy_uncertainty = filtered_ts[i]['paleoData_temperature12kUncertainty']
-        except: proxy_uncertainty = missing_uncertainty_value; missing_uncertainty += 1  #TODO: Should I be using nan or a number (2.1?) for unknown uncertainties?
-        if proxy_uncertainty  == 'NA': proxy_uncertainty = np.nan
+        except: proxy_uncertainty = missing_uncertainty_value; missing_uncertainty += 1
+        if proxy_uncertainty == 'NA': proxy_uncertainty = missing_uncertainty_value; missing_uncertainty += 1
         proxy_data['archivetype'].append(filtered_ts[i]['archiveType'])
         proxy_data['proxytype'].append(filtered_ts[i]['paleoData_proxy'])
         proxy_data['units'].append(filtered_ts[i]['paleoData_units'])
@@ -275,8 +276,8 @@ def process_proxies(filtered_ts,collection_all,options):
     print('---')
     print('Data stored in dictionary "proxy_data", with keys and dimensions:')
     for key in list(proxy_data.keys()):
-        try:    print('%20s %15s' % (key,str(proxy_data[key].shape)))
-        except: print('%20s %15s' % (key,str(len(proxy_data[key]))))
+        try:    print('%20s %-15s' % (key,str(proxy_data[key].shape)))
+        except: print('%20s %-15s' % (key,str(len(proxy_data[key]))))
     print('=========================\n')
     #
     return proxy_data

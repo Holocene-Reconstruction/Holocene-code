@@ -6,5 +6,5 @@
 #SBATCH --cpus-per-task=1             # Number of processors
 
 # Run this with the command: sbatch run_DA.sh.
-srun python -u da_main_code.py config.yml
+srun python -u da_main_code.py config_default.yml
 

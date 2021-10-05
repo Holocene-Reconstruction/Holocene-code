@@ -35,17 +35,17 @@ def psm_main(model_data,proxy_data,options):
         #
         print('Proxy',i,'PSM selected:',psm_selected,'|',proxy_data['archivetype'][i],proxy_data['proxytype'][i],proxy_data['units'][i])
         #
-        #TODO: Figure out what uncertainty values should be used for non-degC proxies.
+        #TODO eventually: Figure out what uncertainty values should be used for non-degC proxies.
         #
         # Calculate the model-based proxy estimate depending on the PSM (or variable to compare, it the proxy is already calibrated)
         #psm_selected = 'get_tas'
         if   psm_selected == 'get_tas':               proxy_estimate = get_model_values(model_data,proxy_data,'tas',i)
-        elif psm_selected == 'glacier_d18o_prysm':    proxy_estimate = use_nans(model_data)  #TODO: Make a PSM for this
-        elif psm_selected == 'speleothem_d18o_prysm': proxy_estimate = use_nans(model_data)  #TODO: Make a PSM for this
+        elif psm_selected == 'glacier_d18o_prysm':    proxy_estimate = use_nans(model_data)  #TODO eventually: Make a PSM for this
+        elif psm_selected == 'speleothem_d18o_prysm': proxy_estimate = use_nans(model_data)  #TODO eventually: Make a PSM for this
         elif psm_selected == 'use_nans':              proxy_estimate = use_nans(model_data)
         else:                                         proxy_estimate = use_nans(model_data)
         #
-        #TODO: Adapt, replace, or delete the code below, based on how the PSM code develops
+        #TODO eventually: Adapt, replace, or delete the code below, based on how the PSM code develops
         """
         # If a PSM is available, use it to transform the temperature data into the proxy units
         try:    use_psm = filtered_ts[i]['psm']['use_psm']
@@ -106,3 +106,4 @@ def use_nans(model_data,i,verbose=False):
     nan_array = np.zeros((n_time)); nan_array[:] = np.nan
     #
     return nan_array
+

@@ -68,10 +68,8 @@ def damup(Xb,HXb,R,y):
 
 # Read in a string and a lat and return a set of months
 def interpret_seasonality(seasonality_txt,lat,unknown_option):
-    #    
-    # The climate interpretation should be represented as a span of months.
     #
-    # Not dependant on latitude
+    # Terms which are not dependent on latitude
     if   (str(seasonality_txt).lower() == 'annual'):                        seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'ann'):                           seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'annua'):                         seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
@@ -170,7 +168,7 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
     #elif (str(seasonality_txt).lower() == '-12 -11 -10 -9 -8 1 2 3 4 5 6 7'):     seasonality = '-12 -11 -10 -9 -8 1 2 3 4 5 6 7'
     #elif (str(seasonality_txt).lower() == '4 5 6 7 8 9'):                         seasonality = '4 5 6 7 8 9'
     #
-    # Dependant on latitude
+    # Terms which are dependent on latitude
     elif (str(seasonality_txt).lower() == 'summer')                  and (lat >= 0): seasonality = '6 7 8'
     elif (str(seasonality_txt).lower() == 'summer')                  and (lat < 0):  seasonality = '-12 1 2'
     elif (str(seasonality_txt).lower() == 'mean summer')             and (lat >= 0): seasonality = '6 7 8'
@@ -216,7 +214,7 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
     elif (str(seasonality_txt).lower() == 'spring-fall')             and (lat >= 0): seasonality = '3 4 5 6 7 8 9 10 11'
     elif (str(seasonality_txt).lower() == 'spring-fall')             and (lat < 0):  seasonality = '-9 -10 -11 -12 1 2 3 4 5'
     #
-    # Unsure if dependant on latitude
+    # Unsure if this term is dependent on latitude
     elif (str(seasonality_txt).lower() == 'spring/fall') and (lat >= 0): seasonality = '3 4 5 9 10 11'
     #
     else:
@@ -278,6 +276,7 @@ def regrid_model(var,lat,lon,age,regrid_value=64):
     #
     return var_regrid,lat_new,lon_new
 
+
 # This function takes an array and computes the global-mean, after being told the axes of lat and lon.
 def global_mean(variable,lats,index_lat,index_lon):
     variable_zonal = np.nanmean(variable,axis=index_lon)
@@ -285,6 +284,7 @@ def global_mean(variable,lats,index_lat,index_lon):
     lat_weights = np.cos(np.radians(lats))
     variable_global = np.average(variable_zonal,axis=index_lat,weights=lat_weights)
     return variable_global
+
 
 # This function takes a time-lat-lon variable and computes the mean for a given range of lon and lat.
 def spatial_mean(variable,lats,lons,lat_min,lat_max,lon_min,lon_max,index_lat,index_lon,verbose=False):
@@ -352,3 +352,4 @@ def loc_matrix(options,model_data,proxy_data):
             proxy_localization_all[i,:] = proxy_localization
     #
     return proxy_localization_all
+

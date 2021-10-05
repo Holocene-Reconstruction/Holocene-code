@@ -1,42 +1,48 @@
-# This file specifies options for running the DA code.
-# Some options are listed in brackets
+#==============================================
+# SETTINGS for running the DA code.
+# Some options are listed in curly brackets.
+# See the README.md file for more explaination.
+#==============================================
 
-# Location of data directory
+# Location of data and lipd directories
 data_dir: '/projects/pd_lab/data/data_assimilation/'
 lipd_dir: '/projects/pd_lab/mpe32/LiPD-utilities/Python/'  # If lipd isn't part of your python install, specify its location here.
 
-vars_to_reconstruct: ['tas']  # The variables to reconstruct ['tas'].  Note, only tas is fully supported at the moment.
-
 # Primary options
-time_resolution:        10          # The base temporal resolution, in years [10]
-maximum_resolution:     1000        # The maximum temporal resolution for proxies, in years [1000]
-prior_time_factor:      1           # For covariances, the values above are multiplied by this, to use covariances on shorter or longer timescales [1]
-prior_window:           'all'       # The size of the window for the time-varying prior, in years ['all',5010,1010]
-assimate_together:      True        # If False, assimile proxies one at a time (slower) [True,False]
-localization_radius:    None        # Localization radius, in meters [None,15000]  Only works if assimate_together=False
-model_processing:       None        # Processing the model prior [None,'linear_global','linear_spatial','highpass_global','highpass_spatial',None]
-verbose_level:          0           # How much output to print to screen.  Higher numbers = more output.
+vars_to_reconstruct: ['tas']  # The variables to reconstruct {['tas']}.  Note, only tas is fully supported at the moment.
+time_resolution:     10       # The base temporal resolution, in years {10}
+maximum_resolution:  1000     # The maximum temporal resolution for proxies, in years {1000}
+prior_window:        'all'    # The size of the window for the time-varying prior, in years {'all',5010,1010}
+assimate_together:   True     # If False, assimile proxies one at a time (slower) {True,False}
+localization_radius: None     # Localization radius, in meters {None,15000}  Only works if assimate_together=False
 
 # Proxies to assimilate
-assimilate_archives:    ['all']     # Choose one or more archive types to assimilate ['all','LakeSediment','MarineSediment','Peat','GlacierIce','Midden','Speleothem','Wood','Ice-other']
-assimilate_region:      False       # Assimilate only the proxies in the given region. False=global, or [lat_min,lat_max,lon_min,lon_max] using lons between 0-360.
-resolution_band:        [None,None] # Only assimiate proxies with median resolutions in this band.
-percent_to_assimilate:  100         # What percentage of proxies to assimilate [100]
-seed_for_proxy_choice:  0           # This seed is only used if 'percent_to_assimilate' is below 100 [0]
-assign_seasonality:     False       # If something other than false, all proxies are set to specific seasonalities [False,'annual','summer','winter','jja','djf']
-uncertainty_multiplier: 1           # Adjust the proxy uncertainties by multiplying them by this value [1,0.5,etc.]
-filename_mse:           None        # A file containing TSids and new MSE values for each proxy. Or use 'all_' followed by a number to assign uniform values. [None,'all_#','path/to/file.txt']
+percent_to_assimilate:          100    # What percentage of proxies to assimilate {100}
+seed_for_proxy_choice:          0      # This seed is only used if 'percent_to_assimilate' is below 100 {0}
+assimilate_selected_archives:   False  # Provide a list of one or more archive types to assimilate {False, ['LakeSediment','MarineSediment','Peat','GlacierIce','Midden','Speleothem','Wood','Ice-other']}
+assimilate_selected_region:     False  # Provide bounds to assimilate only proxies in a given region {False, [lat_min,lat_max,lon_min,lon_max]} using lons between 0-360.
+assimilate_selected_resolution: False  # Assimilate proxies with median resolutions in a given band {False, [0,100]}
 
-# Models for prior ['hadcm3','trace','famous','cesm_lme','gfdl_cm21_control','ipsl_control'] (Add '_regrid' to the end of a model name for a regridded version)
+# Models for prior {['hadcm3_regrid','trace_regrid','famous_regrid']}
 models_for_prior: ['hadcm3_regrid']
 
-# Proxy datasets ['temp12k','pages2k','temp12k_screened','pages2k_screened']
+# Proxy datasets {['temp12k'],['pages2k'],['pseudo_temp12k_using_trace_noise_whiteproxyrmse']}
 proxy_datasets_to_assimilate: ['temp12k']
-#proxy_datasets_to_assimilate: ['pseudo_temp12k_using_trace_noise_whiteproxyrmse']
 
 # Age ranges
 age_range_to_reconstruct: [0,12000]
-reconstruction_type:      'relative'   # Reconstruction absolute or relative values ['relative','absolute']
 reference_period:         [3000,5000]  # This is only used if 'reconstruction_type' is set to 'relative'
 age_range_model:          [0,12500]
+
+# Experimental options (These options are less well-tested or may not be fully implemented. Edit with care.)
+reconstruction_type: 'relative'  # Reconstruction absolute or relative values {'relative','absolute'}
+model_processing:    None        # Processing the model prior {None,'linear_global','linear_spatial','highpass_global','highpass_spatial',None}
+prior_time_factor:   1           # The resolution values above are multiplied by this, to use covariances on shorter or longer timescales {1}
+verbose_level:       0           # How much output to print to screen.  Higher numbers = more output.
+assign_seasonality:  False       # If something other than false, all proxies are set to specific seasonalities {False,'annual','summer','winter','jja','djf'}
+change_uncertainty:  False       # Change uncertainty values in several ways {False,'mult_#','all_#','path/to/file.txt'}
+   # False    Use values from metadata.
+   # 'mult_#' Multiply uncertainty values from metadata by a constant number.
+   # 'all_#'  Set uncertainty values to a constant number.
+   # 'path/to/file.txt' Use uncertainty values from a text file. The file must contain TSids and new MSE values for each proxy.
 

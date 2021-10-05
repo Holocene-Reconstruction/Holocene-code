@@ -13,6 +13,7 @@ import numpy as np
 import pickle
 
 """
+# Some values for testing
 proxies_to_use = 'temp12k'
 model_to_use = 'hadcm3'
 #model_to_use = 'trace'
@@ -97,16 +98,14 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
     i=2
     for i in range(n_proxies):
         #
-        #print(' -- Making pseudoproxy '+str(i)+'/'+str(n_proxies)+' --')
-        #
         # Get proxy metadata
+        missing_uncertainty_value = np.nan  #TODO eventually: Should I be using nan or a number (2.1?) for unknown uncertainties?
         proxy_lat                 = filtered_ts[i]['geo_meanLat']
         proxy_lon                 = filtered_ts[i]['geo_meanLon']
         proxy_seasonality_txt     = filtered_ts[i]['paleoData_interpretation'][0]['seasonality']
         try:    proxy_uncertainty = filtered_ts[i]['paleoData_temperature12kUncertainty']
-        except: proxy_uncertainty = np.nan; missing_uncertainty_count += 1
-        if proxy_uncertainty  == 'NA': proxy_uncertainty = np.nan
-        #if proxy_uncertainty  == 'NA': proxy_uncertainty = 2.1 #TODO: Should I be using nan or a number for unknown uncertainties?
+        except: proxy_uncertainty = missing_uncertainty_value; missing_uncertainty_count += 1
+        if proxy_uncertainty == 'NA': proxy_uncertainty = missing_uncertainty_value; missing_uncertainty_count += 1
         #
         # Convert seasonality to a list of months, with negative values corresponding to the previous year.
         try:
@@ -123,7 +122,6 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
         if np.abs(proxy_lat-lat_model[j_selected])         > (lat_res/2): print('WARNING: Too large of a lat difference. Proxy lat: '+str(proxy_lat)+', model lat: '+str(lat_model[j_selected]))
         if np.abs(proxy_lon-lon_model_wrapped[i_selected]) > (lon_res/2): print('WARNING: Too large of a lon difference. Proxy lon: '+str(proxy_lon)+', model lon: '+str(lon_model_wrapped[i_selected]))
         if i_selected == len(lon_model_wrapped)-1: i_selected = 0
-        #print('Proxy location vs. nearest model gridpoint.  Lat: '+str(proxy_lat)+', '+str(lat_model[j_selected])+'.  Lon: '+str(proxy_lon)+', '+str(lon_model[i_selected]))
         tas_model_location = tas_model[:,:,j_selected,i_selected]
         #
         # Compute an average over months according to the proxy seasonality
@@ -145,7 +143,7 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
         n_ages = len(proxy_ages)
         tas_model_season_averaged = np.zeros((n_ages)); tas_model_season_averaged[:] = np.nan
         for j in range(n_ages):
-            if np.isnan(proxy_age_bounds[j]) or np.isnan(proxy_age_bounds[j+1]): continue  # This is added for proxies which have nans in their ages.  Should something else be done instead?
+            if np.isnan(proxy_age_bounds[j]) or np.isnan(proxy_age_bounds[j+1]): continue  #TODO: This is added for proxies which have nans in their ages.  Should something else be done instead?
             indices_selected = np.where((ages_model >= proxy_age_bounds[j]) & (ages_model < proxy_age_bounds[j+1]))[0]
             tas_model_season_averaged[j] = np.mean(tas_model_season[indices_selected])
         #

@@ -3,53 +3,47 @@
 # Options are set in the "config.yml" file.  See README.txt for a more complete
 # explanation of the code and setup.
 #    author: Michael P. Erb
-#    date  : 4/23/2021
+#    date  : 10/4/2021
 #==============================================================================
 
 import sys
+import numpy as np
+import yaml
+import time
+import datetime
+import netCDF4
 import da_utils
 import da_utils_lmr
 import da_load_models
 import da_load_proxies
 import da_psms
-import numpy as np
-import netCDF4
-from datetime import datetime
-import time
-import yaml
-#import matplotlib.pyplot as plt
 
 
 #%% OPTIONS
 
 starttime_total = time.time() # Start timer
 
-# The config file can be specified when running the code.
+# Use a given config file.  If not given, use config.yml.
 if len(sys.argv) > 1: config_file = sys.argv[1]
-else: config_file = 'config.yml'
-#else: config_file = 'config_default.yml'
+else:                 config_file = 'config_default.yml'
+#else:                 config_file = 'config.yml'
 
+# Load the configuration options and print them to the screen.
 print('Using configuration file: '+config_file)
-with open(config_file,'r') as file:
-    options = yaml.load(file,Loader=yaml.FullLoader)
+with open(config_file,'r') as file: options = yaml.load(file,Loader=yaml.FullLoader)
 
-# Print the options
-print('=== OPTIONS ===')
-for key in options.keys(): print(key+': '+str(options[key]))
-
-print('=== END OPTIONS ===')
+print('=== SETTINGS ===')
+for key in options.keys():
+    print('%30s: %-15s' % (key,str(options[key])))
+print('=== END SETTINGS ===')
 
 
 #%% LOAD AND PROCESS DATA
 
 # Load the chosen proxy model data
+if 
 options['time_resolution_adjusted'] = int(options['time_resolution']*options['prior_time_factor'])
 model_data = da_load_models.load_model_data(options)
-
-#TODO: This is for a test.  Remove this later.
-#tas_offset = 3
-#model_data['tas'] = model_data['tas'] + tas_offset
-#model_data['tas_annual'] = model_data['tas_annual'] + tas_offset
 
 # Detrend the model data if selected
 model_data = da_load_models.detrend_model_data(model_data,options)
@@ -65,51 +59,52 @@ proxy_estimates_all,_ = da_psms.psm_main(model_data,proxy_data,options)
 #%% SET THINGS UP
 
 # Get dimensions
-n_vars       = len(options['vars_to_reconstruct'])
-n_models     = len(options['models_for_prior'])
-n_proxies    = proxy_data['values_binned'].shape[0]
-n_ages       = proxy_data['values_binned'].shape[1]
-n_lat        = len(model_data['lat'])
-n_lon        = len(model_data['lon'])
-n_latlonvars = n_lat*n_lon*n_vars
-n_state      = (n_latlonvars) + n_proxies
+n_vars            = len(options['vars_to_reconstruct'])
+n_models_in_prior = len(options['models_for_prior'])
+n_proxies         = proxy_data['values_binned'].shape[0]
+n_ages            = proxy_data['values_binned'].shape[1]
+n_lat             = len(model_data['lat'])
+n_lon             = len(model_data['lon'])
+n_latlonvars      = n_lat*n_lon*n_vars
+n_state           = (n_latlonvars) + n_proxies
 
 # Determine the number of ensemble members
-n_ens = len(da_load_models.get_age_indices_for_prior(options,model_data,0))
+n_ens = len(da_load_models.get_indices_for_prior(options,model_data,0))
 
 # Randomly select a the ensemble members to save (to reduce output filesizes)
 np.random.seed(seed=0)  #TODO: Allow this seed to be changed in the future?
 n_ens_tosave = min([n_ens,100])
-rens = np.random.choice(n_ens,n_ens_tosave,replace=False)
+ind_tosave = np.random.choice(n_ens,n_ens_tosave,replace=False)
 
-# Set up arrays for mean, median, and ensembles
-recon_ens = np.zeros((n_state,n_ens_tosave,n_ages)); recon_ens[:]         = np.nan
-recon_mean        = np.zeros((n_state,n_ages));      recon_mean[:]        = np.nan
-recon_global_all  = np.zeros((n_ages,n_ens,n_vars)); recon_global_all[:]  = np.nan
-recon_nh_all      = np.zeros((n_ages,n_ens,n_vars)); recon_nh_all[:]      = np.nan
-recon_sh_all      = np.zeros((n_ages,n_ens,n_vars)); recon_sh_all[:]      = np.nan
-prior_global_all  = np.zeros((n_ages,n_ens,n_vars)); prior_global_all[:]  = np.nan
-ind_with_data_all = np.zeros((n_ages,n_proxies));    ind_with_data_all[:] = np.nan
-prior_proxy_means = np.zeros((n_ages,n_proxies));    prior_proxy_means[:] = np.nan
+# Set up arrays for reconstruction values and more outputs
+recon_ens         = np.zeros((n_state,n_ens_tosave,n_ages)); recon_ens[:]         = np.nan
+recon_mean        = np.zeros((n_state,n_ages));              recon_mean[:]        = np.nan
+recon_global_all  = np.zeros((n_ages,n_ens,n_vars));         recon_global_all[:]  = np.nan
+recon_nh_all      = np.zeros((n_ages,n_ens,n_vars));         recon_nh_all[:]      = np.nan
+recon_sh_all      = np.zeros((n_ages,n_ens,n_vars));         recon_sh_all[:]      = np.nan
+prior_global_all  = np.zeros((n_ages,n_ens,n_vars));         prior_global_all[:]  = np.nan
+prior_proxy_means = np.zeros((n_ages,n_proxies));            prior_proxy_means[:] = np.nan
+proxies_to_assimilate_all = np.zeros((n_ages,n_proxies));    proxies_to_assimilate_all[:] = np.nan
 
 
-#%% Adjust things based on settings
+#%% This section adjusts variables based on settings
 
-# If requested, adjust the uncertainty with a multiplier
-if options['uncertainty_multiplier'] != 1:
-    proxy_data['uncertainty'] = proxy_data['uncertainty']*options['uncertainty_multiplier']
-
-# If requested, replace the uncertainty will a value from a file which contains TSids and MSE uncertainty values
+# If requested, change uncertainty values
 #TODO: This should probably be moved earlier, so that PSMs are cleared with the updated uncertainty values.  Where is the uncertainty scaling done too?
-if options['filename_mse'] != 'None':
-    if options['filename_mse'][0:4] == 'all_':
-        prescribed_uncertainty = np.float(options['filename_mse'][4:])
-        print(' === SETTING ALL UNCERTAINTY VALUES TO '+str(prescribed_uncertainty)+'  ===')
+if options['change_uncertainty']:
+    if options['change_uncertainty'][0:5] == 'mult_':
+        uncertainty_multiplier = np.float(options['change_uncertainty'][5:])
+        proxy_data['uncertainty'] = proxy_data['uncertainty']*options['uncertainty_multiplier']
+        print(' --- Processing: All uncertainty values multiplied by '+str(uncertainty_multiplier)+' ---')
+    if options['change_uncertainty'][0:4] == 'all_':
+        prescribed_uncertainty = np.float(options['change_uncertainty'][4:])
         for i in range(n_proxies): proxy_data['uncertainty'][i] = prescribed_uncertainty
+        print(' --- Processing: All uncertainty values set to '+str(prescribed_uncertainty)+' ---')
     else:
-        print(' === USING UNCERTAINTY VALUES FROM THE FOLLOWING FILE ===')
-        print(options['filename_mse'])
-        proxy_uncertainties_from_file = np.genfromtxt(options['filename_mse'],delimiter=',',dtype='str')
+        # If using this option, the text file below should contain TSids and MSE for every proxy record
+        print(' --- Processing: All uncertainty values set to values from the following file ---')
+        print(options['change_uncertainty'])
+        proxy_uncertainties_from_file = np.genfromtxt(options['change_uncertainty'],delimiter=',',dtype='str')
         #
         for i in range(n_proxies):
             index_uncertainty = np.where(proxy_data['metadata'][i,1] == proxy_uncertainties_from_file[:,0])[0]
@@ -119,35 +114,46 @@ if options['filename_mse'] != 'None':
             else:
                 proxy_data['uncertainty'][i] = proxy_uncertainties_from_file[index_uncertainty,1].astype(np.float)
 
-# If requested, select the portion of the proxies which are to be assimilated #TODO: Should this be done after making other selections below?
+# If requested, select the portion of the proxies which are to be assimilated
+#TODO: Should this be done after making other selections below?
+proxy_ind_random_selected = np.full((n_proxies),False,dtype=bool)
 if options['percent_to_assimilate'] < 100:
+    print(' --- Processing: Choosing only '+str(options['percent_to_assimilate'])+'% of possible proxies ---')
     np.random.seed(seed=options['seed_for_proxy_choice'])
-    n_proxies_to_assimilate = int(n_proxies*(options['percent_to_assimilate']/100))
-    proxy_ind_to_assimilate = np.random.choice(n_proxies,n_proxies_to_assimilate,replace=False)
-    proxy_ind_to_assimilate = np.sort(proxy_ind_to_assimilate)
+    n_proxies_to_choose = int(n_proxies*(options['percent_to_assimilate']/100))
+    proxy_ind_random = np.random.choice(n_proxies,n_proxies_to_choose,replace=False)
+    proxy_ind_random = np.sort(proxy_ind_random)
+    proxy_ind_random_selected[proxy_ind_random] = True
 else:
-    proxy_ind_to_assimilate = np.arange(n_proxies)
-
-proxy_ind_to_assimilate_boolean = np.full((n_proxies),False,dtype=bool)
-proxy_ind_to_assimilate_boolean[proxy_ind_to_assimilate] = True
-
-# If requested, select the proxies within the specified region
-if options['assimilate_region'] == False:
-    proxy_ind_in_region = np.full((n_proxies),True,dtype=bool)
-else:
-    region_lat_min,region_lat_max,region_lon_min,region_lon_max = options['assimilate_region']
-    proxy_ind_in_region = (proxy_data['lats'] >= region_lat_min) & (proxy_data['lats'] <= region_lat_max) & (proxy_data['lons'] >= region_lon_min) & (proxy_data['lons'] <= region_lon_max)
+    proxy_ind_random_selected[:] = True
 
 # If requested, select only certain archive types
-if 'all' in options['assimilate_archives']:
-    chosen_archives = np.full((n_proxies),True,dtype=bool)
+if options['assimilate_selected_archives']:
+    print(' --- Processing: Choosing only the following archive types ---')
+    print(options['assimilate_selected_archives'])
+    proxy_ind_of_archive_type = np.full((n_proxies),False,dtype=bool)
+    ind_archives = [i for i, atype in enumerate(proxy_data['archivetype']) if atype in options['assimilate_selected_archives']]
+    proxy_ind_of_archive_type[ind_archives] = True
+    print(' - Number of records: '+str(sum(proxy_ind_of_archive_type)))
 else:
-    chosen_archives = np.full((n_proxies),False,dtype=bool)
-    ind_archives = [i for i, atype in enumerate(proxy_data['archivetype']) if atype in options['assimilate_archives']]
-    chosen_archives[ind_archives] = True
+    proxy_ind_of_archive_type = np.full((n_proxies),True,dtype=bool)
 
-print('Assimilating archive types:'+str(options['assimilate_archives']))
-print(' - Number of records: '+str(sum(chosen_archives)))
+# If requested, select the proxies within the specified region
+if options['assimilate_selected_region']:
+    print(' --- Processing: Choosing proxies only the following region ---')
+    print(options['assimilate_selected_region'])
+    region_lat_min,region_lat_max,region_lon_min,region_lon_max = options['assimilate_selected_region']
+    proxy_ind_in_region = (proxy_data['lats'] >= region_lat_min) & (proxy_data['lats'] <= region_lat_max) & (proxy_data['lons'] >= region_lon_min) & (proxy_data['lons'] <= region_lon_max)
+else:
+    proxy_ind_in_region = np.full((n_proxies),True,dtype=bool)
+
+# If requested, select the proxies with median resolution within a certain window
+if options['assimilate_selected_resolution']: 
+    print(' --- Processing: Choosing proxies with with median resolution in the range '+str(options['assimilate_selected_resolution'])+' ---')
+    proxy_med_res = proxy_data['metadata'][:,6].astype(np.float)
+    proxy_ind_in_resolution_band = (proxy_med_res >= options['assimilate_selected_resolution'][0]) & (proxy_med_res < options['assimilate_selected_resolution'][1])
+else:
+    proxy_ind_in_resolution_band = np.full((n_proxies),True,dtype=bool)
 
 # Calculate the localization matrix (it may not be used)
 if options['assimate_together'] == False:
@@ -156,7 +162,7 @@ if options['assimate_together'] == False:
 
 #%%
 # Loop through every age, doing the data assimilation with a time-varying prior
-print('Starting data assimilation')
+print(' === Starting data assimilation === ')
 age_counter = 0; age = proxy_data['age_centers'][age_counter]
 for age_counter,age in enumerate(proxy_data['age_centers']):
     #
@@ -167,26 +173,15 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     proxy_resolution_for_age = proxy_data['resolution_binned'][:,age_counter]
     #
     # Get the indices of the prior which will be used for this data assimilation step
-    age_indices_for_prior = da_load_models.get_age_indices_for_prior(options,model_data,age)
-    if len(age_indices_for_prior) != n_ens: print(' !!! Warning: number of prior ages selected does not match n_ens.  Age='+str(age))
+    indices_for_prior = da_load_models.get_indices_for_prior(options,model_data,age)
+    model_number_for_prior = model_data['number'][indices_for_prior]
+    if len(indices_for_prior) != n_ens: print(' !!! Warning: number of prior ages selected does not match n_ens.  Age='+str(age))
     #
-    # Get the indices for the prior states
-    age_model_for_prior = model_data['age'][age_indices_for_prior]
-    age_indices_for_prior_model = {}
-    for i in range(n_models):
-        indices_for_model = np.where(model_data['number'] == (i+1))[0]
-        age_indices_for_prior_model[i] = np.intersect1d(age_indices_for_prior,indices_for_model)
-    #
-    # Get the prior values and remove the mean for each model used in the prior seperately
+    # Get the prior values for the variables to reconstruct
     for j,var_name in enumerate(options['vars_to_reconstruct']):
-        for i in range(n_models):
-            var_annual_for_prior_individual = model_data[var_name+'_annual'][age_indices_for_prior_model[i],:,:]
-            if options['reconstruction_type'] == 'relative': var_annual_for_prior_individual = var_annual_for_prior_individual - np.mean(var_annual_for_prior_individual,axis=0)
-            if i == 0: var_annual_for_prior = var_annual_for_prior_individual
-            else:      var_annual_for_prior = np.concatenate((var_annual_for_prior,var_annual_for_prior_individual),axis=0)
-        #
-        if j == 0: vars_annual_for_prior_all = var_annual_for_prior[:,:,:,None]
-        else:      vars_annual_for_prior_all = np.concatenate((vars_annual_for_prior_all,var_annual_for_prior[:,:,:,None]),axis=3)
+        var_annual_for_prior = model_data[var_name+'_annual'][indices_for_prior,:,:][:,:,:,None]
+        if j == 0: vars_annual_for_prior_all = var_annual_for_prior
+        else:      vars_annual_for_prior_all = np.concatenate((vars_annual_for_prior_all,var_annual_for_prior),axis=3)
     #
     # For each proxy, get the proxy estimates for the correct resolution
     model_estimates_for_age = np.zeros((n_ens,n_proxies)); model_estimates_for_age[:] = np.nan
@@ -194,15 +189,14 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
         res = proxy_resolution_for_age[j]
         #if np.isnan(res): continue  #TODO: This line reconstructs prior values even if they are nan.  Do I want to use this instead of the next line?
         if np.isnan(proxy_values_for_age[j]): continue
-        model_estimates_chosen_all = proxy_estimates_all[j][int(res)]
-        for i in range(n_models):
-            model_estimates_chosen_model = model_estimates_chosen_all[age_indices_for_prior_model[i]]
-            if options['reconstruction_type'] == 'relative': model_estimates_chosen_model = model_estimates_chosen_model - np.mean(model_estimates_chosen_model)
-            if i == 0: model_estimates_chosen = model_estimates_chosen_model
-            else:      model_estimates_chosen = np.concatenate((model_estimates_chosen,model_estimates_chosen_model),axis=0)
-        #
-        # Save to a common variable
-        model_estimates_for_age[:,j] = model_estimates_chosen
+        model_estimates_for_age[:,j] = proxy_estimates_all[j][int(res)][indices_for_prior]  #TODO: Think more aboute this.  Should the averaging happen just for the covariances, or keep things as-is?
+    #
+    # For a relative reconstruction, remove the means of each model seperately
+    if options['reconstruction_type'] == 'relative': 
+        for i in range(n_models_in_prior):
+            ind_for_model = np.where(model_number_for_prior == (i+1))[0]
+            vars_annual_for_prior_all[ind_for_model,:,:,:] = vars_annual_for_prior_all[ind_for_model,:,:,:] - np.mean(vars_annual_for_prior_all[ind_for_model,:,:,:],axis=0)
+            model_estimates_for_age[ind_for_model,:]       = model_estimates_for_age[ind_for_model,:]       - np.mean(model_estimates_for_age[ind_for_model,:],axis=0)
     #
     # Make the prior (Xb)
     prior = np.reshape(vars_annual_for_prior_all,(n_ens,n_latlonvars))
@@ -217,48 +211,43 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     prior_proxy_means[age_counter,:] = np.mean(model_estimates_for_age,axis=0)
     #
     # Select only the proxies which meet the criteria
-    ind_with_data = np.isfinite(proxy_data['uncertainty']) & np.isfinite(proxy_values_for_age) & proxy_ind_to_assimilate_boolean & proxy_ind_in_region & chosen_archives
-    proxy_med_res = proxy_data['metadata'][:,6].astype(np.float)
-    if options['resolution_band'][0] != 'None': ind_with_data = ind_with_data & (proxy_med_res >= options['resolution_band'][0])
-    if options['resolution_band'][1] != 'None': ind_with_data = ind_with_data & (proxy_med_res < options['resolution_band'][1])
-    ind_with_data_all[age_counter,:] = ind_with_data  # Keep a record of which proxies are assimilated
+    proxies_to_assimilate = np.isfinite(proxy_data['uncertainty']) &\
+                            np.isfinite(proxy_values_for_age) &\
+                            proxy_ind_random_selected &\
+                            proxy_ind_in_region &\
+                            proxy_ind_of_archive_type &\
+                            proxy_ind_in_resolution_band
+    #
+    # Keep a record of which proxies are assimilated
+    proxies_to_assimilate_all[age_counter,:] = proxies_to_assimilate
     #
     # If valid proxies are present for this time step, do the data assimilation
-    kidx = np.where(ind_with_data)[0]
-    if kidx.shape[0] > 0:
+    proxy_ind_to_assimilate = np.where(proxies_to_assimilate)[0]
+    n_proxies_at_age = proxy_ind_to_assimilate.shape[0]
+    if n_proxies_at_age > 0:
         #
-        proxy_values_selected      = proxy_values_for_age[kidx]
-        proxy_uncertainty_selected = proxy_data['uncertainty'][kidx]
-        model_estimates_selected   = model_estimates_for_age[:,kidx]
+        proxy_values_selected      = proxy_values_for_age[proxy_ind_to_assimilate]
+        proxy_uncertainty_selected = proxy_data['uncertainty'][proxy_ind_to_assimilate]
+        model_estimates_selected   = model_estimates_for_age[:,proxy_ind_to_assimilate]
         R_diagonal = np.diag(proxy_uncertainty_selected)
         #
         # Do the DA update, either together or one at a time.
         if options['assimate_together']:
             Xa,_,_ = da_utils.damup(Xb,np.transpose(model_estimates_selected),R_diagonal,proxy_values_selected)
-            #TODO: why are there complex numbers in Xa?
         else:
-            #
-            proxy_localization_selected = proxy_localization_all[kidx,:]
-            #
-            # Loop through the proxies, updating the prior.
-            n_proxies_at_age = kidx.shape[0]
             for proxy in range(n_proxies_at_age):
-                #
                 if options['verbose_level'] > 2: print(' - Assimilating proxy '+str(proxy)+'/'+str(n_proxies_at_age))
                 #
                 # Get values for proxy
                 proxy_value              = proxy_values_selected[proxy]
                 proxy_uncertainty        = proxy_uncertainty_selected[proxy]
-                tas_modelbased_estimates = Xb[n_latlonvars+kidx[proxy],:]
-                loc                      = proxy_localization_selected[proxy,:]
+                tas_modelbased_estimates = Xb[n_latlonvars+proxy_ind_to_assimilate[proxy],:]
+                if options['localization_radius']: loc = proxy_localization_all[proxy_ind_to_assimilate[proxy],:]
+                else: loc = None
                 #
                 # Do data assimilation
-                if options['localization_radius'] == 'None': loc = None
-                updated_prior = da_utils_lmr.enkf_update_array(Xb,proxy_value,tas_modelbased_estimates,proxy_uncertainty,loc=loc,inflate=None)
-                if np.isnan(updated_prior).all(): print(' !!! WARNING.  ALL RECONSTRUCTION VALUES SET TO NAN.  Age='+str(age)+', proxy number='+str(proxy)+' !!!')
-                #
-                # Set updated prior as prior
-                Xb = updated_prior
+                Xb = da_utils_lmr.enkf_update_array(Xb,proxy_value,tas_modelbased_estimates,proxy_uncertainty,loc=loc,inflate=None)
+                if np.isnan(Xb).all(): print(' !!! ERROR.  ALL RECONSTRUCTION VALUES SET TO NAN.  Age='+str(age)+', proxy number='+str(proxy)+' !!!')
             #
             # Set the final values
             Xa = Xb
@@ -274,24 +263,19 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     # Compute the global and hemispheric means of the reconstruction
     Xa_latlon = np.reshape(Xa[:n_latlonvars,:],(n_lat,n_lon,n_vars,n_ens))
     recon_global = da_utils.global_mean(Xa_latlon,model_data['lat'],0,1)
-    recon_nh     = da_utils.spatial_mean(Xa_latlon,model_data['lat'],model_data['lon'],0,90,0,360,0,1)
-    recon_sh     = da_utils.spatial_mean(Xa_latlon,model_data['lat'],model_data['lon'],-90,0,0,360,0,1)
+    recon_nh     = da_utils.spatial_mean(Xa_latlon,model_data['lat'],model_data['lon'],  0,90,0,360,0,1)
+    recon_sh     = da_utils.spatial_mean(Xa_latlon,model_data['lat'],model_data['lon'],-90, 0,0,360,0,1)
     recon_global_all[age_counter,:,:] = np.transpose(recon_global)
     recon_nh_all[age_counter,:,:]     = np.transpose(recon_nh)
     recon_sh_all[age_counter,:,:]     = np.transpose(recon_sh)
     #
     # Get the mean and selected ensemble values
     recon_mean[:,age_counter]  = np.mean(Xa,axis=1)
-    recon_ens[:,:,age_counter] = Xa[:,rens]
+    recon_ens[:,:,age_counter] = Xa[:,ind_tosave]
     #
     # Note progression of the reconstruction
     print('Time step '+str(age_counter)+'/'+str(len(proxy_data['age_centers'] ))+' complete.  Time: '+str('%1.2f' % (time.time()-starttime_loop))+' sec')
 
-"""
-import matplotlib.pyplot as plt
-loc_2d = np.reshape(loc[:n_latlonvars],(n_lat,n_lon))
-plt.contourf(model_data['lon'],model_data['lat'],loc_2d)
-"""
 
 # Reshape the data arrays
 recon_mean = np.transpose(recon_mean)
@@ -315,7 +299,7 @@ for key,value in options.items():
 #%% SAVE THE OUTPUT
 
 #TODO: Rename some of the output variables to be more descriptive to their variable
-time_str = str(datetime.now()).replace(' ','_')
+time_str = str(datetime.datetime.now()).replace(' ','_')
 output_filename = 'holocene_recon_'+time_str+'_timevarying_'+str(options['prior_window'])+'yr_prior'
 print('Saving the reconstruction as '+output_filename)
 
@@ -372,8 +356,8 @@ output_proxy_res[:]           = np.transpose(proxy_data['resolution_binned'])
 output_proxy_uncer[:]         = proxy_data['uncertainty']
 output_metadata[:]            = proxy_data['metadata']
 output_options[:]             = np.array(options_list)
-output_proxies_selected[:]    = proxy_ind_to_assimilate_boolean.astype(int)
-output_proxies_assimilated[:] = ind_with_data_all.astype(int)
+output_proxies_selected[:]    = proxy_ind_random_selected.astype(int)
+output_proxies_assimilated[:] = proxies_to_assimilate_all.astype(int)
 
 outputfile.title = 'Holocene climate reconstruction'
 outputfile.close()
