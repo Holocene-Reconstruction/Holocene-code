@@ -153,6 +153,7 @@ def Kalman_optimal(Y,vR,Ye,Xb,nsvs=None,transform_only=False,verbose=False):
     U,s,V = np.linalg.svd(Htp,full_matrices=True)
     if not nsvs:
         nsvs = len(s) - 1  #TODO: This line makes it differ from the other method.  Should this be "nsvs = len(s)" instead?
+        #nsvs = len(s)
     if verbose:
         print('ndof :'+str(ndof))
         print('U :'+str(U.shape))
@@ -277,6 +278,7 @@ def cov_localization(locRad, proxy_lat, proxy_lon, X_coords):
     X_lat = X_coords[:,0]
 
     # calculate distances for elements tagged as "localizeable". 
+    #print(site_lon,site_lat,type(site_lon),type(site_lat))
     dists[localizeable] = np.array(haversine(site_lon, site_lat,
                                                        X_lon[localizeable],
                                                        X_lat[localizeable]),dtype=np.float64)
