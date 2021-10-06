@@ -41,7 +41,6 @@ print('=== END SETTINGS ===')
 #%% LOAD AND PROCESS DATA
 
 # Load the chosen proxy model data
-if 
 options['time_resolution_adjusted'] = int(options['time_resolution']*options['prior_time_factor'])
 model_data = da_load_models.load_model_data(options)
 
@@ -68,16 +67,24 @@ n_lon             = len(model_data['lon'])
 n_latlonvars      = n_lat*n_lon*n_vars
 n_state           = (n_latlonvars) + n_proxies
 
-# Determine the number of ensemble members
-n_ens = len(da_load_models.get_indices_for_prior(options,model_data,0))
+# Determine the total possible number of ensemble members
+n_ens_possible = len(da_load_models.get_indices_for_prior(options,model_data,0))
+
+# If using less than 100 percent for the ensemble members, randomly choose them here.
+np.random.seed(seed=options['seed_for_prior'])
+n_ens = int(n_ens_possible*(options['percent_of_prior']/100))
+ind_to_use = np.random.choice(n_ens_possible,n_ens,replace=False)
+ind_to_use = np.sort(ind_to_use)
+print(' --- Processing: Choosing only '+str(options['percent_of_prior'])+'% of possible prior states, n_ens='+str(n_ens)+' ---')
 
 # Randomly select a the ensemble members to save (to reduce output filesizes)
 np.random.seed(seed=0)  #TODO: Allow this seed to be changed in the future?
-n_ens_tosave = min([n_ens,100])
-ind_tosave = np.random.choice(n_ens,n_ens_tosave,replace=False)
+n_ens_to_save = min([n_ens,100])
+ind_to_save = np.random.choice(n_ens,n_ens_to_save,replace=False)
+ind_to_save = np.sort(ind_to_save)
 
 # Set up arrays for reconstruction values and more outputs
-recon_ens         = np.zeros((n_state,n_ens_tosave,n_ages)); recon_ens[:]         = np.nan
+recon_ens         = np.zeros((n_state,n_ens_to_save,n_ages)); recon_ens[:]         = np.nan
 recon_mean        = np.zeros((n_state,n_ages));              recon_mean[:]        = np.nan
 recon_global_all  = np.zeros((n_ages,n_ens,n_vars));         recon_global_all[:]  = np.nan
 recon_nh_all      = np.zeros((n_ages,n_ens,n_vars));         recon_nh_all[:]      = np.nan
@@ -90,7 +97,7 @@ proxies_to_assimilate_all = np.zeros((n_ages,n_proxies));    proxies_to_assimila
 #%% This section adjusts variables based on settings
 
 # If requested, change uncertainty values
-#TODO: This should probably be moved earlier, so that PSMs are cleared with the updated uncertainty values.  Where is the uncertainty scaling done too?
+#TODO: This should probably be moved earlier, so that PSMs are created with the updated uncertainty values.  Where is the uncertainty scaling done too?
 if options['change_uncertainty']:
     if options['change_uncertainty'][0:5] == 'mult_':
         uncertainty_multiplier = np.float(options['change_uncertainty'][5:])
@@ -175,7 +182,7 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     # Get the indices of the prior which will be used for this data assimilation step
     indices_for_prior = da_load_models.get_indices_for_prior(options,model_data,age)
     model_number_for_prior = model_data['number'][indices_for_prior]
-    if len(indices_for_prior) != n_ens: print(' !!! Warning: number of prior ages selected does not match n_ens.  Age='+str(age))
+    if len(indices_for_prior) != n_ens_possible: print(' !!! Warning: number of prior ages selected does not match n_ens.  Age='+str(age))
     #
     # Get the prior values for the variables to reconstruct
     for j,var_name in enumerate(options['vars_to_reconstruct']):
@@ -184,12 +191,17 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
         else:      vars_annual_for_prior_all = np.concatenate((vars_annual_for_prior_all,var_annual_for_prior),axis=3)
     #
     # For each proxy, get the proxy estimates for the correct resolution
-    model_estimates_for_age = np.zeros((n_ens,n_proxies)); model_estimates_for_age[:] = np.nan
+    model_estimates_for_age = np.zeros((n_ens_possible,n_proxies)); model_estimates_for_age[:] = np.nan
     for j in range(n_proxies):
         res = proxy_resolution_for_age[j]
         #if np.isnan(res): continue  #TODO: This line reconstructs prior values even if they are nan.  Do I want to use this instead of the next line?
         if np.isnan(proxy_values_for_age[j]): continue
         model_estimates_for_age[:,j] = proxy_estimates_all[j][int(res)][indices_for_prior]  #TODO: Think more aboute this.  Should the averaging happen just for the covariances, or keep things as-is?
+    #
+    # Use only the randomly selected climate states in the prior
+    vars_annual_for_prior_all = vars_annual_for_prior_all[ind_to_use,:,:,:]
+    model_estimates_for_age   = model_estimates_for_age[ind_to_use,:]
+    model_number_for_prior    = model_number_for_prior[ind_to_use]
     #
     # For a relative reconstruction, remove the means of each model seperately
     if options['reconstruction_type'] == 'relative': 
@@ -271,7 +283,7 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     #
     # Get the mean and selected ensemble values
     recon_mean[:,age_counter]  = np.mean(Xa,axis=1)
-    recon_ens[:,:,age_counter] = Xa[:,ind_tosave]
+    recon_ens[:,:,age_counter] = Xa[:,ind_to_save]
     #
     # Note progression of the reconstruction
     print('Time step '+str(age_counter)+'/'+str(len(proxy_data['age_centers'] ))+' complete.  Time: '+str('%1.2f' % (time.time()-starttime_loop))+' sec')
@@ -282,8 +294,8 @@ recon_mean = np.transpose(recon_mean)
 recon_ens  = np.swapaxes(recon_ens,0,2)
 
 # Reshape the gridded reconstruction to a lat-lon grid
-recon_mean_grid = np.reshape(recon_mean[:,:(n_lat*n_lon*n_vars)], (n_ages,             n_lat,n_lon,n_vars))
-recon_ens_grid  = np.reshape(recon_ens[:,:,:(n_lat*n_lon*n_vars)],(n_ages,n_ens_tosave,n_lat,n_lon,n_vars))
+recon_mean_grid = np.reshape(recon_mean[:,:(n_lat*n_lon*n_vars)], (n_ages,              n_lat,n_lon,n_vars))
+recon_ens_grid  = np.reshape(recon_ens[:,:,:(n_lat*n_lon*n_vars)],(n_ages,n_ens_to_save,n_lat,n_lon,n_vars))
 
 # Put the proxy reconstructions into separate variables
 recon_mean_proxies = recon_mean[:,(n_lat*n_lon*n_vars):]
@@ -309,7 +321,7 @@ outputfile = netCDF4.Dataset(output_dir+output_filename+'.nc','w')
 outputfile.createDimension('state',       n_state)
 outputfile.createDimension('age',         n_ages)
 outputfile.createDimension('ens',         n_ens)
-outputfile.createDimension('ens_selected',n_ens_tosave)
+outputfile.createDimension('ens_selected',n_ens_to_save)
 outputfile.createDimension('lat',         n_lat)
 outputfile.createDimension('lon',         n_lon)
 outputfile.createDimension('proxy',       n_proxies)
