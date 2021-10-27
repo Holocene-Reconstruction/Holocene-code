@@ -15,15 +15,16 @@ maximum_resolution:  1000     # The maximum temporal resolution for proxies, in 
 prior_window:        'all'    # The size of the window for the time-varying prior, in years {'all',5010,1010}
 assimate_together:   True     # If False, assimile proxies one at a time (slower) {True,False}
 localization_radius: None     # Localization radius, in meters {None,15000}  Only works if assimate_together=False
-percent_of_prior:    8.7      # What percentage of the prior states to assimilate {100}.  Note, a value of 8.7 -> 100 ens, if other settings are default
+percent_of_prior:    100      # What percentage of the prior states to assimilate {100}.  Note, a value of 8.7 -> 100 ens, if other settings are default
 seed_for_prior:      0        # This seed is only used if 'percent_of_prior' is below 100 {0}
 
 # Proxies to assimilate
-percent_to_assimilate:          75     # What percentage of proxies to assimilate {100}
+percent_to_assimilate:          100    # What percentage of proxies to assimilate {100}
 seed_for_proxy_choice:          0      # This seed is only used if 'percent_to_assimilate' is below 100 {0}
 assimilate_selected_archives:   False  # Provide a list of one or more archive types to assimilate {False, ['LakeSediment','MarineSediment','Peat','GlacierIce','Midden','Speleothem','Wood','Ice-other']}
 assimilate_selected_region:     False  # Provide bounds to assimilate only proxies in a given region {False, [lat_min,lat_max,lon_min,lon_max]} using lons between 0-360.
 assimilate_selected_resolution: False  # Assimilate proxies with median resolutions in a given band {False, [0,100]}
+assimilate_selected_seasons:    False  # Assimilate proxies with the selected seasonality. Note, the reconstruction will still try to represent annual means. {False, ['annual','summerOnly','winterOnly','summer+','winter+']}
 
 # Models for prior {['hadcm3_regrid','trace_regrid','famous_regrid']}
 models_for_prior: ['hadcm3_regrid']

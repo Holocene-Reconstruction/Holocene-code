@@ -26,7 +26,6 @@ starttime_total = time.time() # Start timer
 # Use a given config file.  If not given, use config.yml.
 if len(sys.argv) > 1: config_file = sys.argv[1]
 else:                 config_file = 'config_default.yml'
-#else:                 config_file = 'config.yml'
 
 # Load the configuration options and print them to the screen.
 print('Using configuration file: '+config_file)
@@ -46,6 +45,15 @@ model_data = da_load_models.load_model_data(options)
 
 # Detrend the model data if selected
 model_data = da_load_models.detrend_model_data(model_data,options)
+
+
+#TODO: Remove this later
+"""
+# Remove the mean of the 3-5 ka period from the model data
+ind_ref = np.where((model_data['age'] >= 3000) & (model_data['age'] <= 5000))[0]
+model_data['tas']        = model_data['tas']        - np.mean(model_data['tas'][ind_ref,:,:,:],axis=0)
+model_data['tas_annual'] = model_data['tas_annual'] - np.mean(model_data['tas_annual'][ind_ref,:,:],axis=0)
+"""
 
 # Load the chosen proxy data
 filtered_ts,collection_all = da_load_proxies.load_proxies(options)
@@ -75,7 +83,7 @@ np.random.seed(seed=options['seed_for_prior'])
 n_ens = int(n_ens_possible*(options['percent_of_prior']/100))
 ind_to_use = np.random.choice(n_ens_possible,n_ens,replace=False)
 ind_to_use = np.sort(ind_to_use)
-print(' --- Processing: Choosing only '+str(options['percent_of_prior'])+'% of possible prior states, n_ens='+str(n_ens)+' ---')
+print(' --- Processing: Choosing '+str(options['percent_of_prior'])+'% of possible prior states, n_ens='+str(n_ens)+' ---')
 
 # Randomly select a the ensemble members to save (to reduce output filesizes)
 np.random.seed(seed=0)  #TODO: Allow this seed to be changed in the future?
@@ -85,13 +93,13 @@ ind_to_save = np.sort(ind_to_save)
 
 # Set up arrays for reconstruction values and more outputs
 recon_ens         = np.zeros((n_state,n_ens_to_save,n_ages)); recon_ens[:]         = np.nan
-recon_mean        = np.zeros((n_state,n_ages));              recon_mean[:]        = np.nan
-recon_global_all  = np.zeros((n_ages,n_ens,n_vars));         recon_global_all[:]  = np.nan
-recon_nh_all      = np.zeros((n_ages,n_ens,n_vars));         recon_nh_all[:]      = np.nan
-recon_sh_all      = np.zeros((n_ages,n_ens,n_vars));         recon_sh_all[:]      = np.nan
-prior_global_all  = np.zeros((n_ages,n_ens,n_vars));         prior_global_all[:]  = np.nan
-prior_proxy_means = np.zeros((n_ages,n_proxies));            prior_proxy_means[:] = np.nan
-proxies_to_assimilate_all = np.zeros((n_ages,n_proxies));    proxies_to_assimilate_all[:] = np.nan
+recon_mean        = np.zeros((n_state,n_ages));               recon_mean[:]        = np.nan
+recon_global_all  = np.zeros((n_ages,n_ens,n_vars));          recon_global_all[:]  = np.nan
+recon_nh_all      = np.zeros((n_ages,n_ens,n_vars));          recon_nh_all[:]      = np.nan
+recon_sh_all      = np.zeros((n_ages,n_ens,n_vars));          recon_sh_all[:]      = np.nan
+prior_global_all  = np.zeros((n_ages,n_ens,n_vars));          prior_global_all[:]  = np.nan
+prior_proxy_means = np.zeros((n_ages,n_proxies));             prior_proxy_means[:] = np.nan
+proxies_to_assimilate_all = np.zeros((n_ages,n_proxies));     proxies_to_assimilate_all[:] = np.nan
 
 
 #%% This section adjusts variables based on settings
@@ -162,6 +170,17 @@ if options['assimilate_selected_resolution']:
 else:
     proxy_ind_in_resolution_band = np.full((n_proxies),True,dtype=bool)
 
+# If requested, select only proxies with certain seasonalities
+if options['assimilate_selected_seasons']:
+    print(' --- Processing: Choosing proxies with only the following seasonality metadata ---')
+    print(options['assimilate_selected_seasons'])
+    proxy_ind_of_seasonality = np.full((n_proxies),False,dtype=bool)
+    ind_seasons = [i for i, seasontype in enumerate(proxy_data['metadata'][:,5]) if seasontype in options['assimilate_selected_seasons']]
+    proxy_ind_of_seasonality[ind_seasons] = True
+    print(' - Number of records: '+str(sum(proxy_ind_of_seasonality)))
+else:
+    proxy_ind_of_seasonality = np.full((n_proxies),True,dtype=bool)
+
 # Calculate the localization matrix (it may not be used)
 if options['assimate_together'] == False:
     proxy_localization_all = da_utils.loc_matrix(options,model_data,proxy_data)
@@ -170,7 +189,7 @@ if options['assimate_together'] == False:
 #%%
 # Loop through every age, doing the data assimilation with a time-varying prior
 print(' === Starting data assimilation === ')
-age_counter = 0; age = proxy_data['age_centers'][age_counter]
+#age_counter = 0; age = proxy_data['age_centers'][age_counter]
 for age_counter,age in enumerate(proxy_data['age_centers']):
     #
     starttime_loop = time.time()
@@ -196,7 +215,7 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
         res = proxy_resolution_for_age[j]
         #if np.isnan(res): continue  #TODO: This line reconstructs prior values even if they are nan.  Do I want to use this instead of the next line?
         if np.isnan(proxy_values_for_age[j]): continue
-        model_estimates_for_age[:,j] = proxy_estimates_all[j][int(res)][indices_for_prior]  #TODO: Think more aboute this.  Should the averaging happen just for the covariances, or keep things as-is?
+        model_estimates_for_age[:,j] = proxy_estimates_all[j][int(res)][indices_for_prior]  #TODO: Think more about this.  Should the averaging happen just for the covariances, or keep things as-is?
     #
     # Use only the randomly selected climate states in the prior
     vars_annual_for_prior_all = vars_annual_for_prior_all[ind_to_use,:,:,:]
@@ -228,7 +247,8 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
                             proxy_ind_random_selected &\
                             proxy_ind_in_region &\
                             proxy_ind_of_archive_type &\
-                            proxy_ind_in_resolution_band
+                            proxy_ind_in_resolution_band &\
+                            proxy_ind_of_seasonality
     #
     # Keep a record of which proxies are assimilated
     proxies_to_assimilate_all[age_counter,:] = proxies_to_assimilate
@@ -310,7 +330,6 @@ for key,value in options.items():
 
 #%% SAVE THE OUTPUT
 
-#TODO: Rename some of the output variables to be more descriptive to their variable
 time_str = str(datetime.datetime.now()).replace(' ','_')
 output_filename = 'holocene_recon_'+time_str+'_timevarying_'+str(options['prior_window'])+'yr_prior'
 print('Saving the reconstruction as '+output_filename)
