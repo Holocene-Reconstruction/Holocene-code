@@ -57,9 +57,11 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
                 proxy_new['paleoData_interpretation'] = []
                 proxy_new['paleoData_interpretation'].append({'seasonality':season_specified,'seasonalityGeneral':season_specified})
                 proxy_new['paleoData_temperature12kUncertainty'] = uncertain_specified
-                proxy_new['archiveType']    = 'pseudoproxy'
-                proxy_new['dataSetName']    = 'pseudoproxy_'+str(counter)+'_lat_'+str(int(lat_chosen))+'+lon_'+str(int(lon_chosen))
-                proxy_new['paleoData_TSid'] = 'pseudoproxy_'+str(counter)+'_lat_'+str(int(lat_chosen))+'+lon_'+str(int(lon_chosen))
+                proxy_new['archiveType']     = 'pseudoproxy'
+                proxy_new['paleoData_proxy'] = 'pseudoproxy'
+                proxy_new['paleoData_units'] = 'degC'  #TODO eventually: Consider changing this line in the future, for other sorts of pseudoproxies.
+                proxy_new['dataSetName']     = 'pseudoproxy_'+str(counter)+'_lat_'+str(int(lat_chosen))+'+lon_'+str(int(lon_chosen))
+                proxy_new['paleoData_TSid']  = 'pseudoproxy_'+str(counter)+'_lat_'+str(int(lat_chosen))+'+lon_'+str(int(lon_chosen))
                 filtered_ts.append(proxy_new)
                 counter += 1
         #
@@ -77,6 +79,7 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
         options_new = {}
         options_new['data_dir'] = options['data_dir']
         options_new['lipd_dir'] = options['lipd_dir']
+        options_new['reconstruction_type'] = options['reconstruction_type']
         options_new['proxy_datasets_to_assimilate'] = [proxies_to_use]
         #
         # Load the proxy data

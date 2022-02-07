@@ -332,9 +332,34 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         if   var_name == 'tas':    var_model_yearsmonths = var_model_yearsmonths - 273.15
         elif var_name == 'precip': var_model_yearsmonths = var_model_yearsmonths
         #
-    elif model_name == 'ecbilt_clio':
+    elif model_name == 'ecbiltclio':
         #
-        print('!!!',model_name,'not available !!!')
+        print('!!! Model '+model_name+' not available !!!')
+        """
+        # NOTE: This model does not have monthly data.  Probably don't use it.
+        #
+        if   var_name == 'tas':    print('!!! tas for model '+model_name+' does not have monthly data.  Everything is annual !!!')
+        elif var_name == 'precip': print('!!! precip not available for '+model_name+' !!!')
+        #
+        # Load the ECBilt-Clio data
+        data_url = 'http://apdrc.soest.hawaii.edu:80/dods/public_data/Paleoclimate_modeling/ECBilt-CLIO/SIM2bl/atm-annual/single_level'
+        data_loveclim = netCDF4.Dataset(data_url)
+        var_model_annual = np.array(data_loveclim.variables['t2m'])
+        lat_model        = np.array(data_loveclim.variables['lat'])
+        lon_model        = np.array(data_loveclim.variables['lon'])
+        age_model        = -1*np.arange(-20999,0.1,1) # Ages span from 0 to 20999 years B.P
+        #time_days_model = np.array(data_loveclim.variables['time'])  # Age in days?
+        #
+        # Set the number of days per month in every year
+        time_ndays_model = np.array([30,30,30,30,30,30,30,30,30,30,30,30])
+        time_ndays_model_yearsmonths = np.repeat(time_ndays_model[None,:],len(age_model),axis=0)
+        #
+        # Reshape the array to have months and years on different axes.
+        var_model_yearsmonths = np.reshape(var_model,(int(len(age_model)),12,len(lat_model),len(lon_model)))
+        #
+        # Convert the model units to tas=C, precip=mm/day
+        #if var_name == 'tas': var_model_yearsmonths = var_model_yearsmonths - 273.15
+        """
         #
     elif model_name == 'cesm_lme':
         #

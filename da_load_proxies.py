@@ -9,6 +9,7 @@ import da_pseudoproxies
 import numpy as np
 import pickle
 import glob
+from scipy import interpolate
 
 
 # A function to load the chosen proxy datasets
@@ -43,7 +44,7 @@ def load_proxies(options):
                 if (all_ts_12k[i]['dataSetName'] == 'Alley.GISP2.2000') and (all_ts_12k[i]['paleoData_variableName'] == 'age'): gisp2_ages = all_ts_12k[i]['paleoData_values']
             #
             for i in range(len(all_ts_12k)):
-                if (all_ts_12k[i]['dataSetName'] == 'Alley.GISP2.2000') and (all_ts_12k[i]['paleoData_variableName'] == 'temperature') and (np.max(np.array(all_ts_12k[i]['age']).astype(np.float)) < 50):
+                if (all_ts_12k[i]['dataSetName'] == 'Alley.GISP2.2000') and (all_ts_12k[i]['paleoData_variableName'] == 'temperature') and (np.max(np.array(all_ts_12k[i]['age']).astype(float)) < 50):
                     print('Fixing GISP2 ages:',all_ts_12k[i]['paleoData_variableName'],', Index:',i)
                     all_ts_12k[i]['age'] = gisp2_ages
             #
@@ -127,12 +128,11 @@ def load_proxies(options):
 # Process the proxy data
 def process_proxies(filtered_ts,collection_all,options):
     #
+    print('\n=== Processing proxy data. This can take a few minutes. Please wait. ===')
+    #
     # Set age range to reconstruct, as well as the reference period
     age_bounds = np.arange(options['age_range_to_reconstruct'][0],options['age_range_to_reconstruct'][1]+1,options['time_resolution'])
     age_centers = (age_bounds[:-1]+age_bounds[1:])/2
-    if options['reconstruction_type'] == 'relative':
-        age_bounds_ref = np.arange(options['reference_period'][0],options['reference_period'][1]+1,options['time_resolution'])
-        age_centers_ref = (age_bounds_ref[:-1]+age_bounds_ref[1:])/2
     #
     # Set the maximum proxy resolution
     max_res_value = int(options['maximum_resolution']/options['time_resolution'])
@@ -143,9 +143,9 @@ def process_proxies(filtered_ts,collection_all,options):
     #
     # Set up arrays (y, ya, HXb, and R)
     proxy_data = {}
-    proxy_data['values_binned']     = np.zeros((n_proxies,n_ages));         proxy_data['values_binned'][:]     = np.nan  # y
-    proxy_data['resolution_binned'] = np.zeros((n_proxies,n_ages));         proxy_data['resolution_binned'][:] = np.nan  # ya
-    proxy_data['uncertainty']       = np.zeros((n_proxies));                proxy_data['uncertainty'][:]       = np.nan  # R
+    proxy_data['values_binned']     = np.zeros((n_proxies,n_ages));         proxy_data['values_binned'][:]     = np.nan
+    proxy_data['resolution_binned'] = np.zeros((n_proxies,n_ages));         proxy_data['resolution_binned'][:] = np.nan
+    proxy_data['uncertainty']       = np.zeros((n_proxies));                proxy_data['uncertainty'][:]       = np.nan
     proxy_data['metadata']          = np.zeros((n_proxies,8),dtype=object); proxy_data['metadata'][:]          = np.nan
     proxy_data['lats']              = np.zeros((n_proxies));                proxy_data['lats'][:]              = np.nan
     proxy_data['lons']              = np.zeros((n_proxies));                proxy_data['lons'][:]              = np.nan
@@ -158,51 +158,94 @@ def process_proxies(filtered_ts,collection_all,options):
     no_ref_data = 0; missing_uncertainty = 0
     i=0
     for i in range(n_proxies):
+        #print(i)
         #
         if options['verbose_level'] > 0: print(' - Calculating estimates for proxy '+str(i)+'/'+str(n_proxies))
         #
         # Get proxy data
-        proxy_ages = np.array(filtered_ts[i]['age']).astype(np.float)
-        proxy_values = np.array(filtered_ts[i]['paleoData_values']).astype(np.float)
+        proxy_ages   = np.array(filtered_ts[i]['age']).astype(float)
+        proxy_values = np.array(filtered_ts[i]['paleoData_values']).astype(float)
         #
         # If any NaNs exist in the ages, remove those values
         proxy_values = proxy_values[np.isfinite(proxy_ages)]
-        proxy_ages = proxy_ages[np.isfinite(proxy_ages)]
+        proxy_ages   = proxy_ages[np.isfinite(proxy_ages)]
         #
-        # Make sure the ages go from newest to oldest
-        proxy_median_res = np.median(proxy_ages[1:] - proxy_ages[:-1])
-        if proxy_median_res < 0:
-            proxy_values = np.flip(proxy_values)
-            proxy_ages = np.flip(proxy_ages)
+        # Sort the data so that ages go from newest to oldest
+        ind_sorted = np.argsort(proxy_ages)
+        proxy_values = proxy_values[ind_sorted]
+        proxy_ages   = proxy_ages[ind_sorted]
+        #
+        # INTERPOLATION
+        # To interpolate the proxy data to the base resolution (by default: decadal):
+        #   1. Values in the same year are averaged
+        #   2. Records are then interpolated to annual using nearest neighbor interpolation
+        #   3. Records are binned to the base resolution
+        # To get the mean resolution of the proxy data at each time interval, it is treated in a similar way.
+        #
+        # Average values in the same year
+        if min(proxy_ages[1:]-proxy_ages[:-1]) < 1:
+            proxy_values_ann = []
+            proxy_ages_ann   = []
+            for int_year in np.arange(int(np.floor(proxy_ages[0])),int(np.ceil(proxy_ages[-1])+1)):
+                ind_in_year = np.where((proxy_ages >= (int_year-0.5)) & (proxy_ages < (int_year+0.5)))[0]
+                if len(ind_in_year) > 0:
+                    proxy_values_ann.append(np.nanmean(proxy_values[ind_in_year]))
+                    proxy_ages_ann.append(np.nanmean(proxy_ages[ind_in_year]))
+            #
+            proxy_values_ann = np.array(proxy_values_ann)
+            proxy_ages_ann   = np.array(proxy_ages_ann)
+        else:
+            proxy_values_ann = proxy_values
+            proxy_ages_ann   = proxy_ages
         #
         # Compute age bounds of the proxy observations as the midpoints between data
-        proxy_age_bounds = (proxy_ages[1:]+proxy_ages[:-1])/2
-        end_newest = proxy_ages[0]  - (proxy_ages[1]-proxy_ages[0])/2
-        end_oldest = proxy_ages[-1] + (proxy_ages[-1]-proxy_ages[-2])/2
+        proxy_age_bounds = (proxy_ages_ann[1:]+proxy_ages_ann[:-1])/2
+        end_newest = proxy_ages_ann[0]  - (proxy_ages_ann[1]-proxy_ages_ann[0])/2
+        end_oldest = proxy_ages_ann[-1] + (proxy_ages_ann[-1]-proxy_ages_ann[-2])/2
         proxy_age_bounds = np.insert(proxy_age_bounds,0,end_newest)
         proxy_age_bounds = np.append(proxy_age_bounds,end_oldest)
+        proxy_res_ann = proxy_age_bounds[1:] - proxy_age_bounds[:-1]
         #
-        # Interpolate proxy data to the base resolution, using nearest-neighbor interpolation
+        """
+        import matplotlib.pyplot as plt
+        plt.plot(proxy_ages,proxy_values,'ko')
+        plt.plot(proxy_ages_ann,proxy_values_ann,'b-')
+        plt.show()
+        """
+        #
+        # Use nearest neighbor interpolation to get data to the interpolation resolution
+        interp_res = 1
+        interp_function = interpolate.interp1d(proxy_ages_ann,proxy_values_ann,kind='nearest',bounds_error=False,fill_value='extrapolate')
+        proxy_ages_interp = np.arange(int(np.ceil(end_newest)),int(np.floor(end_oldest))+interp_res,interp_res)
+        proxy_values_interp = interp_function(proxy_ages_interp)
+        #
+        # Use nearest neighbor interpolation to get the resolution to annual
+        interp_function_res = interpolate.interp1d(proxy_ages_ann,proxy_res_ann,kind='nearest',bounds_error=False,fill_value='extrapolate')
+        proxy_res_interp = interp_function_res(proxy_ages_interp)
+        #
+        # Bin the annual data to the base resolution
         proxy_values_12ka = np.zeros((n_ages)); proxy_values_12ka[:] = np.nan
         proxy_res_12ka    = np.zeros((n_ages)); proxy_res_12ka[:]    = np.nan
-        for j in range(len(proxy_age_bounds)-1):
-            indices_selected = np.where((age_centers >= proxy_age_bounds[j]) & (age_centers < proxy_age_bounds[j+1]))[0]
-            proxy_values_12ka[indices_selected] = proxy_values[j]
-            proxy_res_12ka[indices_selected] = int(round((proxy_age_bounds[j+1] - proxy_age_bounds[j]) / options['time_resolution']))
+        for j in range(n_ages):
+            ind_selected = np.where((proxy_ages_interp >= age_bounds[j]) & (proxy_ages_interp < age_bounds[j+1]))[0]
+            proxy_values_12ka[j] = np.nanmean(proxy_values_interp[ind_selected])
+            res_avg = np.nanmean(proxy_res_interp[ind_selected])
+            if np.isnan(res_avg): proxy_res_12ka[j] = np.nan
+            else:                 proxy_res_12ka[j] = int(round(res_avg / options['time_resolution']))
+        #
+        """
+        import matplotlib.pyplot as plt
+        plt.plot(proxy_ages,proxy_values,'ko')
+        plt.plot(proxy_ages_interp,proxy_values_interp,'b-')
+        plt.plot(age_centers,proxy_values_12ka,'g-')
+        plt.show()
+        """
         #
         # If the reconstruction type is "relative," remove the mean of the reference period
-        # Note: This is done using a somewhat-complicated way in case the reference period isn't contained within the reconstruction period.  #TODO: Check this.
         if options['reconstruction_type'] == 'relative':
-            proxy_values_12ka_ref = np.zeros((len(age_centers_ref))); proxy_values_12ka_ref[:] = np.nan
-            for j in range(len(proxy_age_bounds)-1):
-                indices_selected_ref = np.where((age_centers_ref >= proxy_age_bounds[j]) & (age_centers_ref < proxy_age_bounds[j+1]))[0]
-                proxy_values_12ka_ref[indices_selected_ref] = proxy_values[j]
-            #
-            proxy_values_12ka = proxy_values_12ka - np.nanmean(proxy_values_12ka_ref)
-            if np.isnan(proxy_values_12ka_ref).all(): print('No data in reference period, index: '+str(i)); no_ref_data += 1
-        #
-        #plt.plot(age_centers,proxy_values_12ka)
-        #plt.show()
+            ind_ref = np.where((proxy_ages_interp >= options['reference_period'][0]) & (proxy_ages_interp <= options['reference_period'][1]))[0]
+            proxy_values_12ka = proxy_values_12ka - np.nanmean(proxy_values_interp[ind_ref])
+            if np.isnan(proxy_values_interp[ind_ref]).all(): print('No data in reference period, index: '+str(i)); no_ref_data += 1
         #
         # Set resolutions to a minimum of 1 and a maximum of max_res_value
         proxy_res_12ka[proxy_res_12ka == 0] = 1
