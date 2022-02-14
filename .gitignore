@@ -13,4 +13,4 @@ more/*
 development/*
 process_output/*
 __pycache__/*
-
+extra_config/*
