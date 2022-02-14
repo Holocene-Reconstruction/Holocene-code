@@ -9,7 +9,7 @@ data_dir: '/projects/pd_lab/data/data_assimilation/'
 lipd_dir: '/projects/pd_lab/mpe32/LiPD-utilities/Python/'  # If lipd isn't part of your python install, specify its location here.
 
 # Primary options
-exp_name:           'default' # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
+exp_name: 'default'           # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
 vars_to_reconstruct: ['tas']  # The variables to reconstruct {['tas']}.  Note, only tas is fully supported at the moment.
 time_resolution:     10       # The base temporal resolution, in years {10}
 maximum_resolution:  1000     # The maximum temporal resolution for proxies, in years {1000}
@@ -29,7 +29,7 @@ assimilate_selected_resolution: False  # Assimilate proxies with median resoluti
 assimilate_selected_seasons:    ['annual','summerOnly','winterOnly']  # Assimilate proxies with the selected seasonality. Note, the reconstruction will still try to represent annual means. {False, ['annual','summerOnly','winterOnly','summer+','winter+']}
 
 # Models for prior {['hadcm3_regrid','trace_regrid','famous_regrid']}
-models_for_prior: ['hadcm3_regrid','trace_regrid']
+models_for_prior: ['trace_regrid']
 
 # Proxy datasets {['temp12k'],['pages2k'],['pseudo_temp12k_using_trace_noise_whiteproxyrmse']}
 proxy_datasets_to_assimilate: ['temp12k']
