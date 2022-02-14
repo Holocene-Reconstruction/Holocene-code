@@ -3,7 +3,7 @@ Written by: Michael P. Erb, Contact: michael.erb@nau.edu
 
 ## 1. Introduction
 
-Data and models are two methods of exploring past climate, with data (such as proxy records) providing point data and models simulating climate changes and climate-system interactions.  The goal of this Holocene Reconstruction project is to use data assimilation, a method of combining information from proxy data and model results, to reconstruct climate over the past 12,000 years.
+Data and models are two methods of exploring past climate.  Data (such as proxy records) provide point data and models simulate climate changes and climate-system interactions.  The goal of this Holocene Reconstruction project is to use data assimilation--a method of combining information from proxy data and model results--to reconstruct climate over the past 12,000 years.
 
 This GitHub repository contains the Holocene Reconstruction code, and this readme file explains how to set it up and use it.
 
@@ -35,7 +35,7 @@ The data set currently includes only the TraCE-21ka model output and Temp12k pro
 
 Make sure that you have Python 3 installed.  If you don't, one option is the package manager Anaconda: [https://docs.anaconda.com/anaconda/install/](https://docs.anaconda.com/anaconda/install/)
 
-Most of the necessary packages should come with the standard Python 3 installation.  The only ones you may need to install are "pyyaml" and "lipd".  Either install these yourself (note: LiPD can be installed with `pip install LiPD`) or go to your Holocene Reconstruction directory and use the commands below to create a new Python 3 environment with the necessary packages and switch to it:
+Most of the necessary packages should come with the standard Python 3 installation, installed using `conda create -n python3_da anaconda`.  The only ones you should need to install are xarray, netCDF4, and lipd.  Either install these yourself (note: LiPD can be installed with `pip install LiPD`) or go to your Holocene Reconstruction directory and use the commands below to create a new Python 3 environment with the necessary packages and switch to it:
 
     conda env create -f environment_da.py
     conda activate python3_da
@@ -48,7 +48,7 @@ NOTE: If you have trouble installing the LiPD library, you can use the following
 
 Before running the Holocene Reconstruction code for the first time, do the following:
  1. Open config_default.py.
- 2. Near the top, change the 'data_dir' directory to the location where you unzipped the data file in section 2.2 above.
+ 2. Near the top, change the 'data_dir' directory to the location of the unzipped data from section 2.2 above (i.e., the directory which has the models/, proxies/, and results/ subdirectories.)
  3. Save config_default.py and copy it to config.py.  You can set up new experiments in config.py while keeping the original file for reference.
 
 ## 3. Running the code
@@ -58,6 +58,8 @@ You should now be ready to run the data assimilation code.  To run the code usin
     python da_main_code.py config.yml
 
 The code will update you on what it's doing as it runs.  The code can take some time to run, so you may want to submit it in the background or use a job scheduler.  If you use the job scheduler Slurm, you can use the run_da.sh file.  Double-check the settings in that file and run it with `sbatch run_da.sh`.
+
+If the reconstruction finishes successfully, output will be saved as a netCDF file in the results/ subdirectory of the 'data_dir' directory.  See section 5 for more details.
 
 ## 4. Setting up new experiments
 
