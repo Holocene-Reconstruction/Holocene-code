@@ -40,10 +40,6 @@ Most of the necessary packages should come with the standard Python 3 installati
     conda env create -f environment_da.py
     conda activate python3_da
 
-NOTE: If you have trouble installing the LiPD library, you can use the following workaround:
- 1. Clone the github repository at [https://github.com/nickmckay/LiPD-utilities](https://github.com/nickmckay/LiPD-utilities) to a convenient location.
- 2. Go to your Holocene Reconstruction directory and open config_default.yml.  Change the "lipd_dir" line near the top to specify the location of the newly created LiPD directory.  If you're not using this workaround, feel free to delete the 'lipd_dir' line in config_default.yml.
-
 ### 2.4. First-time setup
 
 Before running the Holocene Reconstruction code for the first time, do the following:

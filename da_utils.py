@@ -1,7 +1,7 @@
 #==============================================================================
 # Different function for use in the Holocene DA project.
 #    author: Michael P. Erb
-#    date  : 9/16/2020
+#    date  : 3/16/2022
 #==============================================================================
 
 import numpy as np
@@ -36,12 +36,6 @@ def damup(Xb,HXb,R,y):
     #
     HXbm = np.mean(HXb,axis=1)
     HXbp = HXb - HXbm[:,None]
-    #
-    #TODO: Go through this code to understand it better.
-    # Maybe compare it to LMR-turbo
-    # I might need to eliminate the non-diagonal portions of "HPbHTR" below
-    # The imaginary part of the complex array below appears to be 0, so maybe
-    # it's not important.
     #
     # Kalman gain for mean and matrix covariances (Eq. 2)
     PbHT   = np.dot(Xbp, np.transpose(HXbp))/(nens-1)
@@ -83,6 +77,7 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
     elif (str(seasonality_txt).lower() == 'n/a (subannually resolved)'):    seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'not indicated'):                 seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'aug+ann'):                       seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
+    elif (str(seasonality_txt).lower() == '2 2 3 4 5 6 7 8 9 10 11 12'):    seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'annual (but 80% of precipitation from nov to may)'): seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'jan'):                           seasonality = '1'
     elif (str(seasonality_txt).lower() == 'may'):                           seasonality = '5'
@@ -94,6 +89,12 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
     elif (str(seasonality_txt).lower() == '7'):                             seasonality = '7'
     elif (str(seasonality_txt).lower() == '8'):                             seasonality = '8'
     elif (str(seasonality_txt).lower() == 'jul+jan'):                       seasonality = '1 7'
+    elif (str(seasonality_txt).lower() == 'warmest+coldest'):               seasonality = '1 7'
+    elif (str(seasonality_txt).lower() == 'coldest+warmest'):               seasonality = '1 7'
+    elif (str(seasonality_txt).lower() == 'warmest + coldest'):             seasonality = '1 7'
+    elif (str(seasonality_txt).lower() == 'warmest + coldest months'):      seasonality = '1 7'
+    elif (str(seasonality_txt).lower() == 'warmest + coldest month'):       seasonality = '1 7'
+    elif (str(seasonality_txt).lower() == 'coldest + warmest month'):       seasonality = '1 7'
     elif (str(seasonality_txt).lower() == 'jja'):                           seasonality = '6 7 8'
     elif (str(seasonality_txt).lower() == 'jjas'):                          seasonality = '6 7 8 9'
     elif (str(seasonality_txt).lower() == '6 7 8 9 10'):                    seasonality = '6 7 8 9 10'
@@ -108,17 +109,13 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
     elif (str(seasonality_txt).lower() == 'winter; summer'):                seasonality = '-12 1 2 6 7 8'
     elif (str(seasonality_txt).lower() == 'summer + winter'):               seasonality = '-12 1 2 6 7 8'
     elif (str(seasonality_txt).lower() == 'summer and winter'):             seasonality = '-12 1 2 6 7 8'
-    elif (str(seasonality_txt).lower() == 'warmest+coldest'):               seasonality = '-12 1 2 6 7 8'
-    elif (str(seasonality_txt).lower() == 'coldest+warmest'):               seasonality = '-12 1 2 6 7 8'
-    elif (str(seasonality_txt).lower() == 'warmest + coldest'):             seasonality = '-12 1 2 6 7 8'
-    elif (str(seasonality_txt).lower() == 'warmest + coldest months'):      seasonality = '-12 1 2 6 7 8'
     elif (str(seasonality_txt).lower() == 'dec-feb'):                       seasonality = '-12 1 2'
     elif (str(seasonality_txt).lower() == '6 7 2008'):                      seasonality = '6 7 8'
     elif (str(seasonality_txt).lower() == '7 8 2009'):                      seasonality = '7 8 9'
     elif (str(seasonality_txt).lower() == '12 1 2002'):                     seasonality = '-12 1 2'
+    elif (str(seasonality_txt).lower() == '1'):                             seasonality = '1'
     elif (str(seasonality_txt).lower() == '1 (summer)'):                    seasonality = '1'
     elif (str(seasonality_txt).lower() == '1; summer'):                     seasonality = '1'
-    elif (str(seasonality_txt).lower() == '1'):                             seasonality = '1'
     elif (str(seasonality_txt).lower() == '2'):                             seasonality = '2'
     elif (str(seasonality_txt).lower() == '1; 7'):                          seasonality = '1 7'
     elif (str(seasonality_txt).lower() == '1 7'):                           seasonality = '1 7'
@@ -127,8 +124,6 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
     elif (str(seasonality_txt).lower() == '1,9'):                           seasonality = '1 9'
     elif (str(seasonality_txt).lower() == '1,10'):                          seasonality = '1 10'
     elif (str(seasonality_txt).lower() == '1,11'):                          seasonality = '1 11'
-    elif (str(seasonality_txt).lower() == 'warmest + coldest month'):       seasonality = '1 7'
-    elif (str(seasonality_txt).lower() == 'coldest + warmest month'):       seasonality = '1 7'
     elif (str(seasonality_txt).lower() == '4 5 6 7 8 9 10 11 12'):          seasonality = '4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == '4 5 6 7 8 9 10 12'):             seasonality = '4 5 6 7 8 9 10 12'
     elif (str(seasonality_txt).lower() == '5 6 7 8 9 10 11 12'):            seasonality = '5 6 7 8 9 10 11 12'
@@ -163,10 +158,6 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
     elif (str(seasonality_txt).lower() == '((( 7 8 2009 ))) 7 8 9 /// 7 8 9'):    seasonality = '7 8 9'
     elif (str(seasonality_txt).lower() == '((( 12 1 2002 ))) 12 1 2 /// 12 1 2'): seasonality = '-12 1 2'
     elif (str(seasonality_txt).lower() == '((( 1 2 2003 ))) 1 2 3 /// 1 2 3'):    seasonality = '1 2 3'
-    #elif (str(seasonality_txt).lower() == '2 3 4 5 6 7 8'):                       seasonality = '2 3 4 5 6 7 8'
-    #elif (str(seasonality_txt).lower() == '-5 -6 -7 -8 -9 -10 -11 -12 1 2 3 4'):  seasonality = '-5 -6 -7 -8 -9 -10 -11 -12 1 2 3 4'
-    #elif (str(seasonality_txt).lower() == '-12 -11 -10 -9 -8 1 2 3 4 5 6 7'):     seasonality = '-12 -11 -10 -9 -8 1 2 3 4 5 6 7'
-    #elif (str(seasonality_txt).lower() == '4 5 6 7 8 9'):                         seasonality = '4 5 6 7 8 9'
     #
     # Terms which are dependent on latitude
     elif (str(seasonality_txt).lower() == 'summer')                  and (lat >= 0): seasonality = '6 7 8'
@@ -175,16 +166,18 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
     elif (str(seasonality_txt).lower() == 'mean summer')             and (lat < 0):  seasonality = '-12 1 2'
     elif (str(seasonality_txt).lower() == 'warmest quarter yr')      and (lat >= 0): seasonality = '6 7 8'
     elif (str(seasonality_txt).lower() == 'warmest quarter yr')      and (lat < 0):  seasonality = '-12 1 2'
-    elif (str(seasonality_txt).lower() == 'winter')                  and (lat >= 0): seasonality = '-12 1 2'
-    elif (str(seasonality_txt).lower() == 'winter')                  and (lat < 0):  seasonality = '6 7 8'
-    elif (str(seasonality_txt).lower() == 'autumn')                  and (lat >= 0): seasonality = '9 10 11'
-    elif (str(seasonality_txt).lower() == 'autumn')                  and (lat < 0):  seasonality = '3 4 5'
     elif (str(seasonality_txt).lower() == 'growing')                 and (lat >= 0): seasonality = '6 7 8'
     elif (str(seasonality_txt).lower() == 'growing')                 and (lat < 0):  seasonality = '-12 1 2'
+    elif (str(seasonality_txt).lower() == 'growing season')          and (lat >= 0): seasonality = '6 7 8'
+    elif (str(seasonality_txt).lower() == 'growing season')          and (lat < 0):  seasonality = '-12 1 2'
     elif (str(seasonality_txt).lower() == 'warm season')             and (lat >= 0): seasonality = '6 7 8'
     elif (str(seasonality_txt).lower() == 'warm season')             and (lat < 0):  seasonality = '-12 1 2'
+    elif (str(seasonality_txt).lower() == 'winter')                  and (lat >= 0): seasonality = '-12 1 2'
+    elif (str(seasonality_txt).lower() == 'winter')                  and (lat < 0):  seasonality = '6 7 8'
     elif (str(seasonality_txt).lower() == 'cold season')             and (lat >= 0): seasonality = '-12 1 2'
     elif (str(seasonality_txt).lower() == 'cold season')             and (lat < 0):  seasonality = '6 7 8'
+    elif (str(seasonality_txt).lower() == 'autumn')                  and (lat >= 0): seasonality = '9 10 11'
+    elif (str(seasonality_txt).lower() == 'autumn')                  and (lat < 0):  seasonality = '3 4 5'
     elif (str(seasonality_txt).lower() == 'warmest month + winter')  and (lat >= 0): seasonality = '-12 1 2 7'
     elif (str(seasonality_txt).lower() == 'warmest month + winter')  and (lat < 0):  seasonality = '1 6 7 8'
     elif (str(seasonality_txt).lower() == 'coldest month + summer')  and (lat >= 0): seasonality = '1 6 7 8'
@@ -199,8 +192,6 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
     elif (str(seasonality_txt).lower() == 'coldest')                 and (lat < 0):  seasonality = '7'
     elif (str(seasonality_txt).lower() == 'coldest month')           and (lat >= 0): seasonality = '1'
     elif (str(seasonality_txt).lower() == 'coldest month')           and (lat < 0):  seasonality = '7'
-    elif (str(seasonality_txt).lower() == 'growing season')          and (lat >= 0): seasonality = '6 7 8'
-    elif (str(seasonality_txt).lower() == 'growing season')          and (lat < 0):  seasonality = '-12 1 2'
     elif (str(seasonality_txt).lower() == 'early summer')            and (lat >= 0): seasonality = '6 7'
     elif (str(seasonality_txt).lower() == 'early summer')            and (lat < 0):  seasonality = '-12 1'
     elif (str(seasonality_txt).lower() == 'winter/spring')           and (lat >= 0): seasonality = '-12 1 2 3 4 5'
@@ -217,25 +208,21 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
     # Unsure if this term is dependent on latitude
     elif (str(seasonality_txt).lower() == 'spring/fall') and (lat >= 0): seasonality = '3 4 5 9 10 11'
     #
+    # Try to parse the seasonality as numbers. If that doesn't work, use the default value or return as-is.
     else:
-        if unknown_option == 'annual':
-            print('ATTENTION!  Seasonality text unknown, using annual.  Seasonality: |'+str(seasonality_txt)+'|')
+        text_list = str(seasonality_txt).split(' ')
+        if all(isinstance(i,int) for i in text_list):
+            print('ATTENTION! Seasonality text unknown, parsing as numbers. Seasonality: |'+str(seasonality_txt)+'|')
+            seasonality = np.array([int(i) for i in text_list])
+        elif unknown_option == 'annual':
+            print('ATTENTION! Seasonality text unknown, using annual.       Seasonality: |'+str(seasonality_txt)+'|')
             seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
         else:
-            print('ATTENTION!  Seasonality text unknown, returning as-is.  Seasonality: |'+str(seasonality_txt)+'|')
+            print('ATTENTION! Seasonality text unknown, returning as-is.    Seasonality: |'+str(seasonality_txt)+'|')
             seasonality = seasonality_txt
     #
     return seasonality
 
-"""
-# Add something like the following to the end of the function above:
-    try:
-        text = seasonality.split(' ')
-        climateInterp = np.array([int(i) for i in text])
-    except:
-        print('ATTENTION!  Cannot parse seasonality metadata for proxy '+str(index)+': '+proxyID+'.  Seasonality: '+str(seasonality_txt))
-        climateInterp = np.array([1,2,3,4,5,6,7,8,9,10,11,12])
-"""
 
 # A function to regrid an age-month-lat-lon array to a standardized grid
 def regrid_model(var,lat,lon,age,regrid_value=64):
@@ -266,13 +253,6 @@ def regrid_model(var,lat,lon,age,regrid_value=64):
     nlon_new = len(lon_new)
     var_regrid_2d = np.rollaxis(var_regrid_2d,1,0)
     var_regrid = np.reshape(var_regrid_2d,(ntime,nmonth,nlat_new,nlon_new))
-    #
-    """
-    # Checking the results
-    var_regrid_annual = np.mean(np.mean(var_regrid,axis=0),axis=0)
-    plt.contourf(lon_new,lat_new,var_regrid_annual)
-    plt.plot(var_regrid[-1,:,45,67])
-    """
     #
     return var_regrid,lat_new,lon_new
 
@@ -311,13 +291,12 @@ def spatial_mean(variable,lats,lons,lat_min,lat_max,lon_min,lon_max,index_lat,in
 # A function to compute a localization matrix
 def loc_matrix(options,model_data,proxy_data):
     #
-    lon_model = model_data['lon']
     lat_model = model_data['lat']
+    lon_model = model_data['lon']
     #
     # Get dimensions
     n_proxies = proxy_data['values_binned'].shape[0]
-    #n_vars    = len(options['vars_to_reconstruct'])
-    n_vars    = 1
+    n_vars    = len(options['vars_to_reconstruct'])
     n_latlon  = len(lat_model) * len(lon_model)
     n_state = (n_latlon*n_vars) + n_proxies
     #
@@ -325,13 +304,14 @@ def loc_matrix(options,model_data,proxy_data):
     proxy_localization_all = np.ones((n_proxies,n_state))
     if options['localization_radius'] != 'None':
         #
-        #TODO: Make it so that this works for multiple variables.  Right now it only works for one.
-        #
         # Get lat and lon values for the prior
         lon_model_2d,lat_model_2d = np.meshgrid(lon_model,lat_model)
         lat_prior = np.reshape(lat_model_2d,(n_latlon))
         lon_prior = np.reshape(lon_model_2d,(n_latlon))
         prior_coords = np.concatenate((lat_prior[:,None],lon_prior[:,None]),axis=1)
+        #
+        # Repeat the prior coords for all reconstructed variables
+        if n_vars > 1: prior_coords = np.tile(prior_coords,(n_vars,1))
         #
         # Include the proxy coordinates with the model coordinates
         proxy_coords_all = np.zeros((n_proxies,2)); proxy_coords_all[:] = np.nan
@@ -348,6 +328,7 @@ def loc_matrix(options,model_data,proxy_data):
             proxy_lon = proxy_data['lons'][i]
             #
             # Compute the localization values and save it to a common variable
+            #locRad, proxy_lat, proxy_lon, X_coords = options['localization_radius'],proxy_lat,proxy_lon,prior_coords
             proxy_localization = da_utils_lmr.cov_localization(options['localization_radius'],proxy_lat,proxy_lon,prior_coords)
             proxy_localization_all[i,:] = proxy_localization
     #
