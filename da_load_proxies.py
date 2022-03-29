@@ -8,6 +8,7 @@ import da_utils
 import da_pseudoproxies
 import numpy as np
 import pickle
+import lipd
 import glob
 from scipy import interpolate
 
@@ -27,12 +28,11 @@ def load_proxies(options):
         if proxy_dataset == 'temp12k':
             #
             # Load the Temp12k proxy metadata
-            file_to_open = open(dir_proxies_temp12k+'Temp12k1_0_1.pkl','rb')
+            file_to_open = open(dir_proxies_temp12k+'Temp12k1_0_2.pkl','rb')
             proxies_all_12k = pickle.load(file_to_open)['D']
             file_to_open.close()
             #
             # Extract the time series and use only those which are in Temp12k and in units of degC
-            import lipd
             all_ts_12k = lipd.extractTs(proxies_all_12k)
             #
             # Fix the GISP2 ages - Note: this is a temporary fix, since lipd isn't loading the right ages.
@@ -54,7 +54,7 @@ def load_proxies(options):
         elif proxy_dataset == 'pages2k':
             #
             # Load the PAGES2k proxies
-            file_to_open = open(dir_proxies_pages2k+'proxies_pages2k_temp_with_psms.pkl','rb')  #TODO: This file doesn't currently exist
+            file_to_open = open(dir_proxies_pages2k+'proxies_pages2k_temp_with_psms.pkl','rb')
             proxy_ts_pages2k = pickle.load(file_to_open)
             file_to_open.close()
             #
@@ -95,8 +95,8 @@ def process_proxies(proxy_ts,collection_all,options):
     #
     print('\n=== Processing proxy data. This can take a few minutes. Please wait. ===')
     #
-    # Set age range to reconstruct, as well as the reference period
-    age_bounds = np.arange(options['age_range_to_reconstruct'][0],options['age_range_to_reconstruct'][1]+1,options['time_resolution'])
+    # Set age range to reconstruct, as well as the reference period (The -0.5 accounts for the fact that age years are represented as whole numbers)
+    age_bounds = np.arange(options['age_range_to_reconstruct'][0],options['age_range_to_reconstruct'][1]+1,options['time_resolution']) - 0.5
     age_centers = (age_bounds[:-1]+age_bounds[1:])/2
     #
     # Set the maximum proxy resolution
@@ -118,6 +118,11 @@ def process_proxies(proxy_ts,collection_all,options):
     proxy_data['proxytype']         = []
     proxy_data['units']             = []
     proxy_data['seasonality_array'] = {}
+    #
+    # Some proxies have problems in the metadata.  Fix them here.
+    for i in range(n_proxies):
+        if proxy_ts[i]['paleoData_TSid'] == 'RXEc3JaUSUk': proxy_ts[i]['paleoData_temperature12kUncertainty'] = 2.1  # This record has an uncertainty value of "3; 2", but it should be 2.1.
+        if proxy_ts[i]['paleoData_TSid'] == 'RWzl4NCma8r': proxy_ts[i]['paleoData_interpretation'][0]['seasonality'] = 'summer'  # This record is lacking a seasonality field.
     #
     # Loop through proxies, saving the necessary values to common variables.
     no_ref_data = 0; missing_uncertainty = 0
@@ -147,9 +152,8 @@ def process_proxies(proxy_ts,collection_all,options):
         if min(proxy_ages[1:]-proxy_ages[:-1]) < 1:
             proxy_values_ann = []
             proxy_ages_ann   = []
-            for int_year in np.arange(int(np.floor(proxy_ages[0])),int(np.ceil(proxy_ages[-1])+1)):
-                #ind_in_year = np.where((proxy_ages >= (int_year-0.5)) & (proxy_ages < (int_year+0.5)))[0]  #TODO: Revisit this choice.
-                ind_in_year = np.where((proxy_ages > (int_year-1)) & (proxy_ages <= int_year))[0]
+            for int_age in np.arange(int(np.floor(proxy_ages[0])),int(np.ceil(proxy_ages[-1])+1)):
+                ind_in_year = np.where((proxy_ages > int_age) & (proxy_ages <= (int_age+1)))[0]
                 if len(ind_in_year) > 0:
                     proxy_values_ann.append(np.nanmean(proxy_values[ind_in_year]))
                     proxy_ages_ann.append(np.nanmean(proxy_ages[ind_in_year]))
@@ -159,6 +163,9 @@ def process_proxies(proxy_ts,collection_all,options):
         else:
             proxy_values_ann = proxy_values
             proxy_ages_ann   = proxy_ages
+        #
+        # Represent annual proxy ages as integers, where e.g., age 100 represent values <=100 and >99
+        proxy_ages = np.ceil(proxy_ages)
         #
         # Compute age bounds of the proxy observations as the midpoints between data
         proxy_age_bounds = (proxy_ages_ann[1:]+proxy_ages_ann[:-1])/2
@@ -190,7 +197,7 @@ def process_proxies(proxy_ts,collection_all,options):
         proxy_values_12ka = np.zeros((n_ages)); proxy_values_12ka[:] = np.nan
         proxy_res_12ka    = np.zeros((n_ages)); proxy_res_12ka[:]    = np.nan
         for j in range(n_ages):
-            ind_selected = np.where((proxy_ages_interp >= age_bounds[j]) & (proxy_ages_interp < age_bounds[j+1]))[0]  #TODO: Revisit this.
+            ind_selected = np.where((proxy_ages_interp >= age_bounds[j]) & (proxy_ages_interp < age_bounds[j+1]))[0]
             proxy_values_12ka[j] = np.nanmean(proxy_values_interp[ind_selected])
             res_avg              = np.nanmean(proxy_res_interp[ind_selected])
             if np.isnan(res_avg): proxy_res_12ka[j] = np.nan
@@ -207,7 +214,7 @@ def process_proxies(proxy_ts,collection_all,options):
         #
         # If the reconstruction type is "relative," remove the mean of the reference period
         if options['reconstruction_type'] == 'relative':
-            ind_ref = np.where((proxy_ages_interp >= options['reference_period'][0]) & (proxy_ages_interp <= options['reference_period'][1]))[0]
+            ind_ref = np.where((proxy_ages_interp >= options['reference_period'][0]) & (proxy_ages_interp < options['reference_period'][1]))[0]
             proxy_values_12ka = proxy_values_12ka - np.nanmean(proxy_values_interp[ind_ref])
             if np.isnan(proxy_values_interp[ind_ref]).all(): print('No data in reference period, index: '+str(i)); no_ref_data += 1
         #
@@ -227,7 +234,7 @@ def process_proxies(proxy_ts,collection_all,options):
         proxy_seasonality_general = proxy_ts[i]['paleoData_interpretation'][0]['seasonalityGeneral']
         try:    proxy_uncertainty = proxy_ts[i]['paleoData_temperature12kUncertainty']
         except: proxy_uncertainty = missing_uncertainty_value; missing_uncertainty += 1
-        if proxy_uncertainty == 'NA': proxy_uncertainty = missing_uncertainty_value; missing_uncertainty += 1
+        proxy_uncertainty = float(proxy_uncertainty)
         proxy_data['archivetype'].append(proxy_ts[i]['archiveType'])
         proxy_data['proxytype'].append(proxy_ts[i]['paleoData_proxy'])
         proxy_data['units'].append(proxy_ts[i]['paleoData_units'])

@@ -120,7 +120,7 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
         tas_model_season_averaged = np.zeros((n_ages)); tas_model_season_averaged[:] = np.nan
         for j in range(n_ages):
             if np.isnan(proxy_age_bounds[j]) or np.isnan(proxy_age_bounds[j+1]): continue
-            indices_selected = np.where((ages_model >= proxy_age_bounds[j]) & (ages_model < proxy_age_bounds[j+1]))[0]
+            indices_selected = np.where((ages_model > proxy_age_bounds[j]) & (ages_model <= proxy_age_bounds[j+1]))[0]
             tas_model_season_averaged[j] = np.mean(tas_model_season[indices_selected])
         #
         # If there are NaNs in the original data, set them in the pseudoproxies

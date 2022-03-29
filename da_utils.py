@@ -7,6 +7,8 @@
 import numpy as np
 from scipy.linalg import sqrtm
 import da_utils_lmr
+import xarray as xr
+import xesmf as xe
 
 # A function to do the data assimilation.  It is based on '2_darecon.jl',
 # originally written by Nathan Steiger.
@@ -225,34 +227,58 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
 
 
 # A function to regrid an age-month-lat-lon array to a standardized grid
-def regrid_model(var,lat,lon,age,regrid_value=64):
+def regrid_model(var,lat,lon,age,regrid_method='conservative_normed',make_figures=False):
     #
-    # Old grid
-    # Repeat the westernmost points on the easternmost side, to account for looping.
-    var = np.append(var,var[:,:,:,0,None],axis=3)
-    lon = np.append(lon,lon[0,None]+360,axis=0)
-    lon_2d,lat_2d = np.meshgrid(lon,lat)
+    # Put the data in an xarray
+    var_xarray = xr.Dataset(
+        {
+            'variable':(['age','month','lat','lon'],var)
+        },
+        coords={
+            'lat':   (['lat'],lat,{'units':'degrees_north'}),
+            'lon':   (['lon'],lon,{'units':'degrees_east'}),
+            'month': (['month'],np.arange(1,13)),
+            'age':   (['age'],age),
+        },
+    )
     #
-    # For regridding, the array must be 2D with the shape [nlat*nlon,nens].
-    # Here, nens with be both age and month.
-    ntime  = var.shape[0]
-    nmonth = var.shape[1]
-    nlat   = var.shape[2]
-    nlon   = var.shape[3]
-    var_2d = np.reshape(var,(ntime*nmonth,nlat*nlon))
-    var_2d = np.rollaxis(var_2d,1,0)
+    # Set up output variable on a 96 x 64 grid
+    lat_regrid = np.arange(-88.59375,90,2.8125)
+    lon_regrid = np.arange(0,360,3.75)
+    data_format = xr.Dataset(
+        {
+            'lat': (['lat'],lat_regrid,{'units':'degrees_north'}),
+            'lon': (['lon'],lon_regrid,{'units':'degrees_east'}),
+        }
+    )
     #
-    # Regrid the data
-    lats_lons = np.column_stack((lat_2d.flatten(),lon_2d.flatten()))
-    [var_regrid_2d,lat_new_2d,lon_new_2d] = da_utils_lmr.regrid_simple(ntime*nmonth,var_2d,lats_lons,0,1,regrid_value)
+    # Set up the regridder and do the regridding
+    regridder = xe.Regridder(var_xarray,data_format,regrid_method,periodic=True)
+    var_regridded = regridder(var_xarray,keep_attrs=True)
     #
-    # Reshape the data back to a lat-lon grid
-    lat_new = np.mean(lat_new_2d,axis=1)
-    lon_new = np.mean(lon_new_2d,axis=0)
-    nlat_new = len(lat_new)
-    nlon_new = len(lon_new)
-    var_regrid_2d = np.rollaxis(var_regrid_2d,1,0)
-    var_regrid = np.reshape(var_regrid_2d,(ntime,nmonth,nlat_new,nlon_new))
+    """
+    # Figures to compare the original data to the regridded data
+    import matplotlib.pyplot as plt
+    import cartopy.crs as ccrs
+    #
+    ax1 = plt.subplot2grid((2,1),(0,0),projection=ccrs.PlateCarree())
+    ax2 = plt.subplot2grid((2,1),(1,0),projection=ccrs.PlateCarree())
+    var_xarray.variable.isel(age=0,month=0).plot.pcolormesh(ax=ax1)
+    var_regridded.variable.isel(age=0,month=0).plot.pcolormesh(ax=ax2)
+    ax1.coastlines()
+    ax2.coastlines()
+    plt.plot()
+    #
+    ax1 = plt.subplot2grid((1,1),(0,0))
+    var_xarray.variable.isel(age=0,month=0,lon=0).plot(ax=ax1)
+    var_regridded.variable.isel(age=0,month=0,lon=0).plot(ax=ax1)
+    plt.plot()
+    """
+    #
+    # Get the regridded values
+    var_regrid = var_regridded.variable.values
+    lat_new    = var_regridded.lat.values
+    lon_new    = var_regridded.lon.values
     #
     return var_regrid,lat_new,lon_new
 

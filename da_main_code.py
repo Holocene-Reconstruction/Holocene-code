@@ -3,16 +3,8 @@
 # Options are set in the config yml file. See README.txt for a more complete
 # explanation of the code and setup.
 #    author: Michael P. Erb
-#    date  : 3/16/2022
+#    date  : 3/29/2022
 #==============================================================================
-
-# Things to consider:
-#TODO: Use calendar correction on the model data
-#TODO: Check uses of <=. >=. etc.
-
-
-# ALL GOOD, but check: assimilation functions and regridding.
-
 
 import sys
 import numpy as np
@@ -65,7 +57,7 @@ n_proxies         = proxy_data['values_binned'].shape[0]
 if options['reconstruction_type'] == 'relative':
     for i in range(n_models_in_prior):
         ind_for_model = (model_data['number'] == (i+1))
-        ind_ref = (model_data['age'] >= options['reference_period'][0]) & (model_data['age'] <= options['reference_period'][1]) & ind_for_model
+        ind_ref = (model_data['age'] >= options['reference_period'][0]) & (model_data['age'] < options['reference_period'][1]) & ind_for_model
         model_data['tas'][ind_for_model,:,:,:]      = model_data['tas'][ind_for_model,:,:,:]      - np.mean(model_data['tas'][ind_ref,:,:,:],axis=0)
         model_data['tas_annual'][ind_for_model,:,:] = model_data['tas_annual'][ind_for_model,:,:] - np.mean(model_data['tas_annual'][ind_ref,:,:],axis=0)
 

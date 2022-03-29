@@ -105,7 +105,7 @@ def get_indices_for_prior(options,model_data,age):
             prior_age_window_old    = prior_age_bound_old
             prior_age_window_recent = prior_age_bound_old - options['prior_window']
     #
-    indices_for_prior = np.where((age_model >= prior_age_window_recent) & (age_model < prior_age_window_old) & valid_model_inds)[0]
+    indices_for_prior = np.where((age_model > prior_age_window_recent) & (age_model <= prior_age_window_old) & valid_model_inds)[0]
     #
     return indices_for_prior
 
@@ -120,7 +120,6 @@ def detrend_model_data(model_data,options):
     # If desired, do a highpass filter on every location
     if options['model_processing'] == 'linear_global':
         #
-        #TODO: Should I handle individual months seperately?  Ask Luke what they did about this.
         print("Model processing: '"+options['model_processing']+"' - Removing the global mean trend from each grid point")
         for var_name in options['vars_to_reconstruct']:
             var_global = da_utils.global_mean(model_data[var_name+'_annual'],model_data['lat'],1,2)
@@ -158,13 +157,15 @@ def load_trace(var_txt,data_dir_model):
     var_model = handle_model[var_txt].values
     lat_model = handle_model['lat'].values
     lon_model = handle_model['lon'].values
+    age_model_monthly = handle_model['time'].values
     handle_model.close()
     #
-    # Reshape the variable to 2D
+    # Reshape the variable to 2D and calculate the ages
     nyears = int(var_model.shape[0]/12)
     var_model_yearsmonths = np.reshape(var_model,(nyears,12,len(lat_model),len(lon_model)))
+    age_model = -1*np.floor(np.mean(np.reshape(age_model_monthly*1000,(int(len(age_model_monthly)/12),12)),axis=1))
     #
-    return var_model_yearsmonths,lat_model,lon_model
+    return var_model_yearsmonths,lat_model,lon_model,age_model
 
 
 # A function to process model data
@@ -172,7 +173,7 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     #
     """
     # Variables for testing the code
-    model_name         = 'hadcm3_regrid'
+    model_name         = 'trace_regrid'
     var_name           = 'tas'
     time_resolution    = 10
     age_range          = [0,12500]
@@ -214,9 +215,9 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         var_model = np.squeeze(handle_model[var_txt].values)
         lat_model = handle_model['latitude'].values
         lon_model = handle_model['longitude'].values
-        #age_model_monthly = handle_model['t'].values
+        age_model_monthly = handle_model['t'].values
         handle_model.close()
-        age_model = -1*(np.arange(-22999.5,2050,1) - 0.5)  #TODO: Check this
+        age_model = -1*np.floor(np.mean(np.reshape(age_model_monthly,(int(len(age_model_monthly)/12),12)),axis=1))
         #
         # Set the number of days per month in every year
         time_ndays_model = np.array([30,30,30,30,30,30,30,30,30,30,30,30])
@@ -231,18 +232,17 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         #
     elif model_name == 'trace':
         #
-        # Set the ages and number of days per month in every year
-        age_model = -1*np.arange(-22000,40)  # Ages are shown as "before present," where present is 1950 CE.  #TODO: Check this
-        time_ndays_model = np.array([31,28,31,30,31,30,31,31,30,31,30,31])
-        time_ndays_model_yearsmonths = np.repeat(time_ndays_model[None,:],len(age_model),axis=0)
-        #
         # Load model data
         if var_name == 'precip':
-            var_precc,lat_model,lon_model = load_trace('PRECC',data_dir[model_name])
-            var_precl,_,_                 = load_trace('PRECL',data_dir[model_name])
+            var_precc,lat_model,lon_model,age_model = load_trace('PRECC',data_dir[model_name])
+            var_precl,_,_,_                         = load_trace('PRECL',data_dir[model_name])
             var_model_yearsmonths = var_precc + var_precl
         else:
-            var_model_yearsmonths,lat_model,lon_model = load_trace(var_txt,data_dir[model_name])
+            var_model_yearsmonths,lat_model,lon_model,age_model = load_trace(var_txt,data_dir[model_name])
+        #
+        # Set the number of days per month in every year
+        time_ndays_model = np.array([31,28,31,30,31,30,31,31,30,31,30,31])
+        time_ndays_model_yearsmonths = np.repeat(time_ndays_model[None,:],len(age_model),axis=0)
         #
         # Convert the model units to tas=C, precip=mm/day
         if   var_name == 'tas':    var_model_yearsmonths = var_model_yearsmonths - 273.15
@@ -258,13 +258,12 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         var_model = handle_model[var_txt].values[1:-1,:,:]
         lat_model = handle_model['latitude'].values
         lon_model = handle_model['longitude'].values
-        age_model_monthly = -1*handle_model['time'].values[1:-1]
+        age_model_monthly = handle_model['time'].values[1:-1]
         handle_model.close()
         #
-        age_model = np.mean(np.reshape(age_model_monthly,(int(len(age_model_monthly)/12),12)),axis=1)
+        age_model = -1*np.floor(np.mean(np.reshape(age_model_monthly,(int(len(age_model_monthly)/12),12)),axis=1))
         age_model = age_model*10   # The model was 10x acceleration
-        age_model = age_model-1950 # Make the time relative to 1950 CE
-        #TODO: Are the ages above right?  See email from 4/8/2019
+        age_model = age_model+1950 # Make the time relative to 1950 CE
         #
         # Set the number of days per month in every year
         time_ndays_model = np.array([30,30,30,30,30,30,30,30,30,30,30,30])

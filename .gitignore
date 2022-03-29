@@ -14,3 +14,4 @@ development/*
 process_output/*
 __pycache__/*
 extra_config/*
+compare_methods/*
