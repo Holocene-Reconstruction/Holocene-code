@@ -265,12 +265,30 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         age_model = age_model*10   # The model was 10x acceleration
         age_model = age_model+1950 # Make the time relative to 1950 CE
         #
+        # Reshape the FAMOUS array to have months and years on different axes.
+        var_model_yearsmonths = np.reshape(var_model,(int(len(age_model)),12,len(lat_model),len(lon_model)))
+        #
+        # A note about FAMOUS ages:
+        # FAMOUS output is annual representing one year every decade, starting at 121950, 121940 yr BP, etc.
+        # The FAMOUS output is missing several ages: 120000,119990,119980,119970,119960 and 2940 yr BP.
+        # The older ages are outside of the Holocene, so they are not important for this project.
+        # However, the missing age at 2940 yr BP presents a problem.  We cannot put a NaN here
+        # because our DA method doesn't allow NaNs.  However, we want to have a consistant number of
+        # ensemble members in the prior.  To solve this, the missing age is filled in with an average
+        # of the two surrounding ages.  While not an ideal solution, we do not expect this to have
+        # much affect on the results.
+        #
+        # Replace the missing decade with an average of the two surrounding decades.
+        ind_decade1 = np.argmin(np.abs(age_model-2950))
+        ind_decade2 = np.argmin(np.abs(age_model-2930))
+        average_of_decades = np.mean(var_model_yearsmonths[[ind_decade1,ind_decade2],:,:,:],axis=0)
+        average_of_ages    = np.mean(age_model[[ind_decade1,ind_decade2]],axis=0)
+        var_model_yearsmonths = np.insert(var_model_yearsmonths,ind_decade2,average_of_decades,axis=0)
+        age_model             = np.insert(age_model,ind_decade2,average_of_ages)
+        #
         # Set the number of days per month in every year
         time_ndays_model = np.array([30,30,30,30,30,30,30,30,30,30,30,30])
         time_ndays_model_yearsmonths = np.repeat(time_ndays_model[None,:],len(age_model),axis=0)
-        #
-        # Reshape the FAMOUS array to have months and years on different axes.
-        var_model_yearsmonths = np.reshape(var_model,(int(len(age_model)),12,len(lat_model),len(lon_model)))
         #
         # Convert the model units to tas=C, precip=mm/day
         if   var_name == 'tas':    var_model_yearsmonths = var_model_yearsmonths - 273.15

@@ -51,6 +51,11 @@ def load_proxies(options):
             proxy_ts = proxy_ts + proxy_ts_temp12k
             collection_all = collection_all + ([proxy_dataset] * len(proxy_ts_temp12k))
             #
+            # Some proxies have problems in the metadata.  Fix them here.
+            for i in range(len(proxy_ts)):
+                if proxy_ts[i]['paleoData_TSid'] == 'RXEc3JaUSUk': proxy_ts[i]['paleoData_temperature12kUncertainty'] = 2.1  # This record has an uncertainty value of "3; 2", but it should be 2.1.
+                if proxy_ts[i]['paleoData_TSid'] == 'RWzl4NCma8r': proxy_ts[i]['paleoData_interpretation'][0]['seasonality'] = 'summer'  # This record is lacking a seasonality field.
+            #
         elif proxy_dataset == 'pages2k':
             #
             # Load the PAGES2k proxies
@@ -118,11 +123,6 @@ def process_proxies(proxy_ts,collection_all,options):
     proxy_data['proxytype']         = []
     proxy_data['units']             = []
     proxy_data['seasonality_array'] = {}
-    #
-    # Some proxies have problems in the metadata.  Fix them here.
-    for i in range(n_proxies):
-        if proxy_ts[i]['paleoData_TSid'] == 'RXEc3JaUSUk': proxy_ts[i]['paleoData_temperature12kUncertainty'] = 2.1  # This record has an uncertainty value of "3; 2", but it should be 2.1.
-        if proxy_ts[i]['paleoData_TSid'] == 'RWzl4NCma8r': proxy_ts[i]['paleoData_interpretation'][0]['seasonality'] = 'summer'  # This record is lacking a seasonality field.
     #
     # Loop through proxies, saving the necessary values to common variables.
     no_ref_data = 0; missing_uncertainty = 0

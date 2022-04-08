@@ -88,7 +88,7 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
         missing_uncertainty_value = np.nan
         try:    proxy_uncertainty = pseudoproxy_data[i]['paleoData_temperature12kUncertainty']
         except: proxy_uncertainty = missing_uncertainty_value; missing_uncertainty_count += 1
-        if proxy_uncertainty == 'NA': proxy_uncertainty = missing_uncertainty_value; missing_uncertainty_count += 1
+        proxy_uncertainty = float(proxy_uncertainty)
         #
         # Convert seasonality to a list of months, with negative values corresponding to the previous year.
         try:
@@ -107,6 +107,15 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
         # Get proxy ages
         proxy_ages   = np.array(pseudoproxy_data[i]['age']).astype(float)
         proxy_values = np.array(pseudoproxy_data[i]['paleoData_values']).astype(float)
+        #
+        # If any NaNs exist in the ages, remove those values
+        proxy_values = proxy_values[np.isfinite(proxy_ages)]
+        proxy_ages   = proxy_ages[np.isfinite(proxy_ages)]
+        #
+        # Sort the data so that ages go from newest to oldest
+        ind_sorted = np.argsort(proxy_ages)
+        proxy_values = proxy_values[ind_sorted]
+        proxy_ages   = proxy_ages[ind_sorted]
         #
         # Find age bounds of proxy data
         proxy_age_bounds = (proxy_ages[1:]+proxy_ages[:-1])/2
@@ -162,6 +171,7 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
         #
         # Save pseudoproxy data
         pseudoproxy_data[i]['paleoData_values'] = tas_model_season_averaged
+        pseudoproxy_data[i]['age']              = proxy_ages
     #
     #%% OUTPUT
     #

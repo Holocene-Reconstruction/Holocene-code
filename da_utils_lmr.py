@@ -1,7 +1,9 @@
 #==========================================================================================
 # This script contains functions developed for the LMR project.
+# Originators: G. Hakim and R. Tardif.
+# The LMR code is available at: https://github.com/modons/LMR
 #
-# Source files in the LMR project for each function:
+# The source files in the LMR project are:
 # LMR_DA.py 
 #    - enkf_update_array (unaltered)
 #    - cov_localization  (minor changes)
