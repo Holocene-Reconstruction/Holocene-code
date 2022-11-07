@@ -48,11 +48,15 @@ def load_model_data(options):
             model_individual[var_name]     = handle_model[var_name].values
             handle_model.close()
             #
-            # Compute annual means of the model data
+            # Compute annual, jja, and djf means of the model data
             n_lat = len(model_data['lat'])
             n_lon = len(model_data['lon'])
+            ind_jja = [5,6,7]
+            ind_djf = [11,0,1]
             time_ndays_model_latlon = np.repeat(np.repeat(model_individual['time_ndays'][:,:,None,None],n_lat,axis=2),n_lon,axis=3)
             model_individual[var_name+'_annual'] = np.average(model_individual[var_name],axis=1,weights=time_ndays_model_latlon)
+            model_individual[var_name+'_jja']    = np.average(model_individual[var_name][:,ind_jja,:,:],axis=1,weights=time_ndays_model_latlon[:,ind_jja,:,:]) #TODO: Check this.
+            model_individual[var_name+'_djf']    = np.average(model_individual[var_name][:,ind_djf,:,:],axis=1,weights=time_ndays_model_latlon[:,ind_djf,:,:]) #TODO: Check this.
             #
             # In each model, central values will not be selected within max_resolution/2 of the edges
             n_time = len(model_individual['age'])
@@ -116,6 +120,11 @@ def detrend_model_data(model_data,options):
     # Get dimensions
     n_lat = len(model_data['lat'])
     n_lon = len(model_data['lon'])
+    #
+    # If summer or winter is to be reconstructed, pass #TODO: Update this?
+    if options['season_to_reconstruct'] in ['jja','djf']:
+        print('Model processing for JJA or DJF is not set up yet. Returning unchanged.')
+        return model_data
     #
     # If desired, do a highpass filter on every location
     if options['model_processing'] == 'linear_global':
