@@ -15,7 +15,7 @@ The Holocene Reconstruction code is written in Python 3.  The instructions below
 
 ### 2.1. Getting the Holocene Reconstruction code
 
-To get v1.0.0 of the code, search for "Holocene reconstruction code, v1.0.0" on Zenodo.
+To get v1.0.0 of the code, search for "Holocene reconstruction code" on Zenodo.
 
 Alternately, you may be able to find a newer version of code on Github. Clone the Github repository into your Linux environment with the command:
 
@@ -95,7 +95,7 @@ If a localization radius is desired, set it in the `localization_radius` (defaul
 
 #### Assimilating only a portion of the proxy database
 
-To only assimilate some of the proxies in the database, modify the variables `assimilate_selected_seasons`, `assimilate_selected_archives`, `assimilate_selected_region`, and/or `assimilate_selected_resolution`. See the config file for more details.
+To only assimilate some of the proxies in the database, modify the variables `assimilate_selected_seasons`, `assimilate_selected_archives`, `assimilate_selected_region`, and/or `assimilate_selected_resolution`. See the config file for more details. Note: the `assimilate_selected_resolution` option should be improved before use.
 
 Additionally, to assimilate only a portion of the proxy database, set the variable `percent_to_assimilate` (default: 100) to a lower number.
 
