@@ -141,7 +141,7 @@ For now, all reconstructed values and proxy inputs are temperature.
     proxy_values       [age,proxy]       The proxy values, binned and/or nearest neighbor interpolated to the base temporal resolution
     proxy_resolutions  [age,proxy]       The effective temporal resolution of the proxy values, in years
     proxy_uncertainty  [proxy]           The uncertainty values used for each proxy
-    proxy_metadata     [proxy,metadata]  Additional metadata about the proxies (datasetname,TSid,lat,lon,seasonality,seasonality_general,median_age_res_calc*,collection)  *Note: The "median_age_res_calc" variable might not be entirely accurate.
+    proxy_metadata     [proxy,metadata]  Additional metadata about the proxies (datasetname,TSid,lat,lon,seasonality,seasonality_general,median_age_res_calc*,collection)  *The "median_age_res_calc" variable may not accurately represent the proxy resolution. You may want to load the proxy data and calculate this yourself.
 
 #### Reconstruction of the proxies (at proxy locations and seasonalities)
 
