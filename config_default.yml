@@ -28,7 +28,7 @@ percent_to_assimilate:          100    # What percentage of proxies to assimilat
 seed_for_proxy_choice:          0      # This seed is only used if 'percent_to_assimilate' is below 100 {0}
 
 # Models for prior {['hadcm3_regrid','trace_regrid','famous_regrid']}
-models_for_prior: ['trace_regrid']
+models_for_prior: ['hadcm3_regrid','trace_regrid']
 
 # Proxy datasets {['temp12k'],['pages2k'],['pseudo_temp12k_using_trace_noise_whiteproxyrmse']}
 proxy_datasets_to_assimilate: ['temp12k']
