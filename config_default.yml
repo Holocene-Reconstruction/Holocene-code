@@ -23,7 +23,7 @@ seed_for_prior:      0        # This seed is only used if 'percent_of_prior' is 
 assimilate_selected_seasons:    ['annual','summerOnly','winterOnly']  # Assimilate proxies with the selected seasonality. Note, the reconstruction will still try to represent annual means. {False, ['annual','summerOnly','winterOnly','summer+','winter+']}
 assimilate_selected_archives:   False  # Provide a list of one or more archive types to assimilate {False, ['LakeSediment','MarineSediment','Peat','GlacierIce','Midden','Speleothem','Wood','Ice-other']}
 assimilate_selected_region:     False  # Provide bounds to assimilate only proxies in a given region {False, [lat_min,lat_max,lon_min,lon_max]} using lons between 0-360.
-assimilate_selected_resolution: False  # Assimilate proxies with median resolutions in a given band {False, [0,100]}.  Bounds are [inclusive,exclusive].
+assimilate_selected_resolution: False  # Assimilate proxies with median resolutions in a given band {False, [0,100]}.  Bounds are [inclusive,exclusive]. Note: this option should be improved before use.
 percent_to_assimilate:          100    # What percentage of proxies to assimilate {100}
 seed_for_proxy_choice:          0      # This seed is only used if 'percent_to_assimilate' is below 100 {0}
 
