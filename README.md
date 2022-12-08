@@ -103,11 +103,9 @@ Additionally, to assimilate only a portion of the proxy database, set the variab
 
 To generate/use pseudoproxies, the string in 'proxy_datasets_to_assimilate' should be given in the form ['pseudo_VAR1_using_VAR2_noise_VAR3'], where:
 
-  VAR1: The space/time structure of the pseudoproxy database [e.g. 'temp12k','basicgrid10','basicgrid5'] 
-
-  VAR2: The model that the pseudoproxies are generated from [e.g. 'hadcm3','trace','famous']
-
-  VAR3: The noise added to the pseudoproxies [e.g. 'none','whitesnr05','whiteproxyrmse']
+    VAR1: The space/time structure of the pseudoproxy database (e.g. 'temp12k','basicgrid10','basicgrid5') 
+    VAR2: The model that the pseudoproxies are generated from (e.g. 'hadcm3','trace','famous')
+    VAR3: The noise added to the pseudoproxies (e.g. 'none','whiteproxyrmse')
 
 Example: ['pseudo_temp12k_using_hadcm3_noise_whiteproxyrmse']
 
