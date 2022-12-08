@@ -7,7 +7,7 @@ Data and models are two methods of exploring past climate.  Data (such as proxy 
 
 This GitHub repository contains the Holocene Reconstruction code, and this readme file explains how to set it up and use it.
 
-This code and readme are still under development. This is v1.0.0 of the code. To read about the Holocene reconstruction made using this code, see Erb et al., in press: "Reconstructing Holocene temperatures in time and space using paleoclimate data assimilation"
+This code and readme are still under development. To read about the Holocene reconstruction made using v1.0.0 of this code, see Erb et al., in press: "Reconstructing Holocene temperatures in time and space using paleoclimate data assimilation"
 
 ## 2. Getting started
 
@@ -15,7 +15,7 @@ The Holocene Reconstruction code is written in Python 3.  The instructions below
 
 ### 2.1. Getting the Holocene Reconstruction code
 
-To use v1.0.0 of the code, go to...
+To get v1.0.0 of the code, search for "Holocene reconstruction code, v1.0.0" on Zenodo.
 
 Alternately, you may be able to find a newer version of code on Github. Clone the Github repository into your Linux environment with the command:
 
