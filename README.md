@@ -3,11 +3,11 @@ Written by: Michael P. Erb, Contact: michael.erb@nau.edu
 
 ## 1. Introduction
 
-Data and models are two methods of exploring past climate.  Data (such as proxy records) provide point data and models simulate climate changes and climate-system interactions.  The goal of this Holocene Reconstruction project is to use data assimilation--a method of combining information from proxy data and model results--to reconstruct climate over the past 12,000 years.
+Data and models are two methods of exploring past climate.  Data (such as proxy records) provide point data and models simulate climate changes and climate-system interactions.  The goal of this Holocene Reconstruction project is to use paleoclimate data assimilation--a method of combining information from proxy data and model results--to reconstruct climate over the past 12,000 years.
 
 This GitHub repository contains the Holocene Reconstruction code, and this readme file explains how to set it up and use it.
 
-This code and readme are still under development.
+This code and readme are still under development. This is v1.0.0 of the code. To read about the Holocene reconstruction made using this code, see Erb et al., in press: "Reconstructing Holocene temperatures in time and space using paleoclimate data assimilation"
 
 ## 2. Getting started
 
@@ -15,21 +15,23 @@ The Holocene Reconstruction code is written in Python 3.  The instructions below
 
 ### 2.1. Getting the Holocene Reconstruction code
 
-Clone the Github repository into your Linux environment with the command:
+To use v1.0.0 of the code, go to...
+
+Alternately, you may be able to find a newer version of code on Github. Clone the Github repository into your Linux environment with the command:
 
     git clone https://github.com/Holocene-Reconstruction/Holocene-code.git
 
 ### 2.2. Getting the necessary data files
 
-The code uses climate model output as well as proxy data files.  To get this data, download the zip file from this link: [data on Google Drive](https://drive.google.com/file/d/1Iqfbpa4mhoIw_ccKYzfljkkTTz47HKzJ/view?usp=sharing)
+The code uses climate model output as well as proxy data files.  To get this data, download the zip file from this link: https://doi.org/10.5281/zenodo.7407116
 
-Put this fine in a convenient place and unzip it using `unzip holocene_da_data.zip`.  It should contain the following subdirectories:
+Put this file in a convenient place and unzip it using `unzip holocene_da_data.zip`.  It should contain the following subdirectories:
 
     models/   Model output
     proxies/  Proxy files
     results/  Results of the data assimilation (initially empty)
 
-The data set currently includes only the TraCE-21ka model output and Temp12k proxies.  Other data may be added later.
+The data set includes TraCE-21ka temperature output, HadCM3 temperature output, and Temp12k proxies.
 
 ### 2.3. Installing Python 3 and necessary packages
 
@@ -46,6 +48,8 @@ Before running the Holocene Reconstruction code for the first time, do the follo
  1. Open config_default.py.
  2. Near the top, change the 'data_dir' directory to the location of the unzipped data from section 2.2 above (i.e., the directory which has the models/, proxies/, and results/ subdirectories.)
  3. Save config_default.py and copy it to config.py.  You can set up new experiments in config.py while keeping the original file for reference.
+
+If you want to run the experiment shown in Erb et al., in press "Reconstructing Holocene temperatures in time and space using paleoclimate data assimilation," do the steps above using the config_paperexp.py file instead.
 
 ## 3. Running the code
 
