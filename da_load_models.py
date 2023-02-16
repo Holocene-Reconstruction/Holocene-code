@@ -17,18 +17,21 @@ def load_model_data(options):
     #
     model_dir          = options['data_dir']+'models/processed_model_data/'
     original_model_dir = options['data_dir']+'models/original_model_data/'
+    if options['models_for_prior'] == ['DAMP12kTraCE']: model_dir = options['data_dir']+'models/DAMP12kTraCE/processed/'
     age_range_model_txt = str(options['age_range_model'][1]-1)+'-'+str(options['age_range_model'][0])
     #
     # Load the model data
     n_models = len(options['models_for_prior'])
     model_data = {}
+    model_data['units'] = {}
     for j,var_name in enumerate(options['vars_to_reconstruct']):
         for i,model in enumerate(options['models_for_prior']):
             #
             print('Loading variable '+var_name+' for model '+str(i+1)+'/'+str(n_models)+': '+model)
             #
             # Get the model filename
-            model_filename = model+'.'+age_range_model_txt+'BP.'+var_name+'.timeres_'+str(options['time_resolution'])+'.nc'
+            if options['models_for_prior'] == ['DAMP12kTraCE']: model_filename = 'trace.DAMP12k.'+var_name+'.22ka_decavg_0ka.nc'
+            else: model_filename = model+'.'+age_range_model_txt+'BP.'+var_name+'.timeres_'+str(options['time_resolution'])+'.nc'
             #
             # Check to see if the file exists.  If not, create it.
             filenames_all = glob.glob(model_dir+'*.nc')
@@ -41,18 +44,39 @@ def load_model_data(options):
             # Load selected variables
             model_individual = {}
             handle_model = xr.open_dataset(model_dir+model_filename,decode_times=False)
-            model_data['lat']              = handle_model['lat'].values
-            model_data['lon']              = handle_model['lon'].values
-            model_individual['age']        = handle_model['age'].values
-            model_individual['time_ndays'] = handle_model['days_per_month_all'].values
-            model_individual[var_name]     = handle_model[var_name].values
+            if j == 0: model_data['lat']  = handle_model['lat'].values # Vectors with no lat infomration such as itcz position will mess up these dims #TODO
+            if j == 0: model_data['lon']  = handle_model['lon'].values
+            if 'days_per_month_all' in handle_model.dims: model_individual['time_ndays'] = handle_model['days_per_month_all'].values
+            model_individual['season']  = handle_model['season'].values
+            if len(handle_model['lat'].values)  == 1: # Vectors with no lat infomration such as itcz position will mess up these dims #TODO
+                  model_individual[var_name] = np.repeat(handle_model[var_name],len(model_data['lat']),axis=2)
+                  model_individual[var_name][:,:,1:,:] *= np.NaN
+                  model_individual[var_name] = model_individual[var_name].assign_coords(lat= model_data['lat'])
+            else: model_individual[var_name] = handle_model[var_name]
+            model_data['units'][var_name] = handle_model[var_name].units #Save units so know reconstructing based on what we think we are
             handle_model.close()
             #
-            # Compute annual means of the model data
+            #Allow for more custom time range and resolution
+            minAge, maxAge = options['age_range_to_reconstruct']
+            age_bounds  = [*range(minAge-int(options['time_resolution']/2), maxAge+int(options['time_resolution']/2)+1, options['time_resolution'])]
+            model_individual['age']     = np.array([*range(minAge,maxAge+1,options['time_resolution'])]) 
+            model_individual[var_name]  = model_individual[var_name].groupby_bins("age",age_bounds).mean(dim='age').values
+            #
+            # Compute annual, jja, and djf means of the model data
             n_lat = len(model_data['lat'])
             n_lon = len(model_data['lon'])
-            time_ndays_model_latlon = np.repeat(np.repeat(model_individual['time_ndays'][:,:,None,None],n_lat,axis=2),n_lon,axis=3)
-            model_individual[var_name+'_annual'] = np.average(model_individual[var_name],axis=1,weights=time_ndays_model_latlon)
+            ind_jja = [5,6,7]
+            ind_djf = [11,0,1]
+            try:
+                time_ndays_model_latlon = np.repeat(np.repeat(model_individual['time_ndays'][:,:,None,None],n_lat,axis=2),n_lon,axis=3)
+                model_individual[var_name+'_annual'] = np.average(model_individual[var_name],axis=1,weights=time_ndays_model_latlon)
+                model_individual[var_name+'_jja']    = np.average(model_individual[var_name][:,ind_jja,:,:],axis=1,weights=time_ndays_model_latlon[:,ind_jja,:,:]) #TODO: Check this.
+                model_individual[var_name+'_djf']    = np.average(model_individual[var_name][:,ind_djf,:,:],axis=1,weights=time_ndays_model_latlon[:,ind_djf,:,:]) #TODO: Check this.
+            except:
+                model_individual[var_name+'_annual'] = model_individual[var_name][:,model_individual['season']=='ANN',:,:][:,0,:,:]
+                for szn in ['jja','djf']:
+                    if szn.upper() in model_individual['season']:
+                        model_individual[var_name+'_'+szn] = model_individual[var_name][:,model_individual['season']==szn.upper(),:,:][:,0,:,:]
             #
             # In each model, central values will not be selected within max_resolution/2 of the edges
             n_time = len(model_individual['age'])
@@ -75,7 +99,10 @@ def load_model_data(options):
     print('Variables loaded (n='+str(len(options['vars_to_reconstruct']))+'):'+str(options['vars_to_reconstruct']))
     print('---')
     print('Data stored in dictionary "model_data", with keys and dimensions:')
-    for key in list(model_data.keys()): print('%20s %-20s' % (key,str(model_data[key].shape)))
+    for key in list(model_data.keys()): 
+        try: print('%20s %-20s' % (key,str(model_data[key].shape)))
+        except: continue
+    print(model_data['units'])
     print('=========================\n')
     #
     return model_data
@@ -116,6 +143,11 @@ def detrend_model_data(model_data,options):
     # Get dimensions
     n_lat = len(model_data['lat'])
     n_lon = len(model_data['lon'])
+    #
+    # If summer or winter is to be reconstructed, pass #TODO: Update this?
+    if options['season_to_reconstruct'] in ['jja','djf']:
+        print('Model processing for JJA or DJF is not set up yet. Returning unchanged.')
+        return model_data
     #
     # If desired, do a highpass filter on every location
     if options['model_processing'] == 'linear_global':
@@ -188,12 +220,14 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     data_dir = {}
     data_dir['hadcm3'] = original_model_dir+'HadCM3B_transient21k/'
     data_dir['trace']  = original_model_dir+'TraCE_21ka/'
+    data_dir['DAMP12kTraCE']  = 'DAMP12kTraCE/'
     data_dir['famous'] = original_model_dir+'FAMOUS_glacial_cycle/'
     #
     # Set the names of the variables
     var_names = {}
     var_names['hadcm3'] = {'tas':'temp_mm_1_5m',   'precip':'precip_mm_srf'}
-    var_names['trace']  = {'tas':'TREFHT',         'precip':'special'}
+    var_names['trace']  = {'tas':'TREFHT',         'precip':'PRECT'}
+    var_names['DAMP12kTraCE'] = {'tas':'tas',      'precip':'precip'}
     var_names['famous'] = {'tas':'air_temperature','precip':'precipitation_flux'}
     #
     var_txt = var_names[model_name][var_name]

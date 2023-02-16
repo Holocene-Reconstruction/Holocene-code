@@ -65,8 +65,7 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
     else:
         # Set the right options for loading data
         options_new = {}
-        options_new['data_dir']                     = options['data_dir']
-        options_new['reconstruction_type']          = options['reconstruction_type']
+        for key in options.keys():  options_new[key] = options[key]
         options_new['proxy_datasets_to_assimilate'] = [proxies_to_use]
         #
         # Load the proxy data
@@ -74,8 +73,11 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
     #
     # Load the model data
     original_model_dir = options['data_dir']+'models/original_model_data/'
-    tas_model,ages_model,lat_model,lon_model,time_ndays_model = da_load_models.process_models(model_to_use,'tas',None,None,None,original_model_dir,return_variables=True)
+    try: tas_model,ages_model,lat_model,lon_model,time_ndays_model = da_load_models.process_models(model_to_use,'tas',None,None,None,original_model_dir,return_variables=True)
     #
+    except:
+        var_model = da_load_models.load_model_data(options_new)
+        tas_model,ages_model,lat_model,lon_model = var_model['LakeStatus'],var_model['age'],var_model['lat'],var_model['lon'] #DAMP12k- #TODO -adjust this for different variables
     #
     #%% CALCULATIONS
     #
@@ -100,9 +102,15 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
             proxy_seasonality_array = np.array(proxy_seasonality.split()).astype(int)
         #
         # Find the model gridpoint closest to the proxy location
-        model_data_for_pseudo = {'tas':tas_model, 'lat':lat_model, 'lon':lon_model, 'time_ndays':time_ndays_model}
+        try: model_data_for_pseudo = {'tas':tas_model, 'lat':lat_model, 'lon':lon_model, 'time_ndays':time_ndays_model}
+        except: model_data_for_pseudo = var_model
         proxy_data_for_pseudo = {'lats':[pseudoproxy_data[i]['geo_meanLat']], 'lons':[pseudoproxy_data[i]['geo_meanLon']], 'seasonality_array':[proxy_seasonality_array]}
-        tas_model_season = da_psms.get_model_values(model_data_for_pseudo,proxy_data_for_pseudo,'tas',0)
+        if pseudoproxy_data[i]['paleoData_interpretation'][0]['variable'].upper() in ['T','TEMP','TEMPERATURE']:
+            var_model_season = da_psms.get_model_values(model_data_for_pseudo,proxy_data_for_pseudo,'tas',0)
+        elif pseudoproxy_data[i]['paleoData_interpretation'][0]['variable'].upper() in ['P','PRE','PRECIP','PRECIPITATION']:
+            var_model_season = da_psms.get_model_values(model_data_for_pseudo,proxy_data_for_pseudo,'precip',0)
+        elif pseudoproxy_data[i]['archiveType'].upper() in ['SHORELINE','LAKEDEPOSITS']:
+            var_model_season = da_psms.get_model_values(model_data_for_pseudo,proxy_data_for_pseudo,'LakeStatus',0)
         #
         # Get proxy ages
         proxy_ages   = np.array(pseudoproxy_data[i]['age']).astype(float)
@@ -130,7 +138,7 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
         for j in range(n_ages):
             if np.isnan(proxy_age_bounds[j]) or np.isnan(proxy_age_bounds[j+1]): continue
             indices_selected = np.where((ages_model > proxy_age_bounds[j]) & (ages_model <= proxy_age_bounds[j+1]))[0]
-            tas_model_season_averaged[j] = np.mean(tas_model_season[indices_selected])
+            tas_model_season_averaged[j] = np.mean(var_model_season[indices_selected])
         #
         # If there are NaNs in the original data, set them in the pseudoproxies
         tas_model_season_averaged[np.isnan(proxy_values)] = np.nan
