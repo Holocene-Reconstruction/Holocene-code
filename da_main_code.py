@@ -41,7 +41,7 @@ for key in options.keys():
 print('=== END SETTINGS ===')
 
 options['exp_name'] = options['exp_name']+'.'+str(options['localization_radius'])+'loc.'+str(options['prior_window'])+'window.'
-#options['exp_name']+='2'
+options['exp_name']+='2'
 #%% LOAD AND PROCESS DATA
 
 # Load the chosen proxy data
@@ -49,10 +49,10 @@ proxy_ts,collection_all = da_load_proxies.load_proxies(options)
 #%%
 proxy_ts2=proxy_ts#[1:2]
 proxy_data = da_load_proxies.process_proxies(proxy_ts2,collection_all,options)
-proxy_data['uncertainty'] *+ 0.0001
+proxy_data['uncertainty'] *= 0.001
 # Load the chosen model data
 model_data = da_load_models.load_model_data(options)
-
+#%%
 # Detrend the model data if selected
 model_data = da_load_models.detrend_model_data(model_data,options)
 
@@ -66,7 +66,7 @@ if options['reconstruction_type'] == 'relative':
         ind_for_model = (model_data['number'] == (i+1))
         ind_ref = (model_data['age'] >= options['reference_period'][0]) & (model_data['age'] < options['reference_period'][1]) & ind_for_model
         for var in options['vars_to_reconstruct']:
-            if model_data['units'][var] in ['latitude','index']: continue #Always reconstruct these as absolute values
+            #if model_data['units'][var] in ['latitude','index']: continue #Always reconstruct these as absolute values
             model_data[var][ind_for_model,:,:,:]         = model_data[var][ind_for_model,:,:,:]         - np.mean(model_data[var][ind_ref,:,:,:],axis=0)
             model_data[var+'_annual'][ind_for_model,:,:] = model_data[var+'_annual'][ind_for_model,:,:] - np.mean(model_data[var+'_annual'][ind_ref,:,:],axis=0)
             model_data[var+'_jja'][ind_for_model,:,:]    = model_data[var+'_jja'][ind_for_model,:,:]    - np.mean(model_data[var+'_jja'][ind_ref,:,:],axis=0)
@@ -95,7 +95,7 @@ if options['change_uncertainty']:
                 proxy_data['uncertainty'][i] = np.nan
             else:
                 proxy_data['uncertainty'][i] = proxy_uncertainties_from_file[index_uncertainty,1].astype(float)
-
+#%%
 # Use PSMs to get model-based proxy estimates
 proxy_estimates_all,_ = da_psms.psm_main(model_data,proxy_data,options)
 
@@ -224,7 +224,7 @@ if options['assimate_together'] == False:
     proxy_localization_all = da_utils.loc_matrix(options,model_data,proxy_data)
 
 
-#% DO DATA ASSIMILATION
+#%% DO DATA ASSIMILATION
 
 # Loop through every age, doing the data assimilation with a time-varying prior
 print(' === Starting data assimilation === ')
@@ -328,6 +328,8 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
                 #
                 # Do data assimilation
                 Xb,kmat[:,proxy]= da_utils_lmr.enkf_update_array(Xb,proxy_value,proxy_modelbased_estimates,proxy_uncertainty,loc=loc,inflate=None)
+                print(np.nanmax(kmat[n_latlonvars+proxy_ind_to_assimilate[proxy],proxy]))
+                #print(np.nanmax(kmat[n_latlonvars+proxy_ind_to_assimilate[proxy],proxy]))
                 if np.isnan(Xb).all(): print(' !!! ERROR.  ALL RECONSTRUCTION VALUES SET TO NAN.  Age='+str(age)+', proxy number='+str(proxy)+' !!!')
             #
             # Set the final values
@@ -386,7 +388,7 @@ for key,value in options.items():
 #%% SAVE THE OUTPUT
 
 time_str = str(datetime.datetime.now()).replace(' ','_')
-output_filename = '6holocene_recon_'+time_str[:13]+'_'+season_txt+'_'+str(options['exp_name'])
+output_filename = '2holocene_recon_'+time_str[:13]+'_'+season_txt+'_'+str(options['exp_name'])
 print('Saving the reconstruction as '+output_filename)
 
 # Save all data into a netCDF file
@@ -422,7 +424,7 @@ for i,var_name in enumerate(options['vars_to_reconstruct']):
     output_recon_nh[var_name][:]     = recon_nh_all[:,:,i]
     output_recon_sh[var_name][:]     = recon_sh_all[:,:,i]
     output_prior_mean[var_name][:]   = prior_mean_grid[:,:,:,i]
-    output_model_input[var_name][:]  = np.nanmean(model_data[var_name],axis=1)[1:,:,:]
+    output_model_input[var_name][:]  = model_data[var_name+'_'+options['season_to_reconstruct']]
     output_prior_ens[var_name][:]    = prior_ens_grid[:,:,:,:,i]
     output_prior_global[var_name][:] = prior_global_all[:,:,i]
     output_units[var_name][:]        = np.array(model_data['units'][var_name.split('_')[0]])
@@ -597,6 +599,9 @@ figure = plt #plotDAMPsummary(model_vals,proxy_info,list(dampVars.keys()),[21,12
 if save: figure.savefig(save_dir+'kalman_examples.png',dpi=400)
 figure.show()
     #%%
+
+
+
 
 
 

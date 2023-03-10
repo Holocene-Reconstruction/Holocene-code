@@ -38,6 +38,7 @@ def enkf_update_array(Xb, obvalue, Ye, ob_err, loc=None, inflate=None):
          loc: localization vector (Nx x 1) [optional]
      inflate: scalar inflation factor [optional]
     """
+    #obvalue, Ye, ob_err = proxy_value,proxy_modelbased_estimates,proxy_uncertainty
 
     # Get ensemble size from passed array: Xb has dims [state vect.,ens. members]
     Nens = Xb.shape[1]
@@ -62,7 +63,7 @@ def enkf_update_array(Xb, obvalue, Ye, ob_err, loc=None, inflate=None):
         return Xb
     
     # innovation variance (denominator of serial Kalman gain)
-    kdenom = (varye + ob_err)
+    kdenom = varye#(varye + ob_err)
 
     # numerator of serial Kalman gain (cov(x,Hx))
     kcov = np.dot(Xbp,np.transpose(ye)) / (Nens-1)

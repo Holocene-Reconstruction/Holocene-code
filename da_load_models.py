@@ -44,22 +44,23 @@ def load_model_data(options):
             # Load selected variables
             model_individual = {}
             handle_model = xr.open_dataset(model_dir+model_filename,decode_times=False)
-            if j == 0: model_data['lat']  = handle_model['lat'].values # Vectors with no lat infomration such as itcz position will mess up these dims #TODO
-            if j == 0: model_data['lon']  = handle_model['lon'].values
-            if 'days_per_month_all' in handle_model.dims: model_individual['time_ndays'] = handle_model['days_per_month_all'].values
-            if 'season'             in handle_model.dims: model_individual['season']     = handle_model['season'].values
+            if j == 0: # Vectors with no lat infomration such as itcz position will mess up these dims #TODO
+                model_data['lat']              = handle_model['lat'].values
+                model_data['lon']              = handle_model['lon'].values
+            if 'month'  in handle_model.dims: model_individual['time_ndays'] = handle_model['days_per_month_all'].values
+            if 'season' in handle_model.dims: model_individual['season']     = handle_model['season'].values
             if len(handle_model['lat'].values)  == 1: # Vectors with no lat infomration such as itcz position will mess up these dims #TODO
                   model_individual[var_name] = np.repeat(handle_model[var_name],len(model_data['lat']),axis=2)
                   model_individual[var_name][:,:,1:,:] *= np.NaN
                   model_individual[var_name] = model_individual[var_name].assign_coords(lat= model_data['lat'])
             else: model_individual[var_name] = handle_model[var_name]
-            model_data['units'][var_name] = handle_model[var_name].units #Save units so know reconstructing based on what we think we are
+            try:  model_data['units'][var_name] = handle_model[var_name].units #Save units so know reconstructing based on what we think we are
+            except: model_data['units'][var_name] = 'not indicated'
             handle_model.close()
             #
             #Allow for more custom time range and resolution
-            minAge, maxAge = options['age_range_to_reconstruct']
-            age_bounds  = [*range(minAge-int(options['time_resolution']/2), maxAge+int(options['time_resolution']/2)+1, options['time_resolution'])]
-            model_individual['age']     = np.array([*range(minAge,maxAge+1,options['time_resolution'])]) 
+            age_bounds = np.arange(options['age_range_to_reconstruct'][0],options['age_range_to_reconstruct'][1]+1,options['time_resolution']) - 0.5
+            model_individual['age']     = (age_bounds[:-1]+age_bounds[1:])/2     
             model_individual[var_name]  = model_individual[var_name].groupby_bins("age",age_bounds).mean(dim='age').values
             #
             # Compute annual, jja, and djf means of the model data
@@ -67,12 +68,12 @@ def load_model_data(options):
             n_lon = len(model_data['lon'])
             ind_jja = [5,6,7]
             ind_djf = [11,0,1]
-            if 'days_per_month_all' in handle_model.dims:
+            if 'month' in handle_model.dims:
                 time_ndays_model_latlon = np.repeat(np.repeat(model_individual['time_ndays'][:,:,None,None],n_lat,axis=2),n_lon,axis=3)
                 model_individual[var_name+'_annual'] = np.average(model_individual[var_name],axis=1,weights=time_ndays_model_latlon)
                 model_individual[var_name+'_jja']    = np.average(model_individual[var_name][:,ind_jja,:,:],axis=1,weights=time_ndays_model_latlon[:,ind_jja,:,:]) #TODO: Check this.
                 model_individual[var_name+'_djf']    = np.average(model_individual[var_name][:,ind_djf,:,:],axis=1,weights=time_ndays_model_latlon[:,ind_djf,:,:]) #TODO: Check this.
-            else:
+            elif 'season' in handle_model.dims:
                 model_individual[var_name+'_annual'] = model_individual[var_name][:,model_individual['season']=='ANN',:,:][:,0,:,:]
                 for szn in ['jja','djf']:
                     if szn.upper() in model_individual['season']:
@@ -100,9 +101,7 @@ def load_model_data(options):
     print('Variables loaded (n='+str(len(options['vars_to_reconstruct']))+'):'+str(options['vars_to_reconstruct']))
     print('---')
     print('Data stored in dictionary "model_data", with keys and dimensions:')
-    for key in list(model_data.keys()): 
-        try: print('%20s %-20s' % (key,str(model_data[key].shape)))
-        except: continue
+    for key in list(model_data.keys()): print('%20s %-20s' % (key,str(np.shape(model_data[key]))))
     print(model_data['units'])
     print('=========================\n')
     #
