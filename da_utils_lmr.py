@@ -96,7 +96,7 @@ def enkf_update_array(Xb, obvalue, Ye, ob_err, loc=None, inflate=None):
 
     
     # Return the full state
-    return Xa
+    return Xa,np.divide(kcov, kdenom)
 
 
 

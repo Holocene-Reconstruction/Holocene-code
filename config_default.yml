@@ -9,19 +9,18 @@ data_dir: '/projects/pd_lab/data/data_assimilation/'
 data_dir: '/Users/chrishancock/Library/CloudStorage/OneDrive-NorthernArizonaUniversity/Research/Manuscript/DAMP12k/Data/'
 
 # Primary options
-exp_name: 'TestWithTemp12k'     # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
+exp_name: 'TestingLakesTemp'     # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
 vars_to_reconstruct:   ['tas']  # The variables to reconstruct {['tas','precip']}.
 season_to_reconstruct: 'annual' # The season to reconstruct {'annual','jja','djf'}
 time_resolution:       500      # The base temporal resolution, in years {10}
 maximum_resolution:    1000     # The maximum temporal resolution to assimilate proxies at, in years {1000}
-prior_window:          5500     # The size of the window for the time-varying prior, in years {'all',5010,1010}
+prior_window:          'all'     # The size of the window for the time-varying prior, in years {'all',5010,1010}
 prior_mean_always_0:   False    # Is the mean of the prior allowed to change through time? {True,False}. If true, the mean of the prior is always 0.
-assimate_together:     True     # If False, assimile proxies one at a time (slower) {True,False}
-localization_radius:   None     # Localization radius, in meters {None,15000}  Only works if assimate_together=False
+assimate_together:     False     # If False, assimile proxies one at a time (slower) {True,False}
+localization_radius:   5000     # Localization radius, in meters {None,15000}  Only works if assimate_together=False
 percent_of_prior:      100      # What percentage of the prior states to assimilate {100}.  Note, a value of 8.7 -> 100 ens, if other settings are default
 seed_for_prior:        0        # This seed is only used if 'percent_of_prior' is below 100 {0}
 
-#TODO make proxy selection more flexible
 # Proxies to assimilate
 assimilate_selected_seasons:    ['annual','summeronly','winteronly']  # Assimilate proxies with the selected seasonality. Note, the reconstruction will still try to represent annual means. {False, ['annual','summeronly','winteronly','summer+','winter+'], 'jja_preferred', 'djf_preferred'}
 assimilate_selected_archives:   False  # Provide a list of one or more archive types to assimilate {False, ['LakeSediment','MarineSediment','Peat','GlacierIce','Midden','Speleothem','Wood','Ice-other']}
@@ -32,7 +31,7 @@ percent_to_assimilate:          80    # What percentage of proxies to assimilate
 seed_for_proxy_choice:          0      # This seed is only used if 'percent_to_assimilate' is below 100 {0}
 
 # Models for prior {['hadcm3_regrid','trace_regrid','famous_regrid']}
-models_for_prior: ['trace_regrid']
+models_for_prior: ['DAMP12kTraCE']
 
 # Proxy datasets {['temp12k','hydro12k'],['pages2k'],['pseudo_temp12k_using_trace_noise_whiteproxyrmse']}
 proxy_datasets_to_assimilate: ['temp12k']#['pseudo_hydro12k_using_DAMP12kTraCE_noise_none']
@@ -40,7 +39,7 @@ version_temp12k:              '1_0_2' # The version of temp12k to use, if it's i
 version_hydro12k:             '0_7_0' # The version of temp12k to use, if it's included in 'proxy_datasets_to_assimilate' {'0_7_0'}#TODO
 
 # Age ranges
-age_range_to_reconstruct: [0,12000]
+age_range_to_reconstruct: [0,22000]
 reference_period:         [0,2000]  # This is only used if 'reconstruction_type' is set to 'relative'
 age_range_model:          [0,22000]
 
@@ -54,4 +53,3 @@ change_uncertainty:  False       # Change uncertainty values in several ways {Fa
    # 'mult_#' Multiply uncertainty values from metadata by a constant number.
    # 'all_#'  Set uncertainty values to a constant number.
    # 'path/to/file.txt' Use uncertainty values from a text file. The file must contain TSids and new MSE values for each proxy.
-

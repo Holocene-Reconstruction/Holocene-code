@@ -47,7 +47,7 @@ def load_model_data(options):
             if j == 0: model_data['lat']  = handle_model['lat'].values # Vectors with no lat infomration such as itcz position will mess up these dims #TODO
             if j == 0: model_data['lon']  = handle_model['lon'].values
             if 'days_per_month_all' in handle_model.dims: model_individual['time_ndays'] = handle_model['days_per_month_all'].values
-            model_individual['season']  = handle_model['season'].values
+            if 'season'             in handle_model.dims: model_individual['season']     = handle_model['season'].values
             if len(handle_model['lat'].values)  == 1: # Vectors with no lat infomration such as itcz position will mess up these dims #TODO
                   model_individual[var_name] = np.repeat(handle_model[var_name],len(model_data['lat']),axis=2)
                   model_individual[var_name][:,:,1:,:] *= np.NaN
@@ -67,16 +67,17 @@ def load_model_data(options):
             n_lon = len(model_data['lon'])
             ind_jja = [5,6,7]
             ind_djf = [11,0,1]
-            try:
+            if 'days_per_month_all' in handle_model.dims:
                 time_ndays_model_latlon = np.repeat(np.repeat(model_individual['time_ndays'][:,:,None,None],n_lat,axis=2),n_lon,axis=3)
                 model_individual[var_name+'_annual'] = np.average(model_individual[var_name],axis=1,weights=time_ndays_model_latlon)
                 model_individual[var_name+'_jja']    = np.average(model_individual[var_name][:,ind_jja,:,:],axis=1,weights=time_ndays_model_latlon[:,ind_jja,:,:]) #TODO: Check this.
                 model_individual[var_name+'_djf']    = np.average(model_individual[var_name][:,ind_djf,:,:],axis=1,weights=time_ndays_model_latlon[:,ind_djf,:,:]) #TODO: Check this.
-            except:
+            else:
                 model_individual[var_name+'_annual'] = model_individual[var_name][:,model_individual['season']=='ANN',:,:][:,0,:,:]
                 for szn in ['jja','djf']:
                     if szn.upper() in model_individual['season']:
                         model_individual[var_name+'_'+szn] = model_individual[var_name][:,model_individual['season']==szn.upper(),:,:][:,0,:,:]
+                    else: model_individual[var_name+'_'+szn] = model_individual[var_name][:,model_individual['season']=='ANN',:,:][:,0,:,:]
             #
             # In each model, central values will not be selected within max_resolution/2 of the edges
             n_time = len(model_individual['age'])

@@ -22,10 +22,6 @@ import da_load_models
 import da_load_proxies
 import da_psms
 
-
-#TODO: Update any instances of 'tas' to be for other variables.
-
-
 #%% SETTINGS
 
 starttime_total = time.time() # Start timer
@@ -44,14 +40,16 @@ for key in options.keys():
     print('%30s: %-15s' % (key,str(options[key])))
 print('=== END SETTINGS ===')
 
-
+options['exp_name'] = options['exp_name']+'.'+str(options['localization_radius'])+'loc.'+str(options['prior_window'])+'window.'
+#options['exp_name']+='2'
 #%% LOAD AND PROCESS DATA
 
 # Load the chosen proxy data
 proxy_ts,collection_all = da_load_proxies.load_proxies(options)
-proxy_data = da_load_proxies.process_proxies(proxy_ts,collection_all,options)
-#proxy_data['uncertainty'] = proxy_data['uncertainty']*0+0.3
 #%%
+proxy_ts2=proxy_ts#[1:2]
+proxy_data = da_load_proxies.process_proxies(proxy_ts2,collection_all,options)
+proxy_data['uncertainty'] *+ 0.0001
 # Load the chosen model data
 model_data = da_load_models.load_model_data(options)
 
@@ -71,15 +69,8 @@ if options['reconstruction_type'] == 'relative':
             if model_data['units'][var] in ['latitude','index']: continue #Always reconstruct these as absolute values
             model_data[var][ind_for_model,:,:,:]         = model_data[var][ind_for_model,:,:,:]         - np.mean(model_data[var][ind_ref,:,:,:],axis=0)
             model_data[var+'_annual'][ind_for_model,:,:] = model_data[var+'_annual'][ind_for_model,:,:] - np.mean(model_data[var+'_annual'][ind_ref,:,:],axis=0)
-            #New method for reconstructing multiple seasons at once
-            try: model_data[var+'_jja'][ind_for_model,:,:]    = model_data[var+'_jja'][ind_for_model,:,:]    - np.mean(model_data[var+'_jja'][ind_ref,:,:],axis=0)
-            except: 
-                model_data[var+'_jja'] = model_data[var+'_annual'][ind_for_model,:,:] - np.mean(model_data[var+'_annual'][ind_ref,:,:],axis=0)
-                print("no jja data for "+var+" - using annual")
-            try: model_data[var+'_djf'][ind_for_model,:,:]    = model_data[var+'_djf'][ind_for_model,:,:]    - np.mean(model_data[var+'_djf'][ind_ref,:,:],axis=0)
-            except: 
-                model_data[var+'_djf'] = model_data[var+'_annual'][ind_for_model,:,:] - np.mean(model_data[var+'_annual'][ind_ref,:,:],axis=0)
-                print("no djf data for "+var+" - using annual")
+            model_data[var+'_jja'][ind_for_model,:,:]    = model_data[var+'_jja'][ind_for_model,:,:]    - np.mean(model_data[var+'_jja'][ind_ref,:,:],axis=0)
+            model_data[var+'_djf'][ind_for_model,:,:]    = model_data[var+'_djf'][ind_for_model,:,:]    - np.mean(model_data[var+'_djf'][ind_ref,:,:],axis=0)
 
 # If requested, alter the proxy uncertainty values.
 if options['change_uncertainty']:
@@ -104,20 +95,15 @@ if options['change_uncertainty']:
                 proxy_data['uncertainty'][i] = np.nan
             else:
                 proxy_data['uncertainty'][i] = proxy_uncertainties_from_file[index_uncertainty,1].astype(float)
-#%%
+
 # Use PSMs to get model-based proxy estimates
 proxy_estimates_all,_ = da_psms.psm_main(model_data,proxy_data,options)
 
-badlakes = [] #DAMP12k- lakes with all nans such as those where the model gridcell does not calculate any runoff (ocean)
-for i in range(len(proxy_estimates_all)): 
-    for key in list(proxy_estimates_all[i].keys()):
-        if sum(np.isfinite(proxy_estimates_all[i][key])) == 0: badlakes.append(i)
-print(len(badlakes))
 
 #%% SET THINGS UP
 
 # Get more dimensions
-n_vars       = len(options['vars_to_reconstruct'])*len(options['season_to_reconstruct'])
+n_vars       = len(options['vars_to_reconstruct'])
 n_ages       = proxy_data['values_binned'].shape[1]
 n_lat        = len(model_data['lat'])
 n_lon        = len(model_data['lon'])
@@ -151,15 +137,20 @@ prior_mean        = np.zeros((n_state,n_ages));               prior_mean[:]     
 prior_global_all  = np.zeros((n_ages,n_ens,n_vars));          prior_global_all[:]  = np.nan
 prior_proxy_means = np.zeros((n_ages,n_proxies));             prior_proxy_means[:] = np.nan
 proxies_to_assimilate_all = np.zeros((n_ages,n_proxies));     proxies_to_assimilate_all[:] = np.nan
+proxies_kalman      = np.zeros((n_state,n_proxies,n_ages));     proxies_kalman[:]        = np.nan
 
-
-#%% FIND PROXIES TO ASSIMILATE AND MORE
+#% FIND PROXIES TO ASSIMILATE AND MORE
 
 print(' === FINDING PROXIES TO ASSIMILATE BASED ON CHOSEN OPTIONS ===')
 
 # Find proxies with data in selected age range (and reference period, if doing a relative reconstruction)
 proxy_ind_with_valid_values = np.isfinite(np.nanmean(proxy_data['values_binned'],axis=1))
-for i in badlakes: proxy_ind_with_valid_values[i] = False #Remove proxies with all NaNs PSMs
+
+#DAMP12k- lakes with all nans such as those where the model gridcell does not calculate any runoff (ocean)
+for i in range(len(proxy_estimates_all)): 
+        if sum(np.isfinite(proxy_estimates_all[i][list(proxy_estimates_all[i].keys())[0]])) == 0: 
+            proxy_ind_with_valid_values[i] = False 
+
 print(' - Number of records with valid values for the chosen experiment: '+str(sum(proxy_ind_with_valid_values)))
 
 # Find the proxies with uncertainty values
@@ -233,12 +224,13 @@ if options['assimate_together'] == False:
     proxy_localization_all = da_utils.loc_matrix(options,model_data,proxy_data)
 
 
-#%% DO DATA ASSIMILATION
+#% DO DATA ASSIMILATION
 
 # Loop through every age, doing the data assimilation with a time-varying prior
 print(' === Starting data assimilation === ')
 #age_counter = 0; age = proxy_data['age_centers'][age_counter]
 for age_counter,age in enumerate(proxy_data['age_centers']):
+    #
     #
     starttime_loop = time.time()
     #
@@ -257,11 +249,11 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     if len(indices_for_prior) != n_ens_possible: print(' !!! Warning: number of prior ages selected does not match n_ens.  Age='+str(age))
     #
     # Select the season to reconstruct in the prior
-    #season_txt = options['season_to_reconstruct']
+    season_txt = options['season_to_reconstruct']
     #
     # Get the prior values for the variables to reconstruct
-    for j,var_name in enumerate([var+'_'+szn for var in options['vars_to_reconstruct'] for szn in options['season_to_reconstruct']]):
-        var_season_for_prior = model_data[var_name][indices_for_prior,:,:][:,:,:,None]
+    for j,var_name in enumerate(options['vars_to_reconstruct']):
+        var_season_for_prior = model_data[var_name+'_'+season_txt][indices_for_prior,:,:][:,:,:,None]
         if j == 0: vars_season_for_prior_all = var_season_for_prior
         else:      vars_season_for_prior_all = np.concatenate((vars_season_for_prior_all,var_season_for_prior),axis=3)
     #
@@ -281,8 +273,8 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     if ((options['reconstruction_type'] == 'relative') and (options['prior_mean_always_0'] == True)):
         for i in range(n_models_in_prior):
             ind_for_model = np.where(model_number_for_prior == (i+1))[0]
-            vars_season_for_prior_all[ind_for_model,:,:,:] = vars_season_for_prior_all[ind_for_model,:,:,:] - np.nanmean(vars_season_for_prior_all[ind_for_model,:,:,:],axis=0)
-            model_estimates_for_age[ind_for_model,:]       = model_estimates_for_age[ind_for_model,:]       - np.nanmean(model_estimates_for_age[ind_for_model,:],axis=0)
+            vars_season_for_prior_all[ind_for_model,:,:,:] = vars_season_for_prior_all[ind_for_model,:,:,:] - np.mean(vars_season_for_prior_all[ind_for_model,:,:,:],axis=0)
+            model_estimates_for_age[ind_for_model,:]       = model_estimates_for_age[ind_for_model,:]       - np.mean(model_estimates_for_age[ind_for_model,:],axis=0)
     #
     # Make the prior (Xb)
     prior = np.reshape(vars_season_for_prior_all,(n_ens,n_latlonvars))
@@ -301,6 +293,12 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     # Select only the proxies which meet the criteria
     proxies_to_assimilate = proxy_ind_selected & np.isfinite(proxy_values_for_age) & np.isfinite(proxy_uncertainties_for_age) & np.isfinite(proxy_resolution_for_age)
     #
+    #
+    #Make sure model values are valid (issue with Lakes DAMP12k)
+    #for proxy in range(len(proxies_to_assimilate)):
+     #   if proxies_to_assimilate[proxy]:
+      #      if sum(~np.isfinite(model_estimates_for_age[:,proxy])>0): proxies_to_assimilate[proxy] = False
+    #
     # Keep a record of which proxies are assimilated
     proxies_to_assimilate_all[age_counter,:] = proxies_to_assimilate
     #
@@ -313,15 +311,12 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
         proxy_uncertainty_selected = proxy_uncertainties_for_age[proxy_ind_to_assimilate]
         model_estimates_selected   = model_estimates_for_age[:,proxy_ind_to_assimilate]
         R_diagonal = np.diag(proxy_uncertainty_selected)
-        idx=[]
-        for i in range(n_proxies_at_age):
-            if np.sum(~np.isfinite(model_estimates_selected[:,i]))==0:
-                idx.append(i)
         #
         # Do the DA update, either together or one at a time.
         if options['assimate_together']:
-            Xa,_,_ = da_utils.damup(Xb,np.transpose(model_estimates_selected[:,idx]),R_diagonal[idx,:][:,idx],proxy_values_selected[idx])
+            Xa,_,kmat = da_utils.damup(Xb,np.transpose(model_estimates_selected),R_diagonal,proxy_values_selected)
         else:
+            kmat = np.zeros((n_state,n_proxies_at_age)); kmat[:] = np.NaN
             for proxy in range(n_proxies_at_age):
                 #
                 # Get values for proxy
@@ -332,7 +327,7 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
                 else: loc = None
                 #
                 # Do data assimilation
-                Xb = da_utils_lmr.enkf_update_array(Xb,proxy_value,proxy_modelbased_estimates,proxy_uncertainty,loc=loc,inflate=None)
+                Xb,kmat[:,proxy]= da_utils_lmr.enkf_update_array(Xb,proxy_value,proxy_modelbased_estimates,proxy_uncertainty,loc=loc,inflate=None)
                 if np.isnan(Xb).all(): print(' !!! ERROR.  ALL RECONSTRUCTION VALUES SET TO NAN.  Age='+str(age)+', proxy number='+str(proxy)+' !!!')
             #
             # Set the final values
@@ -359,6 +354,7 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     recon_mean[:,age_counter]  = np.mean(Xa,axis=1)
     recon_ens[:,:,age_counter] = Xa[:,ind_to_save]
     #
+    proxies_kalman[:,proxies_to_assimilate,age_counter] = kmat
     # Note progression of the reconstruction
     print('Time step '+str(age_counter)+'/'+str(len(proxy_data['age_centers'] ))+' complete.  Time: '+str('%1.2f' % (time.time()-starttime_loop))+' sec')
 
@@ -367,12 +363,14 @@ recon_mean = np.transpose(recon_mean)
 recon_ens  = np.swapaxes(recon_ens,0,2)
 prior_mean = np.transpose(prior_mean)
 prior_ens  = np.swapaxes(prior_ens,0,2)
+proxies_kalman = np.transpose(proxies_kalman)
 
 # Reshape the gridded reconstruction to a lat-lon grid
 recon_mean_grid = np.reshape(recon_mean[:,:n_latlonvars], (n_ages,              n_lat,n_lon,n_vars))
 recon_ens_grid  = np.reshape(recon_ens[:,:,:n_latlonvars],(n_ages,n_ens_to_save,n_lat,n_lon,n_vars))
 prior_mean_grid = np.reshape(prior_mean[:,:n_latlonvars], (n_ages,              n_lat,n_lon,n_vars))
 prior_ens_grid  = np.reshape(prior_ens[:,:,:n_latlonvars],(n_ages,n_ens_to_save,n_lat,n_lon,n_vars))
+proxies_kalman  = np.reshape(proxies_kalman[:,:,:n_latlonvars],(n_ages,n_proxies,n_lat,n_lon,n_vars))
 
 # Put the proxy reconstructions into separate variables
 recon_mean_proxies = recon_mean[:,n_latlonvars:]
@@ -388,14 +386,13 @@ for key,value in options.items():
 #%% SAVE THE OUTPUT
 
 time_str = str(datetime.datetime.now()).replace(' ','_')
-output_filename = 'holocene_recon_'+time_str[:13]+'_'+str(options['exp_name'])
+output_filename = '6holocene_recon_'+time_str[:13]+'_'+season_txt+'_'+str(options['exp_name'])
 print('Saving the reconstruction as '+output_filename)
 
 # Save all data into a netCDF file
-output_dir = options['data_dir']+'results/'
-os.mkdir(output_dir+output_filename)
-os.mkdir(output_dir+output_filename+'/figs')
-outputfile = netCDF4.Dataset(output_dir+output_filename+'/'+output_filename+'.nc','w')
+output_dir = options['data_dir']+'results/'+output_filename+'/'
+os.mkdir(output_dir)
+outputfile = netCDF4.Dataset(output_dir+output_filename+'.nc','w')
 outputfile.createDimension('ages',        n_ages)
 outputfile.createDimension('ens',         n_ens)
 outputfile.createDimension('ens_selected',n_ens_to_save)
@@ -406,8 +403,8 @@ outputfile.createDimension('metadata',    proxy_data['metadata'].shape[1])
 outputfile.createDimension('units', None)
 outputfile.createDimension('exp_options', n_options)
 
-output_model_input,output_recon_mean,output_units,output_recon_ens,output_recon_global,output_recon_nh,output_recon_sh,output_prior_mean,output_prior_ens,output_prior_global = {},{},{},{},{},{},{},{},{},{}
-for i,var_name in enumerate([var+'_'+szn for var in options['vars_to_reconstruct'] for szn in options['season_to_reconstruct']]):
+output_kalman,output_model_input,output_recon_mean,output_units,output_recon_ens,output_recon_global,output_recon_nh,output_recon_sh,output_prior_mean,output_prior_ens,output_prior_global = {},{},{},{},{},{},{},{},{},{},{}
+for i,var_name in enumerate(options['vars_to_reconstruct']):
     output_recon_mean[var_name]   = outputfile.createVariable('recon_'+var_name+'_mean',       'f4',('ages','lat','lon',))
     output_recon_ens[var_name]    = outputfile.createVariable('recon_'+var_name+'_ens',        'f4',('ages','ens_selected','lat','lon',))
     output_recon_global[var_name] = outputfile.createVariable('recon_'+var_name+'_global_mean','f4',('ages','ens',))
@@ -418,16 +415,18 @@ for i,var_name in enumerate([var+'_'+szn for var in options['vars_to_reconstruct
     output_prior_ens[var_name]    = outputfile.createVariable('prior_'+var_name+'_ens',        'f4',('ages','ens_selected','lat','lon',))
     output_prior_global[var_name] = outputfile.createVariable('prior_'+var_name+'_global_mean','f4',('ages','ens',))
     output_units[var_name]        = outputfile.createVariable('units_'+var_name,              'str',('units'))
+    output_kalman[var_name]       = outputfile.createVariable('kalman_'+var_name,              'f4',('ages','proxy','lat','lon',))
     output_recon_mean[var_name][:]   = recon_mean_grid[:,:,:,i]
     output_recon_ens[var_name][:]    = recon_ens_grid[:,:,:,:,i]
     output_recon_global[var_name][:] = recon_global_all[:,:,i]
     output_recon_nh[var_name][:]     = recon_nh_all[:,:,i]
     output_recon_sh[var_name][:]     = recon_sh_all[:,:,i]
     output_prior_mean[var_name][:]   = prior_mean_grid[:,:,:,i]
-    output_model_input[var_name][:]  = [np.nanmean([model_data[var_name][x],model_data[var_name][x+1]],axis=0) for x in range(np.shape(model_data[var_name])[0]-1)] #DAMP12k todo won't work properly for non damp12k
+    output_model_input[var_name][:]  = np.nanmean(model_data[var_name],axis=1)[1:,:,:]
     output_prior_ens[var_name][:]    = prior_ens_grid[:,:,:,:,i]
     output_prior_global[var_name][:] = prior_global_all[:,:,i]
     output_units[var_name][:]        = np.array(model_data['units'][var_name.split('_')[0]])
+    output_kalman[var_name][:]       = proxies_kalman[:,:,:,:,i]
 
 output_proxyprior_mean     = outputfile.createVariable('proxyprior_mean',    'f4',('ages','proxy',))
 output_proxyrecon_mean     = outputfile.createVariable('proxyrecon_mean',    'f4',('ages','proxy',))
@@ -466,7 +465,7 @@ print('Total time: '+str('%1.2f' % ((endtime_total-starttime_total)/60))+' minut
 print(' === Reconstruction complete ===')
 
 # write options dictionary as text file
-w = csv.writer(open(output_dir+output_filename+'/options.txt','w'))
+w = csv.writer(open(output_dir+'options.txt','w'))
 for key, val in options.items(): w.writerow([key, val])
 
 #%%Visualize Output
@@ -482,49 +481,53 @@ import cartopy.crs         as ccrs        # Packages for mapping in python
 import cartopy.util        as cutil
 #import regionmask as rm
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import scipy
 
+save=True
+save_dir = '/Users/chrishancock/Desktop/LakeLevelReconTests/'
 
 dampVars = {
     'tas':{       'data':[],'cmap':'seismic','proxy':False},
-    'precip':{    'data':[],'cmap':'BrBG',   'proxy':False},
-    'LakeStatus':{'data':[],'cmap':'BrBG',   'proxy':'lakestatusPSM'}
+    #'precip':{    'data':[],'cmap':'BrBG',   'proxy':False},
+    #'LakeStatus':{'data':[],'cmap':'BrBG',   'proxy':'lakestatusPSM'}
     #'U250':{      'data':[],'cmap':'PuOr_r', 'proxy':False},
     #'ITCZprecip':{'data':[],'cmap':'BrBG',   'proxy':False}
     }
 
-handle = xr.open_dataset(output_dir+output_filename+'/'+output_filename+'.nc',decode_times=False)
+handle = xr.open_dataset(output_dir+output_filename+'.nc',decode_times=False)
 season='annual'
 
-model_data={}
+model_vals={}
 for var_name in dampVars.keys(): 
-    dampVars[var_name]['units'] = str(handle['units_'+var_name+'_'+season].data)
-    model_data[var_name] = {
-        'trace':   handle['input_'+var_name+'_'+season+'_mean'],
-        'prior':   handle['prior_'+var_name+'_'+season+'_mean'],
-        'recon':   handle['recon_'+var_name+'_'+season+'_mean'],
-        'priorEns':handle['prior_'+var_name+'_'+season+'_ens'],
-        'reconEns':handle['recon_'+var_name+'_'+season+'_ens'],
+    dampVars[var_name]['units'] = str(handle['units_'+var_name].data)
+    model_vals[var_name] = {
+        'trace':   handle['input_'+var_name+'_mean'],
+        'prior':   handle['prior_'+var_name+'_mean'],
+        'recon':   handle['recon_'+var_name+'_mean'],
+        'priorEns':handle['prior_'+var_name+'_ens'],
+        'reconEns':handle['recon_'+var_name+'_ens'],
+        'kalman'  :handle['kalman_'+var_name]
     }
 
-proxy_data={}
+proxy_info={}
 for key in ['proxies_assimilated','proxy_metadata','proxy_values','proxy_resolutions','ages']: 
-    proxy_data[key]=handle[key]
+    proxy_info[key]=handle[key]
 
-proxy_data['values_binned']     = np.transpose(proxy_data['proxy_values'].data)
-proxy_data['resolution_binned'] = np.transpose(proxy_data['proxy_resolutions'].data)
+proxy_info['values_binned']     = np.transpose(proxy_info['proxy_values'].data)
+proxy_info['resolution_binned'] = np.transpose(proxy_info['proxy_resolutions'].data)
 
-proxy_data['lats']              = proxy_data['proxy_metadata'][:,2].data
-proxy_data['lats']              = np.array([np.float(x) for x in proxy_data['lats']])
-proxy_data['lons']              = proxy_data['proxy_metadata'][:,3].data
-proxy_data['lons']              = np.array([np.float(x) for x in proxy_data['lons']])
-proxy_data['seasonality_array'] = proxy_data['proxy_metadata'][:,4].data
-proxy_data['seasonality_array'] = [[int(x) for x in str(np.array(z)).replace('[','').replace(']','').replace(' ',',').replace(',,',',').split(',') if x != ''] for z in proxy_data['seasonality_array']]
-proxy_data['proxySzn']          = proxy_data['proxy_metadata'][:,5].data
-proxy_data['units']             = proxy_data['proxy_metadata'][:,8].data
-proxy_data['archivetype']       = proxy_data['proxy_metadata'][:,9].data
-proxy_data['proxytype']         = proxy_data['proxy_metadata'][:,10].data
-proxy_data['proxyPSM']          = proxy_data['proxy_metadata'][:,11].data
-proxy_data['interp']            = proxy_data['proxy_metadata'][:,12].data
+proxy_info['lats']              = proxy_info['proxy_metadata'][:,2].data
+proxy_info['lats']              = np.array([np.float(x) for x in proxy_info['lats']])
+proxy_info['lons']              = proxy_info['proxy_metadata'][:,3].data
+proxy_info['lons']              = np.array([np.float(x) for x in proxy_info['lons']])
+proxy_info['seasonality_array'] = proxy_info['proxy_metadata'][:,4].data
+proxy_info['seasonality_array'] = [[int(x) for x in str(np.array(z)).replace('[','').replace(']','').replace(' ',',').replace(',,',',').split(',') if x != ''] for z in proxy_info['seasonality_array']]
+proxy_info['proxySzn']          = proxy_info['proxy_metadata'][:,5].data
+proxy_info['units']             = proxy_info['proxy_metadata'][:,8].data
+proxy_info['archivetype']       = proxy_info['proxy_metadata'][:,9].data
+proxy_info['proxytype']         = proxy_info['proxy_metadata'][:,10].data
+proxy_info['proxyPSM']          = proxy_info['proxy_metadata'][:,11].data
+proxy_info['interp']            = proxy_info['proxy_metadata'][:,12].data
 
 handle.close()
 
@@ -552,13 +555,59 @@ PSMkeys['get_tas']={
 
 #%%
 
-def plotDAMPsummary(model_data,proxy_data,var_key,times=[21,6],season='annual',bs=1000):
-    plt.figure(figsize=(12,9),dpi=400)
+var_name='tas'
+ncol=4
+latbounds = [[90,40],[40,20],[20,0],[0,-90]]
+
+#latbounds=[[-90,90]]
+
+plt.figure(figsize=(ncol*3,len(latbounds)*2),dpi=400)
+gs = gridspec.GridSpec(len(latbounds),ncol)
+
+v = np.nanquantile(np.abs(model_vals[var_name]['kalman'][0]),0.99)
+        #Plot
+for row,lats in enumerate(latbounds):
+    idx = np.where((proxy_info['lats'] >= lats[1]) & (proxy_info['lats'] <= lats[0]) & (proxy_info['proxies_assimilated'][0]>0))[0]
+    try: idx = [idx[y] for y in [proxy_info['lons'][idx].argsort()[int(x)] for x in np.linspace(0,len(idx)-1,ncol)]]
+    except: idx =np.array([0])  
+    for col,i in enumerate(idx):
+        ax = plt.subplot(gs[row,col],projection=ccrs.Robinson(central_longitude=proxy_info['lons'][i])) 
+        ax.spines['geo'].set_edgecolor('black'); ax.set_global(); ax.coastlines(lw=0.2)
+        #
+        vals = model_vals[var_name]['kalman'][0,i]
+        v = np.nanmax(np.abs(vals))
+        p = ax.pcolormesh(vals.lon,vals.lat,vals,cmap=dampVars[var_name]['cmap'],vmin=-v,vmax=v,transform=ccrs.PlateCarree())
+        #
+        lati = int(np.argmin(np.abs(vals['lat']-proxy_info['lats'][i]).data))
+        loni = int(np.argmin(np.abs(vals['lon']-proxy_info['lons'][i]).data))
+        #
+        #
+        ax.scatter(vals['lon'][loni],vals['lat'][lati],transform=ccrs.PlateCarree(),ec='deeppink',lw=1,color='none',s=40)
+        ax.scatter(vals['lon'][loni],vals['lat'][lati],transform=ccrs.PlateCarree(),color='deeppink',s=0.02)
+        #
+        #ax.set_title('K = '+str(np.round(float(vals[lati,loni]),2)))
+        plt.colorbar(p,orientation='horizontal',ticks=[-v,0,v],extend='both',fraction=0.05,pad=0)
+       
+plt.suptitle(output_filename)
+plt.tight_layout()
+
+
+save=save
+figure = plt #plotDAMPsummary(model_vals,proxy_info,list(dampVars.keys()),[21,12,6],season)
+if save: figure.savefig(save_dir+'kalman_examples.png',dpi=400)
+figure.show()
+    #%%
+
+
+
+#%%
+def plotDAMPsummary(model_vals,proxy_info,var_key,times=[21,6],season='annual',bs=1000):
+    plt.figure(figsize=(len(times)*3,(len(var_key)*2+2)),dpi=400)
     gs = gridspec.GridSpec(len(var_key)+1,(len(times)+1))
     for row,var_name in enumerate(var_key):
         #
         #Load Data
-        damp = model_data[var_name]
+        damp = model_vals[var_name]
         #
         #Plot Timeseries#########################
         ax = plt.subplot(gs[row,0]) 
@@ -594,8 +643,8 @@ def plotDAMPsummary(model_data,proxy_data,var_key,times=[21,6],season='annual',b
             cbar = plt.colorbar(p,orientation='horizontal', extend='both',ticks=list(np.round(np.linspace(-v,v,5),1)),cax=inset_axes(ax,width="80%",height="10%",bbox_to_anchor=(0,-0.2,1,1),bbox_transform=ax.transAxes, loc="lower center"))
             if row==0:ax.title.set_text(str(int(t))+'-0 ka (+/-'+str((bs/2)/1000)+' ka)')
             if var_name == 'LakeStatus':
-                proxies = proxy_data['proxy_values'].sel(ages=slice(t*1000-bs/2,t*1000+bs/2)).mean(dim='ages') - proxy_data['proxy_values'].sel(ages=slice(0*1000-bs/2,0*1000+bs/2)).mean(dim='ages')
-                ax.scatter(proxy_data['lons'][np.where(np.isfinite(proxies))[0]],proxy_data['lats'][np.where(np.isfinite(proxies))[0]],c=proxies[np.where(np.isfinite(proxies))[0]],s=20,ec='k',vmin=-v,vmax=v,cmap=cm.get_cmap(dampVars[var_name]['cmap'], 21),transform=ccrs.PlateCarree())
+                proxies = proxy_info['proxy_values'].sel(ages=slice(t*1000-bs/2,t*1000+bs/2)).mean(dim='ages') - proxy_data['proxy_values'].sel(ages=slice(0*1000-bs/2,0*1000+bs/2)).mean(dim='ages')
+                ax.scatter(proxy_info['lons'][np.where(np.isfinite(proxies))[0]],proxy_info['lats'][np.where(np.isfinite(proxies))[0]],c=proxies[np.where(np.isfinite(proxies))[0]],s=20,ec='k',vmin=-v,vmax=v,cmap=cm.get_cmap(dampVars[var_name]['cmap'], 21),transform=ccrs.PlateCarree())
     row+=1
     #
     #Plot Proxies Used#########################
@@ -615,45 +664,49 @@ def plotDAMPsummary(model_data,proxy_data,var_key,times=[21,6],season='annual',b
     ax1.set_xlim(np.quantile(damp[key]['ages'],[0,1])),ax1.set_xlabel("Age (ka)"); ax1.invert_xaxis(); ax1.xaxis.set_ticks([*range(0,22000,3000)]); ax1.set_xticklabels([*range(0,22,3)])
     ax1.set_ylabel('Count');
     #
-    ages=proxy_data['proxies_assimilated'].ages
+    ages=proxy_info['proxies_assimilated'].ages
     vals=ages*0
-    for i,PSM in enumerate(np.unique(proxy_data['proxyPSM'])):
-            #Plot Proxies Used
-            idx=(proxy_data['proxyPSM']==PSM) & (proxy_data['proxies_assimilated'].sum(axis=0)>0)
-            ax.scatter(proxy_data['lons'][idx],proxy_data['lats'][idx],s=20,alpha=0.4,c=PSMkeys[PSM]['c'],marker=PSMkeys[PSM]['m'],ec='k',label=PSM+' ('+str(int(sum(idx)))+')',transform=ccrs.PlateCarree())
-            #Plot Proxies Withheld
-            model_vals = {var_name:np.expand_dims(model_data[var_name]['recon'].values,axis=1),
-              'lat':model_data[var_name]['recon'].lat.values,
-              'lon':model_data[var_name]['recon'].lon.values,
-              'season':['ANN']}
-            pseudoLakes= da_psms.psm_main(model_vals,proxy_data,[])
-            idx2=(proxy_data['proxyPSM']=='lakestatusPSM') & (proxy_data['proxies_assimilated'].sum(axis=0)==0)            
-            skill,lats,lons = [],[],[]
-            for lake in range(len(pseudoLakes[0])):
-                if idx2[lake]:   
-                    psmvals = pseudoLakes[0][lake][list(pseudoLakes[0][lake].keys())[0]]
-                    proxyvals= proxy_data['proxy_values'][:,lake].data
-                    valid = np.where(np.isfinite(psmvals) & np.isfinite(proxyvals))
-                    if np.sum(np.isfinite(valid)) > 1:
-                        lats.append(proxy_data['lats'][lake])
-                        lons.append(proxy_data['lons'][lake])
-                        skill.append(scipy.stats.pearsonr(psmvals[valid], proxyvals[valid])[0])
-            v=1
-            p=ax2.scatter(lons,lats,c=skill,s=30,alpha=0.9,cmap='Spectral_r',vmin=-v,vmax=v,marker=PSMkeys[PSM]['m'],ec='k',transform=ccrs.PlateCarree())
-            cbar = plt.colorbar(p,orientation='horizontal',ticks=list(np.round(np.linspace(-v,v,5),1)),cax=inset_axes(ax2,width="80%",height="10%",bbox_to_anchor=(0,-0.2,1,1),bbox_transform=ax2.transAxes, loc="lower center"))
-            #Plot Histograms
-            valsNew = proxy_data['proxies_assimilated'][:,proxy_data['proxyPSM']=='lakestatusPSM'].sum(dim='proxy')
-            if i == 0: ax1.bar(ages, valsNew,              color=PSMkeys[PSM]['c'], width=np.diff(ages)[0],label=PSM)
-            else:      ax1.bar(ages, valsNew, bottom=vals, color=PSMkeys[PSM]['c'], width=np.diff(ages)[0],label=PSM)
-            vals+=valsNew
-            ax2.title.set_text('Mean Correlation = '+np.str(np.round(np.nanmean(skill),2)))
-    ax1.legend(loc='lower right')
+    if 1 == 2:
+        for i,PSM in enumerate(np.unique(proxy_info['proxyPSM'])):
+                #Plot Proxies Used
+                idx=(proxy_info['proxyPSM']==PSM) & (proxy_info['proxies_assimilated'].sum(axis=0)>0)
+                ax.scatter(proxy_info['lons'][idx],proxy_info['lats'][idx],s=20,alpha=0.4,c=PSMkeys[PSM]['c'],marker=PSMkeys[PSM]['m'],ec='k',label=PSM+' ('+str(int(sum(idx)))+')',transform=ccrs.PlateCarree())
+                #Plot Proxies Withheld
+                model_vals = {var_name:np.expand_dims(model_vals[var_name]['recon'].values,axis=1),
+                  'lat':model_vals[var_name]['recon'].lat.values,
+                  'lon':model_vals[var_name]['recon'].lon.values,
+                  'season':['ANN']}
+                pseudoLakes= da_psms.psm_main(model_vals,proxy_info,[])
+                idx2=(proxy_info['proxyPSM']=='lakestatusPSM') & (proxy_info['proxies_assimilated'].sum(axis=0)==0)            
+                skill,lats,lons = [],[],[]
+                for lake in range(len(pseudoLakes[0])):
+                    if idx2[lake]:   
+                        psmvals = pseudoLakes[0][lake][list(pseudoLakes[0][lake].keys())[0]]
+                        proxyvals= proxy_info['proxy_values'][:,lake].data
+                        valid = np.where(np.isfinite(psmvals) & np.isfinite(proxyvals))
+                        if np.sum(np.isfinite(valid)) > 1:
+                            lats.append(proxy_info['lats'][lake])
+                            lons.append(proxy_info['lons'][lake])
+                            skill.append(scipy.stats.pearsonr(psmvals[valid], proxyvals[valid])[0])
+                v=1
+                p=ax2.scatter(lons,lats,c=skill,s=30,alpha=0.9,cmap='Spectral_r',vmin=-v,vmax=v,marker=PSMkeys[PSM]['m'],ec='k',transform=ccrs.PlateCarree())
+                cbar = plt.colorbar(p,orientation='horizontal',ticks=list(np.round(np.linspace(-v,v,5),1)),cax=inset_axes(ax2,width="80%",height="10%",bbox_to_anchor=(0,-0.2,1,1),bbox_transform=ax2.transAxes, loc="lower center"))
+                #Plot Histograms
+                valsNew = proxy_info['proxies_assimilated'][:,proxy_info['proxyPSM']=='lakestatusPSM'].sum(dim='proxy')
+                if i == 0: ax1.bar(ages, valsNew,              color=PSMkeys[PSM]['c'], width=np.diff(ages)[0],label=PSM)
+                else:      ax1.bar(ages, valsNew, bottom=vals, color=PSMkeys[PSM]['c'], width=np.diff(ages)[0],label=PSM)
+                vals+=valsNew
+                ax2.title.set_text('Mean Correlation = '+np.str(np.round(np.nanmean(skill),2)))
+        ax1.legend(loc='lower right')
+    plt.suptitle(output_filename)
     plt.tight_layout()
-    #plt.suptitle(output_filename.split('_')[-1],y=1.04)
-    plt.suptitle('Proxy Lakes with 3000yr prior window at 300yr resolution',y=1.04)
-    plt.show()
+    return(plt)
 
-plotDAMPsummary(model_data,proxy_data,['tas','precip','LakeStatus'],[21,12,6],season)
+save=save
+figure = plotDAMPsummary(model_vals,proxy_info,list(dampVars.keys()),[21,12,6],season)
+if save: figure.savefig(save_dir+'summary.png',dpi=400)
+figure.show()
+
 
 #%%
 

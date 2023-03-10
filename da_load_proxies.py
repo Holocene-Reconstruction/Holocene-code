@@ -126,7 +126,7 @@ def load_proxies(options):
                                 vals = da_psms.vals2percentile(vals)
                                 all_ts_hydro12k[i]['age']=list(ages[idx])
                                 all_ts_hydro12k[i]['paleoData_values']=list(vals)
-                                all_ts_hydro12k[i]['paleoData_temperature12kUncertainty'] = round(np.nanmax(np.diff(np.unique(np.append(vals,[0,1])))),3) #Median difference between percentile ranks as unc. value
+                                all_ts_hydro12k[i]['paleoData_temperature12kUncertainty'] = 0.001#round(np.nanmax(np.diff(np.unique(np.append(vals,[0,1])))),3) #Median difference between percentile ranks as unc. value
             #
             proxy_ts_hydro12k = [all_ts_hydro12k[i] for i in ind_hydro]
             if options['reconstruction_type'] == 'absolute': proxy_ts_hydro12k = lipd.filterTs(proxy_ts_hydro12k,'paleoData_datum == abs')
