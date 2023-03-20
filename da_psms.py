@@ -14,18 +14,29 @@ def psm_main(model_data,proxy_data,options):
     proxy_estimates_all = np.array([dict() for k in range(n_proxies)])  # HXb
     for i in range(n_proxies):
         #
+        print(i)
         psm_selected = select_PSM(proxy_data,i)
-        #
+        #model_data['LakeStatus'][:,:,j_selected,i_selected]
         # Calculate the model-based proxy estimate depending on the PSM (or variable to compare, it the proxy is already calibrated)
         # Model values are in units of degree C (for tas) and mm/day (for precip)
         if   psm_selected == 'get_tas':    proxy_estimate = get_model_values(model_data,proxy_data,'tas',i)
         elif psm_selected == 'get_precip': proxy_estimate = get_model_values(model_data,proxy_data,'precip',i)
-        elif psm_selected == 'lakestatusPSM': proxy_estimate = get_model_values(model_data,proxy_data,'LakeStatus',i)  ##DAMP12k- add lake option
-        elif psm_selected == 'use_nans':   proxy_estimate = use_nans(model_data,'LakeStatus')
-        else:                              proxy_estimate = use_nans(model_data,'LakeStatus')
-        if sum(np.isfinite(proxy_estimate))==0:proxy_estimate = use_nans(model_data,'LakeStatus')
-        #Revisions to above must be duplicated in DA_load_proxies #TODO
-        # If the proxy units are mm/a, convert the model-based estimates from mm/day to mm/year
+        elif psm_selected == 'get_LakeStatus': 
+            proxy_estimate = get_model_values(model_data,proxy_data,'LakeStatus',i)*1  ##DAMP12k- add lake option
+            proxyvals = proxy_data['values_binned'][i]
+            idx = np.where(np.isfinite(proxyvals))[0]
+        #     if (np.sum(np.isfinite(proxy_estimate))>0) and (np.sum(np.isfinite(proxyvals))>0):
+        #          if idx[0] >0:                       proxy_estimate[:idx[0]]      *= np.NaN
+        #          if idx[-1] < len(proxy_estimate)-1: proxy_estimate[(idx[-1]+1):] *= np.NaN
+        #          proxy_estimate = vals2percentile(proxy_estimate)
+        #          if options['reconstruction_type'] == 'relative':
+        #              ind_ref = (model_data['age'] >= options['reference_period'][0]) & (model_data['age'] < options['reference_period'][1])
+        #              proxy_estimate  -= np.nanmean(proxy_estimate[ind_ref])
+        # elif psm_selected == 'use_nans':   proxy_estimate = use_nans(model_data,options['vars_to_reconstruct'][0])
+        else:                              proxy_estimate = use_nans(model_data,options['vars_to_reconstruct'][0])
+        if sum(np.isfinite(proxy_estimate))==0:proxy_estimate = use_nans(model_data,options['vars_to_reconstruct'][0])
+        # #Revisions to above must be duplicated in DA_load_proxies #TODO
+        # # If the proxy units are mm/a, convert the model-based estimates from mm/day to mm/year
         if proxy_data['units'][i] == 'mm/a': proxy_estimate = proxy_estimate*365.25  #TODO: Is there a better way to account for leap years in these decadal means?
         #
         # Find all time resolutions in the record
@@ -37,11 +48,7 @@ def psm_main(model_data,proxy_data,options):
         #
         for res in proxy_res_12ka_unique_sorted:
             proxy_estimate_nyear_mean = np.convolve(proxy_estimate,np.ones((res,))/res,mode='same')
-            if psm_selected == 'lakestatusPSM': #DAMP12k- change to make multiple options easier
-                try:    proxy_estimates_all[i][res] = vals2percentile(proxy_estimate_nyear_mean)
-                except: proxy_estimates_all[i][res] = np.convolve(use_nans(model_data,'LakeStatus'),np.ones((res,))/res,mode='same')
-            else:
-                proxy_estimates_all[i][res] = proxy_estimate_nyear_mean
+            proxy_estimates_all[i][res] = proxy_estimate_nyear_mean
     #
     print('Finished preprocessing proxies and making model-based proxy estimates.')
     return proxy_estimates_all,proxy_estimate
@@ -101,11 +108,11 @@ def select_PSM(proxy_data,i):
     psm_requirements = {}
     psm_requirements['get_tas']    = {'units':['degC']} #DAMP12k- change to make multiple options easier
     psm_requirements['get_precip'] = {'units':['mm/a'],'interp':['P']} #DAMP12k- change to make multiple options easier
-    psm_requirements['lakestatusPSM'] = {'archivetype':['Shoreline','LakeDeposits']} #DAMP12k- change to make multiple options easier
+    psm_requirements['get_LakeStatus'] = {'archivetype':['Shoreline','LakeDeposits']} #DAMP12k- change to make multiple options easier
     #psm_requirements['get_p_e']    = {'units':'mm/a','interp':'P-E'}  #TODO: Update this.
     #
     # Set the PSMs to use
-    psm_types_to_use = ['get_tas','get_precip','lakestatusPSM'] ##DAMP12k- add lake option
+    psm_types_to_use = ['get_tas','get_precip','get_LakeStatus'] ##DAMP12k- add lake option
     #
     # The code will use the first PSM  in the list above that meets the requirements
     psm_selected = None

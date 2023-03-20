@@ -9,6 +9,7 @@ import numpy as np
 import xarray as xr
 import glob
 import da_utils
+import da_psms
 import netCDF4
 from scipy import stats
 
@@ -23,7 +24,7 @@ def load_model_data(options):
     # Load the model data
     n_models = len(options['models_for_prior'])
     model_data = {}
-    model_data['units'] = {}
+    model_data['units'] = {} #Save this info so that we are reconsturcing the units that we think that we are
     for j,var_name in enumerate(options['vars_to_reconstruct']):
         for i,model in enumerate(options['models_for_prior']):
             #
@@ -54,14 +55,19 @@ def load_model_data(options):
                   model_individual[var_name][:,:,1:,:] *= np.NaN
                   model_individual[var_name] = model_individual[var_name].assign_coords(lat= model_data['lat'])
             else: model_individual[var_name] = handle_model[var_name]
-            try:  model_data['units'][var_name] = handle_model[var_name].units #Save units so know reconstructing based on what we think we are
-            except: model_data['units'][var_name] = 'not indicated'
+            model_data['units'][var_name] = handle_model[var_name].units #Save units so know reconstructing based on what we think we are
             handle_model.close()
             #
             #Allow for more custom time range and resolution
             age_bounds = np.arange(options['age_range_to_reconstruct'][0],options['age_range_to_reconstruct'][1]+1,options['time_resolution']) - 0.5
             model_individual['age']     = (age_bounds[:-1]+age_bounds[1:])/2     
             model_individual[var_name]  = model_individual[var_name].groupby_bins("age",age_bounds).mean(dim='age').values
+            #Rescale lake percentiles to reflect time resolution of reconstruction
+            if var_name[:4].lower()=='lake':
+                for szni in range(len(handle_model['season'])):
+                    for lati in range(len(handle_model['lat'])):
+                        for loni in range(len(handle_model['lon'])):
+                            model_individual[var_name][:,szni,lati,loni] = da_psms.vals2percentile(model_individual[var_name][:,szni,lati,loni])
             #
             # Compute annual, jja, and djf means of the model data
             n_lat = len(model_data['lat'])
@@ -220,14 +226,12 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     data_dir = {}
     data_dir['hadcm3'] = original_model_dir+'HadCM3B_transient21k/'
     data_dir['trace']  = original_model_dir+'TraCE_21ka/'
-    data_dir['DAMP12kTraCE']  = 'DAMP12kTraCE/'
     data_dir['famous'] = original_model_dir+'FAMOUS_glacial_cycle/'
     #
     # Set the names of the variables
     var_names = {}
     var_names['hadcm3'] = {'tas':'temp_mm_1_5m',   'precip':'precip_mm_srf'}
-    var_names['trace']  = {'tas':'TREFHT',         'precip':'PRECT'}
-    var_names['DAMP12kTraCE'] = {'tas':'tas',      'precip':'precip'}
+    var_names['trace']  = {'tas':'TREFHT',         'precip':'special'}
     var_names['famous'] = {'tas':'air_temperature','precip':'precipitation_flux'}
     #
     var_txt = var_names[model_name][var_name]

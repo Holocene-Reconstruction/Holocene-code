@@ -18,12 +18,9 @@ def enkf_update_array(Xb, obvalue, Ye, ob_err, loc=None, inflate=None):
     """
     Function to do the ensemble square-root filter (EnSRF) update
     (ref: Whitaker and Hamill, Mon. Wea. Rev., 2002)
-
     Originator: G. J. Hakim, with code borrowed from L. Madaus
                 Dept. Atmos. Sciences, Univ. of Washington
-
     Revisions:
-
     1 September 2017: 
                     - changed varye = np.var(Ye) to varye = np.var(Ye,ddof=1) 
                     for an unbiased calculation of the variance. 
@@ -38,7 +35,6 @@ def enkf_update_array(Xb, obvalue, Ye, ob_err, loc=None, inflate=None):
          loc: localization vector (Nx x 1) [optional]
      inflate: scalar inflation factor [optional]
     """
-    #obvalue, Ye, ob_err = proxy_value,proxy_modelbased_estimates,proxy_uncertainty
 
     # Get ensemble size from passed array: Xb has dims [state vect.,ens. members]
     Nens = Xb.shape[1]
@@ -63,7 +59,7 @@ def enkf_update_array(Xb, obvalue, Ye, ob_err, loc=None, inflate=None):
         return Xb
     
     # innovation variance (denominator of serial Kalman gain)
-    kdenom = varye#(varye + ob_err)
+    kdenom = (varye + ob_err)
 
     # numerator of serial Kalman gain (cov(x,Hx))
     kcov = np.dot(Xbp,np.transpose(ye)) / (Nens-1)
@@ -97,7 +93,7 @@ def enkf_update_array(Xb, obvalue, Ye, ob_err, loc=None, inflate=None):
 
     
     # Return the full state
-    return Xa,np.divide(kcov, kdenom)
+    return Xa,kmat
 
 
 
@@ -126,7 +122,6 @@ def haversine(lon1, lat1, lon2, lat2):
 
 def cov_localization(locRad, proxy_lat, proxy_lon, X_coords):
     """
-
     Originator: R. Tardif, 
                 Dept. Atmos. Sciences, Univ. of Washington
     -----------------------------------------------------------------
@@ -135,13 +130,10 @@ def cov_localization(locRad, proxy_lat, proxy_lon, X_coords):
              Y : Proxy object, needed to get ob site lat/lon (to calculate distances w.r.t. grid pts
              X : Prior object, needed to get state vector info. 
       X_coords : Array containing geographic location information of state vector elements
-
      Output:
         covLoc : Localization vector (weights) applied to ensemble covariance estimates.
                  Dims = (Nx x 1), with Nx the dimension of the state vector.
-
      Note: Uses the Gaspari-Cohn localization function.
-
     """
 
     # declare the localization array, filled with ones to start with (as in no localization)

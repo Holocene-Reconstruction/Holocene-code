@@ -15,7 +15,7 @@ import pickle
 
 #%%
 # A function to make pseudoproxies
-def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
+def make_pseudoproxies(proxies_to_use,model_to_use,var_to_use,noise_to_use,options):
     #
     # LOAD DATA
     print(' === Generating pseudoproxies. Settings: Proxies: '+proxies_to_use+', Model: '+model_to_use+', Noise: '+noise_to_use+' ===')
@@ -72,12 +72,13 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
         pseudoproxy_data,_ = da_load_proxies.load_proxies(options_new)
     #
     # Load the model data
-    original_model_dir = options['data_dir']+'models/original_model_data/'
-    try: tas_model,ages_model,lat_model,lon_model,time_ndays_model = da_load_models.process_models(model_to_use,'tas',None,None,None,original_model_dir,return_variables=True)
-    #
-    except:
-        var_model = da_load_models.load_model_data(options_new)
-        tas_model,ages_model,lat_model,lon_model = var_model['LakeStatus'],var_model['age'],var_model['lat'],var_model['lon'] #DAMP12k- #TODO -adjust this for different variables
+    if options['models_for_prior'] != ['DAMP12kTraCE']:                                              
+        original_model_dir = options['data_dir']+'models/original_model_data/'
+        var_model,ages_model,lat_model,lon_model,time_ndays_model = da_load_models.process_models(model_to_use,var_to_use,None,None,None,original_model_dir,return_variables=True)
+    else:
+        original_model_dir = options['data_dir']+'models/DAMP12kTraCE/processed/'
+        var_model_load = da_load_models.load_model_data(options_new)
+        var_model,ages_model,lat_model,lon_model = var_model[var_to_use],var_model['age'],var_model['lat'],var_model['lon'] #DAMP12k- #TODO -adjust this for different variables
     #
     #%% CALCULATIONS
     #
@@ -102,8 +103,8 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
             proxy_seasonality_array = np.array(proxy_seasonality.split()).astype(int)
         #
         # Find the model gridpoint closest to the proxy location
-        try: model_data_for_pseudo = {'tas':tas_model, 'lat':lat_model, 'lon':lon_model, 'time_ndays':time_ndays_model}
-        except: model_data_for_pseudo = var_model
+        if options['models_for_prior'] != ['DAMP12kTraCE']: model_data_for_pseudo = {'var':var_model, 'lat':lat_model, 'lon':lon_model, 'time_ndays':time_ndays_model}
+        else:                                               model_data_for_pseudo = var_model_load
         proxy_data_for_pseudo = {'lats':[pseudoproxy_data[i]['geo_meanLat']], 'lons':[pseudoproxy_data[i]['geo_meanLon']], 'seasonality_array':[proxy_seasonality_array]}
         if pseudoproxy_data[i]['paleoData_interpretation'][0]['variable'].upper() in ['T','TEMP','TEMPERATURE']:
             var_model_season = da_psms.get_model_values(model_data_for_pseudo,proxy_data_for_pseudo,'tas',0)
@@ -134,31 +135,31 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
         #
         # Compute means of the intervals spanned by the proxy data
         n_ages = len(proxy_ages)
-        tas_model_season_averaged = np.zeros((n_ages)); tas_model_season_averaged[:] = np.nan
+        var_model_season_averaged = np.zeros((n_ages)); var_model_season_averaged[:] = np.nan
         for j in range(n_ages):
             if np.isnan(proxy_age_bounds[j]) or np.isnan(proxy_age_bounds[j+1]): continue
             indices_selected = np.where((ages_model > proxy_age_bounds[j]) & (ages_model <= proxy_age_bounds[j+1]))[0]
-            tas_model_season_averaged[j] = np.mean(var_model_season[indices_selected])
+            var_model_season_averaged[j] = np.mean(var_model_season[indices_selected])
         #
         # If there are NaNs in the original data, set them in the pseudoproxies
-        tas_model_season_averaged[np.isnan(proxy_values)] = np.nan
+        var_model_season_averaged[np.isnan(proxy_values)] = np.nan
         #
         # Add proxy uncertainty, if specified.
         # Note: In the future, consider whether there are better ways of generating noise
-        ind_valid = np.isfinite(tas_model_season_averaged)
+        ind_valid = np.isfinite(var_model_season_averaged)
         if noise_to_use == 'whitesnr05':
             print('Adding noise to pseudoproxies: White noise with a SNR of 0.5')
             #
             # Generate noise for the proxy with a signal-to-noise ratio of 0.5
             # This is the simple version of adding noise that Nathan mentions in Steiger and Hakim, Clim. Past, 2016
             signal_to_noise = 0.5
-            target_noise_variance = np.nanvar(tas_model_season_averaged) / np.square(signal_to_noise)
+            target_noise_variance = np.nanvar(var_model_season_averaged) / np.square(signal_to_noise)
             white_noise = np.random.normal(0,1,sum(ind_valid))
             white_noise_scaled = (white_noise/np.std(white_noise)) * np.sqrt(target_noise_variance)
             white_noise_scaled = white_noise_scaled - np.mean(white_noise_scaled)
             #
             # Add noise to the pseudodata
-            tas_model_season_averaged[ind_valid] = tas_model_season_averaged[ind_valid] + white_noise_scaled
+            var_model_season_averaged[ind_valid] = var_model_season_averaged[ind_valid] + white_noise_scaled
             #
             # Update the uncertainty value for the pseudoproxy
             pseudoproxy_data[i]['paleoData_temperature12kUncertainty'] = np.stdev(white_noise_scaled)
@@ -170,15 +171,15 @@ def make_pseudoproxies(proxies_to_use,model_to_use,noise_to_use,options):
             if np.isfinite(stdev_of_noise):
                 white_noise_scaled = np.random.normal(0,stdev_of_noise,sum(ind_valid))
                 white_noise_scaled = white_noise_scaled - np.mean(white_noise_scaled)
-                tas_model_season_averaged[ind_valid] = tas_model_season_averaged[ind_valid] + white_noise_scaled
+                var_model_season_averaged[ind_valid] = var_model_season_averaged[ind_valid] + white_noise_scaled
             else:
-                tas_model_season_averaged[:] = np.nan
+                var_model_season_averaged[:] = np.nan
             #
         else:
             print('Not adding noise to pseudoproxies. Keywork is "none" or unknown: '+noise_to_use)
         #
         # Save pseudoproxy data
-        pseudoproxy_data[i]['paleoData_values'] = tas_model_season_averaged
+        pseudoproxy_data[i]['paleoData_values'] = var_model_season_averaged
         pseudoproxy_data[i]['age']              = proxy_ages
     #
     #%% OUTPUT
