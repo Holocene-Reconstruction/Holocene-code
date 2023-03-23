@@ -39,7 +39,7 @@ Make sure that you have Python 3 installed.  If you don't, one option is the pac
 
 Most of the necessary packages should come with the standard Python 3 installation, installed using `conda create -n python3_da anaconda`.  The only ones you should need to install are xarray, netCDF4, and lipd.  Either install these yourself (note: LiPD can be installed with `pip install LiPD`) or go to your Holocene Reconstruction directory and use the commands below to create a new Python 3 environment with the necessary packages and switch to it:
 
-    conda env create -f environment_da.py
+    conda env create -f environment_da.yml
     conda activate python3_da
 
 ### 2.4. First-time setup
