@@ -45,9 +45,9 @@ Most of the necessary packages should come with the standard Python 3 installati
 ### 2.4. First-time setup
 
 Before running the Holocene Reconstruction code for the first time, do the following:
- 1. Open config_default.py.
+ 1. Open config_default.yml.
  2. Near the top, change the 'data_dir' directory to the location of the unzipped data from section 2.2 above (i.e., the directory which has the models/, proxies/, and results/ subdirectories.)
- 3. Save config_default.py and copy it to config.py.  You can set up new experiments in config.py while keeping the original file for reference.
+ 3. Save config_default.yml and copy it to config.yml.  You can set up new experiments in config.yml while keeping the original file for reference.
 
 The "default" settings are used for the main experiment shown in Erb et al., in press "Reconstructing Holocene temperatures in time and space using paleoclimate data assimilation".
 
