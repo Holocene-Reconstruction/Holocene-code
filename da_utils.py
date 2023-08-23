@@ -72,6 +72,7 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
     elif (str(seasonality_txt).lower() == 'tann; 2'):                       seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'year'):                          seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == '1 2 3 4 5 6 7 8 9 10 11 12'):    seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
+    elif (str(seasonality_txt).lower() == '1,2,3,4,5,6,7,8,9,10,11,12'):    seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'subannual'):                     seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'nan'):                           seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'not specified'):                 seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
@@ -224,6 +225,52 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
             seasonality = seasonality_txt
     #
     return seasonality
+
+
+# A function to find the proxy records which match the requested seasonality criteria
+def find_seasons(proxy_data,options):
+    #
+    # Initialize an array as True everywhere
+    n_proxies = proxy_data['values_binned'].shape[0]
+    proxy_ind_of_seasonality = np.full((n_proxies),True,dtype=bool)
+    #
+    # Get indicies of all proxies with summer+ or winter+ seasonality
+    ind_seasonplus = [i for i, seasontype in enumerate(proxy_data['metadata'][:,5]) if seasontype in ['summer+','winter+']]
+    #
+    # For all records with summer+ or winter+ seasonality, check which proxies share the same
+    # dataSetName, archive type, and proxy type. Mark the ones I don't want as False in the proxy_ind variable.
+    for proxy_ind in ind_seasonplus:
+        #
+        # Find proxies with matching dataSetName, archivetype, and proxytype
+        ind_matching = np.where((proxy_data['metadata'][:,0] == proxy_data['metadata'][proxy_ind,0]) &
+                                (proxy_data['archivetype']   == proxy_data['archivetype'][proxy_ind]) &
+                                (proxy_data['proxytype']     == proxy_data['proxytype'][proxy_ind]))[0]
+        #
+        # Get indices of summer+, annual, and winter+ records
+        ind_summerplus = [ind for ind in ind_matching if proxy_data['metadata'][ind,5] == 'summer+']
+        ind_annual     = [ind for ind in ind_matching if proxy_data['metadata'][ind,5] == 'annual']
+        ind_winterplus = [ind for ind in ind_matching if proxy_data['metadata'][ind,5] == 'winter+']
+        #
+        # Of the proxies found above, select the one which best matches the requested seasonality
+        if (((options['assimilate_selected_seasons'] == 'jja_preferred') & (proxy_data['lats'][proxy_ind] >= 0)) or ((options['assimilate_selected_seasons'] == 'djf_preferred') & (proxy_data['lats'][proxy_ind] < 0))):
+            #
+            # Prioritize summer, then annual, then winter
+            if len(ind_summerplus) > 0:
+                proxy_ind_of_seasonality[ind_annual]     = False
+                proxy_ind_of_seasonality[ind_winterplus] = False
+            elif len(ind_annual) > 0:
+                proxy_ind_of_seasonality[ind_winterplus] = False
+        #
+        elif (((options['assimilate_selected_seasons'] == 'djf_preferred') & (proxy_data['lats'][proxy_ind] >= 0)) or ((options['assimilate_selected_seasons'] == 'jja_preferred') & (proxy_data['lats'][proxy_ind] < 0))):
+            #
+            # Prioritize winter, then annual, then summer
+            if len(ind_winterplus) > 0:
+                proxy_ind_of_seasonality[ind_annual]     = False
+                proxy_ind_of_seasonality[ind_summerplus] = False
+            elif len(ind_annual) > 0:
+                proxy_ind_of_seasonality[ind_summerplus] = False
+    #
+    return proxy_ind_of_seasonality
 
 
 # A function to regrid an age-month-lat-lon array to a standardized grid

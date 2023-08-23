@@ -8,19 +8,20 @@
 data_dir: '/projects/pd_lab/data/data_assimilation/'
 
 # Primary options
-exp_name: 'default'           # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
-vars_to_reconstruct: ['tas']  # The variables to reconstruct {['tas']}.  Note, only tas is fully supported at the moment.
-time_resolution:     10       # The base temporal resolution, in years {10}
-maximum_resolution:  1000     # The maximum temporal resolution to assimilate proxies at, in years {1000}
-prior_window:        5010     # The size of the window for the time-varying prior, in years {'all',5010,1010}
-prior_mean_always_0: False    # Is the mean of the prior allowed to change through time? {True,False}. If true, the mean of the prior is always 0.
-assimate_together:   True     # If False, assimile proxies one at a time (slower) {True,False}
-localization_radius: None     # Localization radius, in meters {None,15000}  Only works if assimate_together=False
-percent_of_prior:    100      # What percentage of the prior states to assimilate {100}.  Note, a value of 8.7 -> 100 ens, if other settings are default
-seed_for_prior:      0        # This seed is only used if 'percent_of_prior' is below 100 {0}
+exp_name: 'default'             # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
+vars_to_reconstruct:   ['tas']  # The variables to reconstruct {['tas','precip']}.
+season_to_reconstruct: 'annual' # The season to reconstruct {'annual','jja','djf'}
+time_resolution:       10       # The base temporal resolution, in years {10}
+maximum_resolution:    1000     # The maximum temporal resolution to assimilate proxies at, in years {1000}
+prior_window:          5010     # The size of the window for the time-varying prior, in years {'all',5010,1010}
+prior_mean_always_0:   False    # Is the mean of the prior allowed to change through time? {True,False}. If true, the mean of the prior is always 0.
+assimate_together:     True     # If False, assimile proxies one at a time (slower) {True,False}
+localization_radius:   None     # Localization radius, in meters {None,15000}  Only works if assimate_together=False
+percent_of_prior:      100      # What percentage of the prior states to assimilate {100}.  Note, a value of 8.7 -> 100 ens, if other settings are default
+seed_for_prior:        0        # This seed is only used if 'percent_of_prior' is below 100 {0}
 
 # Proxies to assimilate
-assimilate_selected_seasons:    ['annual','summerOnly','winterOnly']  # Assimilate proxies with the selected seasonality. Note, the reconstruction will still try to represent annual means. {False, ['annual','summerOnly','winterOnly','summer+','winter+']}
+assimilate_selected_seasons:    ['annual','summeronly','winteronly']  # Assimilate proxies with the selected seasonality. Note, the reconstruction will still try to represent annual means. {False, ['annual','summeronly','winteronly','summer+','winter+'], 'jja_preferred', 'djf_preferred'}
 assimilate_selected_archives:   False  # Provide a list of one or more archive types to assimilate {False, ['LakeSediment','MarineSediment','Peat','GlacierIce','Midden','Speleothem','Wood','Ice-other']}
 assimilate_selected_region:     False  # Provide bounds to assimilate only proxies in a given region {False, [lat_min,lat_max,lon_min,lon_max]} using lons between 0-360.
 assimilate_selected_resolution: False  # Assimilate proxies with median resolutions in a given band {False, [0,100]}.  Bounds are [inclusive,exclusive]. Note: this option should be improved before use.
@@ -30,8 +31,9 @@ seed_for_proxy_choice:          0      # This seed is only used if 'percent_to_a
 # Models for prior {['hadcm3_regrid','trace_regrid','famous_regrid']}
 models_for_prior: ['hadcm3_regrid','trace_regrid']
 
-# Proxy datasets {['temp12k'],['pages2k'],['pseudo_temp12k_using_trace_noise_whiteproxyrmse']}
+# Proxy datasets {['temp12k','hydro2k'],['pages2k'],['pseudo_temp12k_using_trace_noise_whiteproxyrmse']}
 proxy_datasets_to_assimilate: ['temp12k']
+version_temp12k:              '1_0_2' # The version of temp12k to use, if it's included in 'proxy_datasets_to_assimilate' {'1_0_2','1_1_0'}
 
 # Age ranges
 age_range_to_reconstruct: [0,12000]
@@ -39,6 +41,7 @@ reference_period:         [3000,5000]  # This is only used if 'reconstruction_ty
 age_range_model:          [0,22000]
 
 # Experimental options (These options are less well-tested or may not be fully implemented. Edit with care.)
+age_uncertain_method:  False     # If True, age uncertainty is incorporated in the proxy values and time-varying uncertainty; if False, the original method is used, with a single-value R value. This only works if "time_resolution" is set to 10 {True,False}
 reconstruction_type: 'relative'  # Reconstruction absolute or relative values {'relative','absolute'}.  If 'absolute', prior_mean_always_0 is ignored.
 model_processing:    None        # Processing the model prior {None,'linear_global','linear_spatial',None}
 assign_seasonality:  False       # If something other than false, all proxies are set to specific seasonalities {False,'annual','summer','winter','jja','djf'}
