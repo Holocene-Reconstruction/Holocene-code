@@ -20,6 +20,7 @@ def load_proxies(options):
     # Set the necessary directories
     dir_proxies_temp12k  = options['data_dir']+'proxies/temp12k/'
     dir_proxies_hydro12k = options['data_dir']+'proxies/hydro12k/'
+    dir_proxies_lakes21k = options['data_dir']+'proxies/Lakes21k/'
     dir_proxies_pages2k  = options['data_dir']+'proxies/pages2k/'
     dir_proxies_pseudo   = options['data_dir']+'proxies/pseudoproxies/'
     collection_all = []
@@ -71,9 +72,9 @@ def load_proxies(options):
             tsid_from_file = np.array([entry[1:-1] for entry in tsid_from_file])
             rmse_selected_median = 114
             #
-            # Load the hydro12k proxy metadata #DAMP12k - change to open 0_7_0 which doesn't have a pickle file. once this is fixed, only try code will be needed 
+            # Load the hydro12k proxy metadata #DAMP21k - change to open 0_7_0 which doesn't have a pickle file. once this is fixed, only try code will be needed 
             try: 
-                file_to_open = open(dir_proxies_hydro12k+options['version_hydro12k']+'.pkl','rb') #DAMP12k- make more flexible
+                file_to_open = open(dir_proxies_hydro12k+'HoloceneHydroclimate'+options['version_hydro12k']+'.pkl','rb') #DAMP12k- make more flexible
                 proxies_all_hydro12k = pickle.load(file_to_open)['D']
                 file_to_open.close()
             #
@@ -87,25 +88,35 @@ def load_proxies(options):
                     D = lipd.readLipd(dir_proxies_hydro12k+dir_proxies_hydro12k+'HoloceneHydroclimate'+options['version_hydro12k']+'/')
                     all_ts_hydro12k = lipd.extractTs(D)
                     np.save(dir_proxies_hydro12k+dir_proxies_hydro12k+'HoloceneHydroclimate'+options['version_hydro12k']+'.npy',all_ts_hydro12k,allow_pickle=True)
-            # Get all proxies in the compilation
+            #Get all proxies in the compilation
             ind_hydro = []
             for i in range(len(all_ts_hydro12k)):
+                geo = True
+                if options['assimilate_selected_region']:
+                    lat,lon = all_ts_hydro12k[i]['geo_meanLat'],all_ts_hydro12k[i]['geo_meanLon']
+                    if lon < 0: lon = 360 + lon
+                    if   lat < options['assimilate_selected_region'][0]: geo = False
+                    elif lat > options['assimilate_selected_region'][1]: geo = False
+                    elif lon < options['assimilate_selected_region'][2]: geo = False
+                    elif lon > options['assimilate_selected_region'][3]: geo = False
                 keys = list(all_ts_hydro12k[i].keys())
-                if ('paleoData_inCompilationBeta' in keys) and ('age' in keys) and ('archiveType' in keys):
+                if geo and ('paleoData_inCompilationBeta' in keys) and ('age' in keys) and ('archiveType' in keys):
                     compilations,versions = [],[]
                     n_values = len(all_ts_hydro12k[i]['paleoData_inCompilationBeta'])
                     for j in range(n_values):
                         compilations.append(all_ts_hydro12k[i]['paleoData_inCompilationBeta'][j]['compilationName'])
                         versions.append(all_ts_hydro12k[i]['paleoData_inCompilationBeta'][j]['compilationVersion'])
                     #
-                    if ('HoloceneHydroclimate' in compilations) and (options['version_hydro12k'] in str(versions)):
+                    if ('HoloceneHydroclimate' in compilations):# and (options['version_hydro12k'] in str(versions)):
                         try:    _ = all_ts_hydro12k[i]['paleoData_interpretation'][0]['seasonality']  #TODO: Update this later
                         except: print('"seasonality" key not found for index',i); continue
                         dataunits = all_ts_hydro12k[i]['paleoData_units']
                         interp    = all_ts_hydro12k[i]['paleoData_interpretation'][0]['variable']
                         archive   = all_ts_hydro12k[i]['archiveType']     #DAMP12k- used for selecting lakestatus PSM
                         proxy     = all_ts_hydro12k[i]['paleoData_proxy'] #DAMP12k- used for selecting lakestatus PSM
-                        #
+                        #if 'direction' in all_ts_hydro12k[i]['paleoData_interpretation'][0].keys():
+                            #if all_ts_hydro12k[i]['paleoData_interpretation'][0]['direction'] == 'negative': 
+                             #   all_ts_hydro12k[i]['paleoData_values'] = [float(x)*-1 for x in all_ts_hydro12k[i]['paleoData_values']]
                         # Hydro12k data currently lack uncertainty values. Set them here. #TODO: Update this later.
                         tsid = all_ts_hydro12k[i]['paleoData_TSid']
                         ind_rmse = np.where(tsid_from_file == tsid)[0]
@@ -117,23 +128,33 @@ def load_proxies(options):
                             if (dataunits in ['mm/a']) and (interp in ['P']) and (proxy.lower()=='pollen'): ind_hydro.append(i) 
                         if 'CalibratedOther' in options['assimilate_selected_HCproxies']: #Get Other Calibrated Data
                             if (dataunits in ['mm/a']) and (interp in ['P']) and (proxy.lower()!='pollen'): ind_hydro.append(i) 
+                        if 'd18OSpeleothem' in options['assimilate_selected_HCproxies']: #Get Other Calibrated Data
+                            if (archive.lower() == 'speleothem') and (proxy.lower() == 'd18o'): ind_hydro.append(i) 
                         if 'LakeStatus' in options['assimilate_selected_HCproxies']: #Get Lake Status Data
+                            print('Error')
+                            #if all_ts_hydro12k[i]['dataSetName'] in ['Didwana.Singh.1972','ChemchaneAderg.Chamard.1972','Manyara.Holdship.1976','Tyrrell.Bowler.1986','Bebedero.Gonzalez.1983','Searles.Stuiver.1964','Duck.Winkler.1982','WielkeGacno.HjelmroosEricsson.1982']:
                             if archive in ['LakeDeposits','Shoreline']:#'Shoreline',
-                                ind_hydro.append(i) #Get Shoreline Data
+                                ind_hydro.append(i) #Get Shoreline Data 
                                 #Convert paleoData_values to percentile within age range of model
                                 ages = np.array(all_ts_hydro12k[i]['age'])
                                 idx = np.where((ages <= options['age_range_model'][1]) & (ages >= options['age_range_model'][0]))#Get index for values which cover model prior
                                 vals =  np.array([float(x) for x in all_ts_hydro12k[i]['paleoData_values']])[idx]               #Some values stored as string
-                                if all_ts_hydro12k[i]['paleoData_interpretation'][0]['direction'] == 'negative': vals*=-1        #Orient values
                                 vals = da_psms.vals2percentile(vals)
-                                #Rescale option test (0-1)
+                                #Rescale option test (0-1) FIX THIS TO DO AFTER BINNING
                                 vals -= np.nanmin(vals) 
                                 vals /= np.nanmax(vals) 
+                                vals *= 100
                                 #
+                                all_ts_hydro12k[i]['paleoData_datum'] = 'abs'
                                 all_ts_hydro12k[i]['age']=list(ages[idx])
                                 all_ts_hydro12k[i]['paleoData_values']=list(vals)
-                                all_ts_hydro12k[i]['paleoData_temperature12kUncertainty'] = 0.3#round(np.nanmax(np.diff(np.unique(np.append(vals,[0,1])))),3) #Median difference between percentile ranks as unc. value
-            #
+                                all_ts_hydro12k[i]['paleoData_temperature12kUncertainty'] = 30#round(np.nanmax(np.diff(np.unique(np.append(vals,[0,1])))),3) #Median difference between percentile ranks as unc. value
+                        #
+                        if 'NotLakeStatus' in options['assimilate_selected_HCproxies']: #Get Lake Status Data
+                            if archive not in ['LakeDeposits','Shoreline']:#'Shoreline',
+                                #if (dataunits != 'mm/a'): 
+                                ind_hydro.append(i) 
+            
             proxy_ts_hydro12k = [all_ts_hydro12k[i] for i in ind_hydro]
             if options['reconstruction_type'] == 'absolute': proxy_ts_hydro12k = lipd.filterTs(proxy_ts_hydro12k,'paleoData_datum == abs')
             print('Number of hydro12k records selected:',len(proxy_ts_hydro12k))
@@ -141,6 +162,53 @@ def load_proxies(options):
             proxy_ts = proxy_ts + proxy_ts_hydro12k
             collection_all = collection_all + ([proxy_dataset] * len(proxy_ts_hydro12k))
             #
+        elif proxy_dataset == 'lakes21k':
+            #%% Load the identified lakes
+            D = lipd.readLipd(dir_proxies_lakes21k+'/')
+            #
+            # Extract the time series and use only those which are in Lakes21k
+            all_ts_lakes21k = lipd.extractTs(D)
+            #
+            # Filter timeseries
+            ind_hydro = []
+            for i in range(len(all_ts_lakes21k)):
+                # Choose timeseries whithin geographic bounds
+                geo = True
+                if options['assimilate_selected_region']:
+                    lat,lon = all_ts_lakes21k[i]['geo_meanLat'],all_ts_lakes21k[i]['geo_meanLon']
+                    if lon < 0: lon = 360 + lon
+                    if   lat < options['assimilate_selected_region'][0]: geo = False
+                    elif lat > options['assimilate_selected_region'][1]: geo = False
+                    elif lon < options['assimilate_selected_region'][2]: geo = False
+                    elif lon > options['assimilate_selected_region'][3]: geo = False
+                #
+                keys = list(all_ts_lakes21k[i].keys())
+                if geo and ('paleoData_inCompilationBeta' in keys) and ('age' in keys) and ('archiveType' in keys):
+                    # Choose timeseries in compilation
+                    compilations,versions = [],[]
+                    n_values = len(all_ts_lakes21k[i]['paleoData_inCompilationBeta'])
+                    for j in range(n_values):
+                        compilations.append(all_ts_lakes21k[i]['paleoData_inCompilationBeta'][j]['compilationName'])
+                        versions.append(all_ts_lakes21k[i]['paleoData_inCompilationBeta'][j]['compilationVersion'])
+                    #
+                    if ('DAMP21k_Lakes' in compilations) and ('0_1_0' in str(versions)):
+                        # Make sure values are numeric and fix if negative interp     
+                        if all_ts_lakes21k[i]['paleoData_interpretation'][0]['direction'] == 'negative': 
+                               all_ts_lakes21k[i]['paleoData_values'] = [float(x)*-1 for x in all_ts_lakes21k[i]['paleoData_values']]
+                        else:
+                               all_ts_lakes21k[i]['paleoData_values'] = [float(x) for x in all_ts_lakes21k[i]['paleoData_values']]
+                        # Hydro12k data currently lack uncertainty values. Set them here. #TODO: Update this later.
+                        all_ts_lakes21k[i]['paleoData_temperature12kUncertainty'] = 30#round(np.nanmax(np.diff(np.unique(np.append(vals,[0,1])))),3) #Median difference between percentile ranks as unc. value
+                        all_ts_lakes21k[i]['paleoData_proxy'] = 'LakeLevel'
+                        # Add
+                        ind_hydro.append(i)
+            #
+            all_ts_lakes21k = [all_ts_lakes21k[i] for i in ind_hydro]
+            print('Number of hydro12k records selected:',len(all_ts_lakes21k))
+            #
+            proxy_ts = proxy_ts + all_ts_lakes21k
+            collection_all = collection_all + ([proxy_dataset] * len(all_ts_lakes21k))
+        #
         elif proxy_dataset == 'pages2k':
             #
             # Load the PAGES2k proxies
@@ -237,8 +305,9 @@ def process_proxies(proxy_ts,collection_all,options):
         proxy_values = np.array(proxy_ts[i]['paleoData_values']).astype(float)
         #
         # If any NaNs exist in the ages, remove those values
-        proxy_values = proxy_values[np.isfinite(proxy_ages)]
-        proxy_ages   = proxy_ages[np.isfinite(proxy_ages)]
+        if proxy_ts[i]['paleoData_proxy'][:4].lower() != 'lake':
+            proxy_values = proxy_values[np.isfinite(proxy_ages)]
+            proxy_ages   = proxy_ages[np.isfinite(proxy_ages)]
         #
         # Sort the data so that ages go from newest to oldest
         ind_sorted = np.argsort(proxy_ages)
@@ -302,7 +371,7 @@ def process_proxies(proxy_ts,collection_all,options):
         proxy_res_12ka    = np.zeros((n_ages)); proxy_res_12ka[:]    = np.nan
         for j in range(n_ages):
             ind_selected = np.where((proxy_ages_interp >= age_bounds[j]) & (proxy_ages_interp < age_bounds[j+1]))[0]
-            proxy_values_12ka[j] = np.nanmean(proxy_values_interp[ind_selected])
+            proxy_values_12ka[j] = np.nanmedian(proxy_values_interp[ind_selected]) #DAMP21ka use median to limit impact on percentile calculation
             res_avg              = np.nanmean(proxy_res_interp[ind_selected])
             if np.isnan(res_avg): proxy_res_12ka[j] = np.nan
             else:                 proxy_res_12ka[j] = int(round(res_avg / options['time_resolution']))
@@ -338,6 +407,11 @@ def process_proxies(proxy_ts,collection_all,options):
         proxy_res_12ka[proxy_res_12ka < 1] = 1
         proxy_res_12ka[proxy_res_12ka > max_res_value] = max_res_value
         #
+        # Rescale lakes (DAMP21ka)
+        if proxy_ts[i]['paleoData_proxy'][:4].lower() == 'lake':
+            proxy_ts[i]['paleoData_interpretation'][0]['seasonalityGeneral'] = 'annual'
+            proxy_values_12ka   = da_psms.vals2percentile(proxy_values_12ka)
+            proxy_values_interp = da_psms.vals2percentile(proxy_values_interp)
         # If the reconstruction type is "relative," remove the mean of the reference period
         if options['reconstruction_type'] == 'relative':
             if options['age_uncertain_method']:
@@ -395,6 +469,7 @@ def process_proxies(proxy_ts,collection_all,options):
                 if options['reconstruction_type'] == 'relative':
                     proxy_values_12ka = proxy_values_12ka - np.nanmean(proxy_values_12ka[np.where((age_centers >= options['reference_period'][0]) & (age_centers < options['reference_period'][1]))[0]  ])
             else: proxy_values_12ka*=np.NaN
+        #
         proxy_data['values_binned'][i,:]     = proxy_values_12ka
         proxy_data['resolution_binned'][i,:] = proxy_res_12ka
         proxy_data['uncertainty'].append(proxy_uncertainty)
@@ -411,7 +486,7 @@ def process_proxies(proxy_ts,collection_all,options):
         proxy_data['metadata'][i,7] = collection_all[i]
         proxy_data['metadata'][i,8] = proxy_ts[i]['paleoData_units']
         proxy_data['metadata'][i,9] = proxy_ts[i]['paleoData_interpretation'][0]['variable']
-        proxy_data['metadata'][i,10] = proxy_ts[i]['archiveType']                                #DAMP12k- increase info about proxies saved
+        proxy_data['metadata'][i,10] = proxy_ts[i]['archiveType']                               #DAMP12k- increase info about proxies saved
         proxy_data['metadata'][i,11]= proxy_ts[i]['paleoData_proxy']                            #DAMP12k- increase info about proxies saved
         proxy_data['metadata'][i,12]= da_psms.select_PSM(proxy_data,i)                          #DAMP12k- increase info about proxies saved
         proxy_data['lats'][i] = proxy_lat

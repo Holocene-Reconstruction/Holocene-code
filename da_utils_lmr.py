@@ -18,9 +18,12 @@ def enkf_update_array(Xb, obvalue, Ye, ob_err, loc=None, inflate=None):
     """
     Function to do the ensemble square-root filter (EnSRF) update
     (ref: Whitaker and Hamill, Mon. Wea. Rev., 2002)
+
     Originator: G. J. Hakim, with code borrowed from L. Madaus
                 Dept. Atmos. Sciences, Univ. of Washington
+
     Revisions:
+
     1 September 2017: 
                     - changed varye = np.var(Ye) to varye = np.var(Ye,ddof=1) 
                     for an unbiased calculation of the variance. 
@@ -93,7 +96,7 @@ def enkf_update_array(Xb, obvalue, Ye, ob_err, loc=None, inflate=None):
 
     
     # Return the full state
-    return Xa,kmat
+    return Xa,kmat #Also save kalman gain matrix #DAMP21ka #CH
 
 
 
@@ -122,6 +125,7 @@ def haversine(lon1, lat1, lon2, lat2):
 
 def cov_localization(locRad, proxy_lat, proxy_lon, X_coords):
     """
+
     Originator: R. Tardif, 
                 Dept. Atmos. Sciences, Univ. of Washington
     -----------------------------------------------------------------
@@ -130,10 +134,13 @@ def cov_localization(locRad, proxy_lat, proxy_lon, X_coords):
              Y : Proxy object, needed to get ob site lat/lon (to calculate distances w.r.t. grid pts
              X : Prior object, needed to get state vector info. 
       X_coords : Array containing geographic location information of state vector elements
+
      Output:
         covLoc : Localization vector (weights) applied to ensemble covariance estimates.
                  Dims = (Nx x 1), with Nx the dimension of the state vector.
+
      Note: Uses the Gaspari-Cohn localization function.
+
     """
 
     # declare the localization array, filled with ones to start with (as in no localization)
@@ -199,4 +206,3 @@ def cov_localization(locRad, proxy_lat, proxy_lon, X_coords):
 
     
     return covLoc
-

@@ -384,9 +384,7 @@ def loc_matrix(options,model_data,proxy_data):
         prior_coords = np.concatenate((lat_prior[:,None],lon_prior[:,None]),axis=1)
         #
         # Repeat the prior coords for all reconstructed variables
-        #if n_vars > 1: prior_coords = np.tile(prior_coords,(n_vars,1)) #Correction to accurately shape the localization array-CH
-        if n_vars > 1: prior_coords = np.repeat(prior_coords,n_vars,axis=0) 
-
+        if n_vars > 1: prior_coords = np.repeat(prior_coords,n_vars,axis=0) #Correction to accurately shape the localization array #DAMP21ka
         #
         # Include the proxy coordinates with the model coordinates
         proxy_coords_all = np.zeros((n_proxies,2)); proxy_coords_all[:] = np.nan

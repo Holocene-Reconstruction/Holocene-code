@@ -72,11 +72,11 @@ def make_pseudoproxies(proxies_to_use,model_to_use,var_to_use,noise_to_use,optio
         pseudoproxy_data,_ = da_load_proxies.load_proxies(options_new)
     #
     # Load the model data
-    if options['models_for_prior'] != ['DAMP12kTraCE']:                                              
+    if options['models_for_prior'] != ['DAMP21kTraCE']:                                              
         original_model_dir = options['data_dir']+'models/original_model_data/'
         var_model,ages_model,lat_model,lon_model,time_ndays_model = da_load_models.process_models(model_to_use,var_to_use,None,None,None,original_model_dir,return_variables=True)
     else:
-        original_model_dir = options['data_dir']+'models/DAMP12kTraCE/processed/'
+        original_model_dir = options['data_dir']+'models/DAMP21kTraCE/processed/'
         var_model_load = da_load_models.load_model_data(options_new)
         var_model,ages_model,lat_model,lon_model = var_model[var_to_use],var_model['age'],var_model['lat'],var_model['lon'] #DAMP12k- #TODO -adjust this for different variables
     #
@@ -103,7 +103,7 @@ def make_pseudoproxies(proxies_to_use,model_to_use,var_to_use,noise_to_use,optio
             proxy_seasonality_array = np.array(proxy_seasonality.split()).astype(int)
         #
         # Find the model gridpoint closest to the proxy location
-        if options['models_for_prior'] != ['DAMP12kTraCE']: model_data_for_pseudo = {'var':var_model, 'lat':lat_model, 'lon':lon_model, 'time_ndays':time_ndays_model}
+        if options['models_for_prior'] != ['DAMP21kTraCE']: model_data_for_pseudo = {'var':var_model, 'lat':lat_model, 'lon':lon_model, 'time_ndays':time_ndays_model}
         else:                                               model_data_for_pseudo = var_model_load
         proxy_data_for_pseudo = {'lats':[pseudoproxy_data[i]['geo_meanLat']], 'lons':[pseudoproxy_data[i]['geo_meanLon']], 'seasonality_array':[proxy_seasonality_array]}
         if pseudoproxy_data[i]['paleoData_interpretation'][0]['variable'].upper() in ['T','TEMP','TEMPERATURE']:
@@ -192,4 +192,3 @@ def make_pseudoproxies(proxies_to_use,model_to_use,var_to_use,noise_to_use,optio
     file_to_save.close()
     #
     print(' === COMPLETE ==')
-

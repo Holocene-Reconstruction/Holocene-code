@@ -18,7 +18,6 @@ def load_model_data(options):
     #
     model_dir          = options['data_dir']+'models/processed_model_data/'
     original_model_dir = options['data_dir']+'models/original_model_data/'
-    if options['models_for_prior'] == ['DAMP12kTraCE']: model_dir = options['data_dir']+'models/DAMP12kTraCE/processed/'
     age_range_model_txt = str(options['age_range_model'][1]-1)+'-'+str(options['age_range_model'][0])
     #
     # Load the model data
@@ -31,7 +30,7 @@ def load_model_data(options):
             print('Loading variable '+var_name+' for model '+str(i+1)+'/'+str(n_models)+': '+model)
             #
             # Get the model filename
-            if options['models_for_prior'] == ['DAMP12kTraCE']: model_filename = 'trace.DAMP12k.'+var_name+'.22ka_decavg_0ka.nc'
+            if model[:4] == 'DAMP': model_filename = model+'.'+var_name+'.22ka_decavg_0ka.nc' #See "Offline_LakeStatus.py"
             else: model_filename = model+'.'+age_range_model_txt+'BP.'+var_name+'.timeres_'+str(options['time_resolution'])+'.nc'
             #
             # Check to see if the file exists.  If not, create it.
@@ -45,6 +44,9 @@ def load_model_data(options):
             # Load selected variables
             model_individual = {}
             handle_model = xr.open_dataset(model_dir+model_filename,decode_times=False)
+            if options['assimilate_selected_region']: 
+                handle_model = handle_model.sel(lat=slice(options['assimilate_selected_region'][0],options['assimilate_selected_region'][1]))
+                handle_model = handle_model.sel(lon=slice(options['assimilate_selected_region'][2],options['assimilate_selected_region'][3]))
             if j == 0: # Vectors with no lat infomration such as itcz position will mess up these dims #TODO
                 model_data['lat']              = handle_model['lat'].values
                 model_data['lon']              = handle_model['lon'].values
@@ -59,7 +61,7 @@ def load_model_data(options):
             handle_model.close()
             #
             #Allow for more custom time range and resolution
-            age_bounds = np.arange(options['age_range_to_reconstruct'][0],options['age_range_to_reconstruct'][1]+1,options['time_resolution']) - 0.5
+            age_bounds = np.arange(options['age_range_to_reconstruct'][0],options['age_range_to_reconstruct'][1]+1,options['minimum_resolution']) - 0.5
             model_individual['age']     = (age_bounds[:-1]+age_bounds[1:])/2     
             model_individual[var_name]  = model_individual[var_name].groupby_bins("age",age_bounds).mean(dim='age').values
             #Rescale lake percentiles to reflect time resolution of reconstruction
@@ -132,11 +134,11 @@ def get_indices_for_prior(options,model_data,age):
         prior_age_window_recent = age - (options['prior_window']/2)
         prior_age_window_old    = age + (options['prior_window']/2)
         if prior_age_window_recent < prior_age_bound_recent:
-            prior_age_window_recent = prior_age_bound_recent
-            prior_age_window_old    = prior_age_bound_recent + options['prior_window']
+            prior_age_window_recent = np.min(age_model)-0.5
+            prior_age_window_old    = np.min(age_model)-0.5 + options['prior_window']
         elif prior_age_window_old > prior_age_bound_old:
-            prior_age_window_old    = prior_age_bound_old
-            prior_age_window_recent = prior_age_bound_old - options['prior_window']
+            prior_age_window_old    = np.max(age_model)+0.5 #prior_age_bound_old
+            prior_age_window_recent = np.max(age_model)+0.5  - options['prior_window']
     #
     indices_for_prior = np.where((age_model > prior_age_window_recent) & (age_model <= prior_age_window_old) & valid_model_inds)[0]
     #
