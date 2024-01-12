@@ -480,3 +480,9 @@ outputfile.close()
 endtime_total = time.time()  # End timer
 print('Total time: '+str('%1.2f' % ((endtime_total-starttime_total)/60))+' minutes')
 print(' === Reconstruction complete ===')
+
+#%%
+with open(output_dir+'options.txt', 'w') as f:
+    for line in options_list:
+        l=line.strip().split(':')
+        f.write(l[0]+','+l[1]+'\n')

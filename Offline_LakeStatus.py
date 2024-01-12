@@ -683,7 +683,7 @@ for scale in [3]:# range(0,4):
         ax.set_title(name[1]+' lake status '+'(mean RMSE = '+mean+')',fontsize=8)#
         cbar = plt.colorbar(p,orientation='horizontal',shrink=0.9,aspect=25)
         cbar.set_ticks(np.linspace(0,50,6))
-        cbar.set_ticklabels(['0\nNo Skill Loss','10','20','30','40','50\nHigh Skill Loss'],fontsize=8)
+        cbar.set_ticklabels(['0\nNo skill loss','10','20','30','40','50\nHigh skill loss'],fontsize=8)
         cbar.ax.set_title('\n Darker colors indicate poor skill if only one variable is considered',fontsize=8)
         #cbar.ax.set_title('RMSE with lake status with varying Q, P, & E',fontsize=8)#,y=-2.8)
         #
@@ -710,14 +710,14 @@ for scale in [2,1,0]:
     ax.plot(skill,skill.lat,linestyle='--',c=color,label="$P_{varying}$"+'\n'+str(int(agemax/1000))+'-'+str(int(agemin/1000))+' ka')
 
 ax.legend(loc='lower center',ncol=3,fontsize=7,bbox_to_anchor=(0.6, -0.4),columnspacing=1)
-ax.set_yticks(range(-90,91,30)); ax.set_ylim([-60,90]);  ax.set_ylabel('Latitude (°N)',fontsize=8);
+ax.set_yticks(range(-90,91,30)); ax.set_ylim([-60,90]);  ax.set_ylabel('latitude (°N)',fontsize=8);
 ax.set_xlim([0,50]); ax.set_xlabel('RMSE\n(percentile)',fontsize=8)
 ax.yaxis.grid(alpha=0.5,linestyle='-',color='k',lw=0.4)
 ax.tick_params(labelsize=8) 
 ax.yaxis.tick_right()
 ax.yaxis.set_label_position('right')
 ax.set_title('(c)',loc='left',fontsize=8)
-plt.title('\nZonal Mean RMSE',fontsize=8)
+plt.title('\nZonal mean RMSE',fontsize=8)
 plt.tight_layout()
 plt.savefig(wd2+'Figures/Fig8/'+'zonalmean.png', dpi=400)
 plt.show()
@@ -737,7 +737,7 @@ for var1 ,var2 in [['P/E','runoff']]:
             d1=model_data['precip'][:,0]/model_data['evap'][:,0].where(np.isfinite(mask)).sel(age=slice(agemax,agemin))
         else: 
             d1=model_data[var1][:,0].where(np.isfinite(mask)).sel(age=slice(agemax,agemin))
-        name = labs[count]+') Correlation between '+var1+' & '+var2
+        name = labs[count]+') Correlation between '+var1+' & '+var2+' values'
         #Data to plot
         skill= da_utils_ls.calcSkill(d1,model_data[var2][:,0],method=m,calcMean=False,dim='age',w=True)
         Pmean = 'proxy site mean = '+str(np.round(da_utils_ls.calcSkill(d1,(model_data[var2][:,0]).where(np.isfinite(proxyGrid)),method=m,w=False,calcMean=True,dim='age'),2))
@@ -759,7 +759,7 @@ for var1 ,var2 in [['P/E','runoff']]:
         cbar = plt.colorbar(p,orientation='vertical',shrink=0.6,aspect=15)
         cbar.set_ticks(np.linspace(-1,1,6))
         cbar.ax.tick_params(labelsize=6)
-        cbar.set_label('Correlation Coefficient\n('+str(agemax/1000)+'-'+str(agemin/1000)+' ka)',fontsize=7)#,y=-2.8)
+        cbar.set_label('correlation coefficient\n('+str(agemax/1000)+'-'+str(agemin/1000)+' ka)',fontsize=7)#,y=-2.8)
         plt.savefig(wd2+'Figures/FigS1/'+labs[count]+'_correlation_Q&PE_'+str(agemin)+'-'+str(agemax)+'_variable.png', dpi=400)
         plt.show()
         count+=1
@@ -800,7 +800,7 @@ for var1 ,var2 in [['P/E','runoff']]:
         d1=tests[scale]['LakeStatusQ']
         print(np.shape(d1))
         d2=tests[scale]['LakeStatusPE']
-        name = labs[count]+') Correlation between P/E & Runoff lake status'
+        name = labs[count]+') Correlation between P/E & runoff lake status'
         #Data to plot
         skill= da_utils_ls.calcSkill(d1,d2,method=m,calcMean=False,dim='age',w=True)
         Pmean = 'proxy site mean = ' +str(np.round(da_utils_ls.calcSkill(d1,d2,w=False,      method=m,calcMean=True,dim='age'),2))
@@ -822,7 +822,7 @@ for var1 ,var2 in [['P/E','runoff']]:
         cbar = plt.colorbar(p,orientation='vertical',shrink=0.6,aspect=15)
         cbar.set_ticks(np.linspace(-1,1,6))
         cbar.ax.tick_params(labelsize=6)
-        cbar.set_label('Correlation Coefficient\n('+str(agemax/1000)+'-'+str(agemin/1000)+' ka)',fontsize=7)#,y=-2.8)
+        cbar.set_label('correlation coefficient\n('+str(agemax/1000)+'-'+str(agemin/1000)+' ka)',fontsize=7)#,y=-2.8)
         plt.savefig(wd2+'Figures/FigS1/'+labs[count]+'_correlation_Q&PE_'+str(agemin)+'-'+str(agemax)+'_lakestatus.png', dpi=400)
         plt.show()
         count+=1

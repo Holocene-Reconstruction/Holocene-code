@@ -11,9 +11,9 @@ data_dir: '/Users/chrishancock/Library/CloudStorage/OneDrive-NorthernArizonaUniv
 exp_name: 'DAMP21ka' # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
 vars_to_reconstruct:   ['tas','LakeStatus','precip']  # The variables to reconstruct {['tas','precip']}.
 season_to_reconstruct: 'annual' # The season to reconstruct {'annual','jja','djf'}
-time_resolution:       1000      # The base temporal resolution / timestep for which to bin the proxy records and conduct the DA, in years {10}
+time_resolution:       500      # The base temporal resolution / timestep for which to bin the proxy records and conduct the DA, in years {10}
 minimum_resolution:    50       # The minimum temporal resolution to calculate covariances with, in years {10}
-maximum_resolution:    1000      # The maximum temporal resolution to assimilate proxies at, in years {1000}
+maximum_resolution:    500      # The maximum temporal resolution to assimilate proxies at, in years {1000}
 prior_window:          5000     # The size of the window for the time-varying prior, in years {'all',5010,1010}
 prior_mean_always_0:   False    # Is the mean of the prior allowed to change through time? {True,False}. If true, the mean of the prior is always 0.
 assimate_together:     False    # If False, assimile proxies one at a time (slower) {True,False}
@@ -44,7 +44,7 @@ reference_period:         [0,11700]  # This is only used if 'reconstruction_type
 age_range_model:          [0,22000]
 
 # Experimental options (These options are less well-tested or may not be fully implemented. Edit with care.)
-number_of_i: 10                  # Number of iterations which each sample a different subset of proxy records and model prior
+number_of_i: 1                  # Number of iterations which each sample a different subset of proxy records and model prior
 age_uncertain_method:  False     # If True, age uncertainty is incorporated in the proxy values and time-varying uncertainty; if False, the original method is used, with a single-value R value. This only works if "time_resolution" is set to 10 {True,False}
 reconstruction_type: 'relative'  # Reconstruction absolute or relative values {'relative','absolute'}.  If 'absolute', prior_mean_always_0 is ignored.
 model_processing:    None        # Processing the model prior {None,'linear_global','linear_spatial',None}
