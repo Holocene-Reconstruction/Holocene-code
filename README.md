@@ -1,10 +1,10 @@
 
 
-#Sevaral changes were made for the DAMP-21ka reconstruction. 
+# Sevaral changes were made for the DAMP-21ka reconstruction. 
 -The DA can be performed iteratively to sample different cliamte states in the model prior and different proxy records. Use the "number_of_i" paramater in the .yml file to define the number of iterations you would like
 -The Offline_LakeStatus.py file is used to calculate lake status values prior to the assimilation  
 -The reconsturction timestep ("time_resolution=500") can use higher resolution ("minimum_resolution=50") climate states to form the model prior. Define these paramaters in the .yml file.
-#THE TEXT BELOW IS FROM THE ERB ET AL (2022) RECONSTRUCTION
+# THE TEXT BELOW IS FROM THE ERB ET AL (2022) RECONSTRUCTION
 
 # README FOR HOLOCENE RECONSTRUCTION PROJECT
 Written by: Michael P. Erb, Contact: michael.erb@nau.edu
