@@ -4,6 +4,9 @@
 - The DA can be performed iteratively to sample different cliamte states in the model prior and different proxy records. Use the "number_of_i" paramater in the .yml file to define the number of iterations you would like
 - The Offline_LakeStatus.py file is used to calculate lake status values prior to the assimilation  
 - The reconsturction timestep ("time_resolution=500") can use higher resolution ("minimum_resolution=50") climate states to form the model prior. Define these paramaters in the .yml file.
+- A netcdf file which includes the prior, reconstruction, and proxy values is available at: https://github.com/clhancock/DAMP21ka/blob/main/
+    - The structure of this file is described in "5.1. Output variables" below.
+  
 # THE TEXT BELOW IS FROM THE ERB ET AL (2022) RECONSTRUCTION
 
 # README FOR HOLOCENE RECONSTRUCTION PROJECT
