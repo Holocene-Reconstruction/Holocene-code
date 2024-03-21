@@ -30,7 +30,7 @@ def load_model_data(options):
             print('Loading variable '+var_name+' for model '+str(i+1)+'/'+str(n_models)+': '+model)
             #
             # Get the model filename
-            if model[:4] == 'DAMP': model_filename = model+'.'+var_name+'.22ka_decavg_0ka.nc' #See "Offline_LakeStatus.py"
+            if model[:4] == 'DAMP': model_filename = model+'.'+var_name+'.21ka_decavg_0ka.nc' #See "Offline_LakeStatus.py"
             else: model_filename = model+'.'+age_range_model_txt+'BP.'+var_name+'.timeres_'+str(options['time_resolution'])+'.nc'
             #
             # Check to see if the file exists.  If not, create it.

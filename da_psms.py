@@ -133,13 +133,16 @@ def select_PSM(proxy_data,i):
     return(psm_selected)
 
 #A function to rescale values to percentile between 0-100
-def vals2percentile(invec):
+def vals2percentile(invec,rescale=True):
     if np.sum(np.isfinite(invec)) > 0:
         ranks = scipy.stats.mstats.rankdata(np.ma.masked_invalid(invec))                                        #Additional step to mask nan values
         ranks[ranks == 0] = np.nan
         if np.sum(np.isfinite(ranks)) > 1:
             ranks-=1
             ranks/= (np.sum(np.isfinite(ranks))-1)
+        if rescale:
+            ranks = ranks - np.nanmin(ranks)
+            ranks = ranks / np.nanmax(ranks)
         else: ranks*=np.NaN
     else: ranks=invec
     return(ranks*100)
