@@ -109,7 +109,7 @@ def select_PSM(proxy_data,i):
     psm_requirements = {}
     psm_requirements['get_tas']    = {'units':['degC']} #DAMP12k- change to make multiple options easier
     psm_requirements['get_precip'] = {'units':['mm/a'],'interp':['P']} #DAMP12k- change to make multiple options easier
-    psm_requirements['get_LakeStatus'] = {'archivetype':['Shoreline','LakeSediment','LakeDeposits']} #DAMP12k- change to make multiple options easier
+    psm_requirements['get_LakeStatus'] = {'proxytype':['LakeLevel']} #DAMP12k- change to make multiple options easier
     #psm_requirements['get_p_e']    = {'units':'mm/a','interp':'P-E'}  #TODO: Update this.
     #
     # Set the PSMs to use

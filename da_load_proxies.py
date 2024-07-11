@@ -168,7 +168,7 @@ def load_proxies(options):
             #
             # Extract the time series and use only those which are in Lakes21k
             all_ts_lakes21k = lipd.extractTs(D)
-            #
+            #%%
             # Filter timeseries
             ind_hydro = []
             for i in range(len(all_ts_lakes21k)):
@@ -191,24 +191,27 @@ def load_proxies(options):
                         compilations.append(all_ts_lakes21k[i]['paleoData_inCompilationBeta'][j]['compilationName'])
                         versions.append(all_ts_lakes21k[i]['paleoData_inCompilationBeta'][j]['compilationVersion'])
                     #
-                    if ('DAMP21k_Lakes' in compilations) and ('0_1_0' in str(versions)):
-                        # Make sure values are numeric and fix if negative interp     
-                        if all_ts_lakes21k[i]['paleoData_interpretation'][0]['direction'] == 'negative': 
-                               all_ts_lakes21k[i]['paleoData_values'] = [float(x)*-1 for x in all_ts_lakes21k[i]['paleoData_values']]
-                        else:
-                               all_ts_lakes21k[i]['paleoData_values'] = [float(x) for x in all_ts_lakes21k[i]['paleoData_values']]
-                        # Hydro12k data currently lack uncertainty values. Set them here. #TODO: Update this later.
-                        all_ts_lakes21k[i]['paleoData_temperature12kUncertainty'] = 30#round(np.nanmax(np.diff(np.unique(np.append(vals,[0,1])))),3) #Median difference between percentile ranks as unc. value
-                        all_ts_lakes21k[i]['paleoData_proxy'] = 'LakeLevel'
-                        # Add
-                        ind_hydro.append(i)
+                    if ('DAMP21k_Lakes' in compilations):
+                        versions = list(np.array(versions)[np.array(compilations)=='DAMP21k_Lakes'])
+                        if ('0_1_0' in versions):
+                            print(i)
+                            # Make sure values are numeric and fix if negative interp     
+                            if all_ts_lakes21k[i]['paleoData_interpretation'][0]['direction'] == 'negative': 
+                                   all_ts_lakes21k[i]['paleoData_values'] = [float(x)*-1 for x in all_ts_lakes21k[i]['paleoData_values']]
+                            else:
+                                   all_ts_lakes21k[i]['paleoData_values'] = [float(x) for x in all_ts_lakes21k[i]['paleoData_values']]
+                            # Hydro12k data currently lack uncertainty values. Set them here. #TODO: Update this later.
+                            all_ts_lakes21k[i]['paleoData_temperature12kUncertainty'] = 30#round(np.nanmax(np.diff(np.unique(np.append(vals,[0,1])))),3) #Median difference between percentile ranks as unc. value
+                            all_ts_lakes21k[i]['paleoData_proxy'] = 'LakeLevel'
+                            # Add
+                            ind_hydro.append(i)
             #
             all_ts_lakes21k = [all_ts_lakes21k[i] for i in ind_hydro]
             print('Number of hydro12k records selected:',len(all_ts_lakes21k))
             #
             proxy_ts = proxy_ts + all_ts_lakes21k
             collection_all = collection_all + ([proxy_dataset] * len(all_ts_lakes21k))
-        #
+        #%%
         elif proxy_dataset == 'pages2k':
             #
             # Load the PAGES2k proxies

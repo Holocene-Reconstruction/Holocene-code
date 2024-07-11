@@ -81,10 +81,11 @@ def plotBaseMap(ax,proj,lims):
 def calcSkill(method,x0,x1):
     ii = np.where((np.isfinite(x0)) & (np.isfinite(x1)))[0]
     if method == 'Corr':
-        out = scipy.stats.pearsonr(x0[ii],x1[ii])[0]
+        out = scipy.stats.pearsonr(x0[ii],x1[ii])
+        return([out[0],out[1]])
     elif method == 'CE':
         out = 1-(np.sum((x1[ii]-x0[ii])**2)/np.sum((x1[ii]-np.mean(x1[ii]))**2))
-    return(out)
+        return(out)
     
 
 
