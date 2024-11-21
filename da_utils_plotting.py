@@ -1,3 +1,86 @@
+
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Aug 19 16:21:44 2024
+
+@author: chrishancock
+"""
+combine = True 
+combine = False 
+if combine:
+    #Select results to plot ('' will load the most recent assimilation file)
+    import os
+    wd = '/Users/chrishancock/Library/CloudStorage/OneDrive-NorthernArizonaUniversity/Research/Manuscript/DAMP21k/' #changed
+    os.chdir(wd+'Holocene-code') #
+    
+    # Math Functions
+    import xarray as xr
+    #
+    fn1='holocene_recon_2024-08-19_16:17:36.064676_annual_DAMP21ka.6000loc.5000window.500.'
+    fn2='holocene_recon_2024-08-17_14:01:34.712255_annual_DAMP21ka.6000loc.5000window.500.'
+    # Load Data
+    handle1 = xr.open_dataset(wd+'/Data/results/'+fn1+'/'+fn1+'.nc',decode_times=False)#,chunks={})
+    handle2 = xr.open_dataset(wd+'/Data/results/'+fn2+'/'+fn2+'.nc',decode_times=False)#,chunks={})
+    print(handle1.nbytes)
+    remove= ['recon_tas_nh_mean','recon_tas_sh_mean','recon_tas_global_mean','prior_tas_global_mean',
+             'recon_LakeStatus_nh_mean','recon_LakeStatus_sh_mean','recon_LakeStatus_global_mean','prior_LakeStatus_global_mean',
+             'recon_precip_nh_mean','recon_precip_sh_mean','recon_precip_global_mean','prior_precip_global_mean',
+             'proxyrecon_ens']
+    remove2 = ['units_tas','kalman_tas','units_LakeStatus','kalman_LakeStatus','units_precip','kalman_precip',
+               'proxy_values','proxy_resolutions','proxy_uncertainty','proxy_metadata','options']
+    handle1 = handle1.drop_vars(remove)
+    handle1 = handle1.drop_vars(remove2)
+    #handle1['recon_tas_ens'] = handle1.recon_tas_ens.isel(ens_selected=slice(0, None, 2))
+    handle1 = handle1.isel(ens_selected=slice(0, None, 2))
+    handle1.nbytes
+    handle2 = handle2.drop_vars(remove)
+    handle2 = handle2.drop_vars(remove2)
+    handle2 = handle2.isel(ens_selected=slice(0, None, 2))
+    print(handle1.nbytes)
+    print(handle2.nbytes)
+    
+    #
+    combined_ds = xr.concat([handle1, handle2], dim='iteration')#,join="outer")
+    handle1.close()
+    handle2.close()
+    handle2 = xr.open_dataset(wd+'/Data/results/'+fn2+'/'+fn2+'.nc',decode_times=False)#,chunks={})
+    remove= ['recon_tas_nh_mean','recon_tas_sh_mean','recon_tas_global_mean','prior_tas_global_mean',
+             'recon_LakeStatus_nh_mean','recon_LakeStatus_sh_mean','recon_LakeStatus_global_mean','prior_LakeStatus_global_mean',
+             'recon_precip_nh_mean','recon_precip_sh_mean','recon_precip_global_mean','prior_precip_global_mean',
+             'proxyrecon_ens','recon_tas_ens','recon_tas_mean','prior_tas_ens',
+             'recon_precip_ens','recon_precip_mean','prior_precip_ens',
+             'recon_LakeStatus_ens','recon_LakeStatus_mean','prior_LakeStatus_ens',
+             ]
+    handle2 = handle2.drop_vars(remove)
+    print(combined_ds.nbytes)
+    #
+    combined_ds['proxy_values'] = handle2.proxy_values
+    combined_ds['proxy_resolutions'] = handle2.proxy_resolutions
+    combined_ds['proxy_uncertainty'] = handle2.proxy_uncertainty
+    combined_ds['proxy_metadata'] = handle2.proxy_metadata
+    combined_ds['options'] = handle2.options
+    combined_ds['units_tas'] = handle2.units_tas
+    combined_ds['units_precip'] = handle2.units_precip
+    combined_ds['units_LakeStatus'] = handle2.units_LakeStatus
+    combined_ds['kalman_tas'] = handle2.kalman_tas
+    combined_ds['kalman_precip'] = handle2.kalman_precip
+    combined_ds['kalman_LakeStatus'] = handle2.kalman_LakeStatus
+    
+    
+    
+    #combined_ds['units_precip'] = handle2.units_precip
+    print(combined_ds.nbytes)
+    handle2.close()
+    
+    combined_ds.to_netcdf(wd+'/Data/results/'+fn1+'/'+fn1+'15.nc')#, compute=True)
+    
+    
+
+
+
+
 #%% VISUALIZE THE OUTPUT - Load Data to plot
 import xarray as xr
 import numpy as np
@@ -13,7 +96,9 @@ import regionmask as rm
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import da_psms
 
-def loadDAMPresults(path,filename):
+path='/Users/chrishancock/Library/CloudStorage/OneDrive-NorthernArizonaUniversity/Research/Manuscript/DAMP21k/Data/results/'
+filename='DAMP21ka'
+def loadDAMPresults(path,filename,kalman=False):
     #Load Options
     options = {}
     with open(path+filename+'/options.txt','r') as file:
@@ -42,11 +127,12 @@ def loadDAMPresults(path,filename):
             'recon':   handle['recon_'+var_name+'_mean'],
             'priorEns':handle['prior_'+var_name+'_ens'],
             'reconEns':handle['recon_'+var_name+'_ens'],
-            'kalman'  :handle['kalman_'+var_name]
         }
+        if kalman: DAMPvals[var_name]['kalman'] = handle['kalman_'+var_name]
+
     #Proxy
     #Load Proxy Data
-    DAMPproxy={}
+    DAMPproxy={} #proxy_resolutions
     for key in ['proxies_assimilated','proxy_metadata','proxy_values','proxy_resolutions','ages','proxyprior_mean','proxyrecon_mean']: 
         DAMPproxy[key]=handle[key]
     #Reshape Proxy data

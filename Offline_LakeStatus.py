@@ -449,14 +449,14 @@ for scale in [3]:# range(0,4):
     if scale < 3: agemin,agemax=0+7000*scale,7000+7000*scale
     else: agemin,agemax=0,21000
     for i,t in enumerate(['Pconstant','PETconstant']):
-        if t == 'PETconstant': name = ['(a)','Contribution of precipitation ('+str(int(agemax/1000))+'-'+str(int(agemin/1000))+' ka)\n'+"$P_{varying}$"+" & "+"$E_{constant}$" ]
-        elif t == 'Pconstant': name = ['(b)','Contribution of evaporation ('+str(int(agemax/1000))+'-'+str(int(agemin/1000))+' ka)\n'+"$E_{varying}$"  +" & "+"$P_{constant}$" ]
+        if t == 'PETconstant': name = ['(a)','contribution of precipitation ('+str(int(agemax/1000))+'-'+str(int(agemin/1000))+' ka)\n'+"$P_{varying}$"+" & "+"$E_{constant}$" ]
+        elif t == 'Pconstant': name = ['(b)','contribution of evaporation ('+str(int(agemax/1000))+'-'+str(int(agemin/1000))+' ka)\n'+"$E_{varying}$"  +" & "+"$P_{constant}$" ]
         else: name = ''
         #Data to plot
         skill= da_utils_ls.calcSkill(tests[scale]['LakeStatus'],tests[scale][t],method=m,calcMean=False,dim='age',w=True)
         mean = str(np.round(da_utils_ls.calcSkill(tests[scale]['LakeStatus'],tests[scale][t],method=m,calcMean=True,dim='age'),1))
         #Set up plot
-        plt.figure(figsize=(4,3),dpi=400)
+        plt.figure(figsize=(4,3),dpi=600)
         plt.rc('font', **font)
         ax = plt.axes(projection=ccrs.Robinson()) 
         da_plot.plotBaseMap(ax,ccrs.Robinson(),lims=False)
@@ -466,10 +466,10 @@ for scale in [3]:# range(0,4):
         p=ax.pcolormesh(lon_cyclic,skill.lat,data_cyclic,transform=ccrs.PlateCarree(),vmin=0,vmax=50,cmap=cm)#levels=np.linspace(-0.3,0.3,11),extend='both',cmap='coolwarm')
         ax.set_title(name[0]+'\n',loc='left',fontsize=8)
         ax.set_title(name[1]+' lake status '+'(mean RMSE = '+mean+')',fontsize=8)#
-        cbar = plt.colorbar(p,orientation='horizontal',shrink=0.9,aspect=25)
+        cbar = plt.colorbar(p,orientation='horizontal',shrink=0.9,aspect=30)
         cbar.set_ticks(np.linspace(0,50,6))
-        cbar.set_ticklabels(['0\nNo skill loss','10','20','30','40','50\nHigh skill loss'],fontsize=8)
-        cbar.ax.set_title('\n Darker colors indicate poor skill if only one variable is considered',fontsize=8)
+        cbar.set_ticklabels(['no skill loss\n(high contribution)','10','20','30','40','50\nhigh skill loss\n (low contribution)'],fontsize=8)
+        cbar.ax.set_title('\n darker colors indicate poor skill if only one variable is considered',fontsize=8)
         #cbar.ax.set_title('RMSE with lake status with varying Q, P, & E',fontsize=8)#,y=-2.8)
         #
         plt.tight_layout()

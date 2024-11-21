@@ -114,7 +114,7 @@ np.random.seed(seed=(options['seed_for_proxy_choice']))
 n_ens_possible = len(da_load_models.get_indices_for_prior(options,model_data,0))
 
 # If using less than 100 percent for the ensemble members, randomly choose them here.
-seeds = np.random.choice(range(0,10000),n_iterations)
+seeds = np.random.choice(range(0,10000),n_iterations)#*2)[n_iterations:]
 n_ens = int(round(n_ens_possible*(options['percent_of_prior']/100)))
 ind_to_use = np.zeros((n_iterations,n_ens))
 for i,seed  in enumerate(seeds):
@@ -124,7 +124,7 @@ print(' --- Processing: Choosing '+str(options['percent_of_prior'])+'% of possib
 
 # Randomly select the ensemble members to save (max=100) to reduce output filesizes
 np.random.seed(seed=0)
-n_ens_to_save = min([n_ens,100])
+n_ens_to_save = min([n_ens,40])
 ind_to_save = np.random.choice(n_ens,n_ens_to_save,replace=False)
 ind_to_save = np.sort(ind_to_save)
 
@@ -431,7 +431,7 @@ for i,var_name in enumerate(options['vars_to_reconstruct']):
     output_prior_ens[var_name]    = outputfile.createVariable('prior_'+var_name+'_ens',        'f4',('ages','ens_selected','iteration','lat','lon',))
     output_prior_global[var_name] = outputfile.createVariable('prior_'+var_name+'_global_mean','f4',('ages','ens',))
     output_units[var_name]        = outputfile.createVariable('units_'+var_name,              'str',('units'))
-    output_kalman[var_name]       = outputfile.createVariable('kalman_'+var_name,              'f4',('ages','proxy','lat','lon',))
+    #output_kalman[var_name]       = outputfile.createVariable('kalman_'+var_name,              'f4',('ages','proxy','lat','lon',))
     output_recon_mean[var_name][:]   = recon_mean_grid[:,:,:,:,i] 
     output_recon_ens[var_name][:]    = recon_ens_grid[:,:,:,:,:,i] #
     output_recon_global[var_name][:] = np.mean(recon_global_all,axis=0)[:,:,i]
@@ -440,7 +440,7 @@ for i,var_name in enumerate(options['vars_to_reconstruct']):
     output_prior_ens[var_name][:]    = prior_ens_grid[:,:,:,:,:,i] #
     output_prior_global[var_name][:] = np.mean(prior_global_all,axis=0)[:,:,i]
     output_units[var_name][:]        = np.array(model_data['units'][var_name.split('_')[0]]) 
-    output_kalman[var_name][:]       = np.nanmean(proxies_kalman,axis=2)[:,:,:,:,i]
+    #output_kalman[var_name][:]       = np.nanmean(proxies_kalman,axis=2)[:,:,:,:,i]
     output_prior_mean[var_name][:]   = prior_mean_grid[:,:,:,:,i]
     np.split(model_data[var_name+'_'+options['season_to_reconstruct']],n_models_in_prior)
     #output_model_input[var_name][:]  = np.split(model_data[var_name+'_'+options['season_to_reconstruct']],n_models_in_prior)
