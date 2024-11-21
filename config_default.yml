@@ -28,7 +28,7 @@ assimilate_selected_HCproxies:  ['Lakes_DG'] #LakeStatus     #Provide a list of 
 assimilate_selected_region:     False #[15,65,190,300] #False #[0,35,0,50] #[25,55,230,300]#[0,35,0,50]#[25,55,230,300]  # Provide bounds to assimilate only proxies in a given region {False, [lat_min,lat_max,lon_min,lon_max]} using lons between 0-360.
 assimilate_selected_resolution: False  # Assimilate proxies with median resolutions in a given band {False, [0,100]}.  Bounds are [inclusive,exclusive].
 percent_to_assimilate:          70     # What percentage of proxies to assimilate {100}
-seed_for_proxy_choice:          5      #  This seed is only used if 'percent_to_assimilate' is below 100 {0}
+seed_for_proxy_choice:          0      #  This seed is only used if 'percent_to_assimilate' is below 100 {0}
 
 # Models for prior {['hadcm3_regrid','trace_regrid','famous_regrid','DAMP_TraCE'.'DAMP_HadCM']}
 models_for_prior: ['DAMP_TraCE_regrid','DAMP_HadCM_regrid']
