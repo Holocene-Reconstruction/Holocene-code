@@ -14,6 +14,82 @@
 
 import numpy as np
 
+"""
+value1_2d = np.reshape(np.squeeze(cov_over_var)[:n_varslatlon],            (n_lat,n_lon))
+value2_2d = np.reshape(np.squeeze(cov_over_var_with_locrad)[:n_varslatlon],(n_lat,n_lon))
+value3_2d = np.reshape(np.squeeze(kmat)[:n_varslatlon],                    (n_lat,n_lon))
+"""
+
+#Xb, obvalue, Ye, ob_err, inflate = Xb,proxy_value,proxy_modelbased_estimates,proxy_uncertainty,None
+def enkf_update_array_explore(Xb, obvalue, Ye, ob_err, loc=None, inflate=None):
+    # Get ensemble size from passed array: Xb has dims [state vect.,ens. members]
+    Nens = Xb.shape[1]
+
+    # ensemble mean background and perturbations
+    xbm = np.mean(Xb,axis=1)
+    Xbp = np.subtract(Xb,xbm[:,None])  # "None" means replicate in this dimension
+
+    # ensemble mean and variance of the background estimate of the proxy 
+    mye   = np.mean(Ye)
+    varye = np.var(Ye,ddof=1)
+
+    # lowercase ye has ensemble-mean removed 
+    ye = np.subtract(Ye, mye)
+
+    # innovation
+    try:
+        innov = obvalue - mye
+    except:
+        print('innovation error. obvalue = ' + str(obvalue) + ' mye = ' + str(mye))
+        print('returning Xb unchanged...')
+        return Xb
+    
+    # innovation variance (denominator of serial Kalman gain)
+    kdenom = (varye + ob_err)
+
+    # numerator of serial Kalman gain (cov(x,Hx))
+    kcov = np.dot(Xbp,np.transpose(ye)) / (Nens-1)
+
+    # Option to inflate the covariances by a certain factor
+    #if inflate is not None:
+    #    kcov = inflate * kcov # This implementation is not correct. To be revised later.
+    cov_over_var = np.divide(kcov, varye)
+
+    # Option to localize the gain
+    if loc is not None:
+        kcov = np.multiply(kcov,loc) 
+   
+    # Kalman gain
+    kmat_to_save = np.divide(kcov, kdenom)
+    cov_over_var_with_locrad = np.divide(kcov, varye)
+
+    # update ensemble mean
+    xam = xbm + np.multiply(kmat_to_save,innov)
+
+    # update the ensemble members using the square-root approach
+    beta = 1./(1. + np.sqrt(ob_err/(varye+ob_err)))
+    kmat = np.multiply(beta,kmat_to_save)
+    ye   = np.array(ye)[np.newaxis]
+    kmat = np.array(kmat)[np.newaxis]
+    Xap  = Xbp - np.dot(kmat.T, ye)
+
+    # full state
+    Xa = np.add(xam[:,None], Xap)
+
+    # if masked array, making sure that fill_value = nan in the new array 
+    if np.ma.isMaskedArray(Xa): np.ma.set_fill_value(Xa, np.nan)
+
+    # Reshape and check variables
+    cov_over_var             = np.array(cov_over_var)[np.newaxis]
+    cov_over_var             = np.array(cov_over_var)[np.newaxis]
+    cov_over_var_with_locrad = np.array(cov_over_var_with_locrad)[np.newaxis]
+    kmat_to_save             = np.array(kmat_to_save)[np.newaxis]
+    #print(Xa.shape,kmat.shape,cov_over_var.shape,cov_over_var_with_locrad.shape)
+    
+    # Return the full state
+    return Xa,kmat_to_save,cov_over_var,cov_over_var_with_locrad,varye
+
+
 def enkf_update_array(Xb, obvalue, Ye, ob_err, loc=None, inflate=None):
     """
     Function to do the ensemble square-root filter (EnSRF) update

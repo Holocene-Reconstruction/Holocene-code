@@ -30,7 +30,59 @@ def damup(Xb,HXb,R,y):
     #     Xam = analysis mean [n_state]
     #
     # Number of ensemble members
-    nens = Xb.shape[1] 
+    nens = Xb.shape[1]
+    #
+    # Decompose Xb and HXb into mean and perturbations (for Eqs. 4 & Sec 3)
+    Xbm = np.mean(Xb,axis=1)
+    Xbp = Xb - Xbm[:,None]
+    #
+    HXbm = np.mean(HXb,axis=1)
+    HXbp = HXb - HXbm[:,None]
+    #
+    # Kalman gain for mean and matrix covariances (Eq. 2)
+    PbHT   = np.dot(Xbp, np.transpose(HXbp))/(nens-1)
+    HPbHTR = np.dot(HXbp,np.transpose(HXbp))/(nens-1)+R
+    K = np.dot(PbHT,np.linalg.inv(HPbHTR))
+    #
+    # Kalman gain for the perturbations (Eq. 10)
+    sHPbHTR = sqrtm(HPbHTR)
+    sR      = sqrtm(R)
+    Ktn = np.dot(PbHT,np.transpose(np.linalg.inv(sHPbHTR)))
+    Ktd = np.linalg.inv(sHPbHTR+sR)
+    Kt = np.dot(Ktn,Ktd)
+    #
+    # Update mean and perturbations (Eq. 4 & Sec 3)
+    Xam = Xbm + np.dot(K,(y-HXbm))
+    Xap = Xbp - np.dot(Kt,HXbp)
+    #
+    # Reconstitute the full ensemble state vector
+    Xa = Xap + Xam[:,None]
+    #
+    # Output both the full ensemble and the ensemble mean
+    return Xa,Xam,K
+
+
+# A function to do the data assimilation.  It is based on '2_darecon.jl',
+# originally written by Nathan Steiger.
+#Xb,HXb,R,y = Xb,np.transpose(model_estimates_selected),R_diagonal,proxy_values_selected
+def damup_explore(Xb,HXb,R,y):
+    #
+    # Data assimilation matrix update step, assimilating all observations
+    # for a given time step at once. Variables with their dimensions are 
+    # indicated by [dim1 dim2] given below. This set of update equations
+    # follow those from Whitaker and Hamill 2002: Eq. 2, 4, 10, & Sec 3.
+    # ARGUMENTS:
+    #     Xb = background (prior) [n_state, n_ens]
+    #     HXb = model estimate of observations H(Xb) [n_proxies_valid, n_ens]
+    #     y = observation (with implied noise) [n_proxies_valid]
+    #     R = diagonal observation error variance matrix [n_proxies_valid, n_proxies_valid]
+    #     infl = inflation factor [scalar] **Note: modify code to include**
+    # RETURNS:
+    #     Xa = analysis (posterior) [n_state, n_ens]
+    #     Xam = analysis mean [n_state]
+    #
+    # Number of ensemble members
+    nens = Xb.shape[1]
     #
     # Decompose Xb and HXb into mean and perturbations (for Eqs. 4 & Sec 3)
     Xbm = np.mean(Xb,axis=1)
@@ -72,6 +124,7 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
     elif (str(seasonality_txt).lower() == 'tann; 2'):                       seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'year'):                          seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == '1 2 3 4 5 6 7 8 9 10 11 12'):    seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
+    elif (str(seasonality_txt).lower() == '1,2,3,4,5,6,7,8,9,10,11,12'):    seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'subannual'):                     seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'nan'):                           seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
     elif (str(seasonality_txt).lower() == 'not specified'):                 seasonality = '1 2 3 4 5 6 7 8 9 10 11 12'
@@ -224,6 +277,52 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option):
             seasonality = seasonality_txt
     #
     return seasonality
+
+
+# A function to find the proxy records which match the requested seasonality criteria
+def find_seasons(proxy_data,options):
+    #
+    # Initialize an array as True everywhere
+    n_proxies = proxy_data['values_binned'].shape[0]
+    proxy_ind_of_seasonality = np.full((n_proxies),True,dtype=bool)
+    #
+    # Get indicies of all proxies with summer+ or winter+ seasonality
+    ind_seasonplus = [i for i, seasontype in enumerate(proxy_data['metadata'][:,5]) if seasontype in ['summer+','winter+']]
+    #
+    # For all records with summer+ or winter+ seasonality, check which proxies share the same
+    # dataSetName, archive type, and proxy type. Mark the ones I don't want as False in the proxy_ind variable.
+    for proxy_ind in ind_seasonplus:
+        #
+        # Find proxies with matching dataSetName, archivetype, and proxytype
+        ind_matching = np.where((proxy_data['metadata'][:,0] == proxy_data['metadata'][proxy_ind,0]) &
+                                (proxy_data['archivetype']   == proxy_data['archivetype'][proxy_ind]) &
+                                (proxy_data['proxytype']     == proxy_data['proxytype'][proxy_ind]))[0]
+        #
+        # Get indices of summer+, annual, and winter+ records
+        ind_summerplus = [ind for ind in ind_matching if proxy_data['metadata'][ind,5] == 'summer+']
+        ind_annual     = [ind for ind in ind_matching if proxy_data['metadata'][ind,5] == 'annual']
+        ind_winterplus = [ind for ind in ind_matching if proxy_data['metadata'][ind,5] == 'winter+']
+        #
+        # Of the proxies found above, select the one which best matches the requested seasonality
+        if (((options['assimilate_selected_seasons'] == 'jja_preferred') & (proxy_data['lats'][proxy_ind] >= 0)) or ((options['assimilate_selected_seasons'] == 'djf_preferred') & (proxy_data['lats'][proxy_ind] < 0))):
+            #
+            # Prioritize summer, then annual, then winter
+            if len(ind_summerplus) > 0:
+                proxy_ind_of_seasonality[ind_annual]     = False
+                proxy_ind_of_seasonality[ind_winterplus] = False
+            elif len(ind_annual) > 0:
+                proxy_ind_of_seasonality[ind_winterplus] = False
+        #
+        elif (((options['assimilate_selected_seasons'] == 'djf_preferred') & (proxy_data['lats'][proxy_ind] >= 0)) or ((options['assimilate_selected_seasons'] == 'jja_preferred') & (proxy_data['lats'][proxy_ind] < 0))):
+            #
+            # Prioritize winter, then annual, then summer
+            if len(ind_winterplus) > 0:
+                proxy_ind_of_seasonality[ind_annual]     = False
+                proxy_ind_of_seasonality[ind_summerplus] = False
+            elif len(ind_annual) > 0:
+                proxy_ind_of_seasonality[ind_summerplus] = False
+    #
+    return proxy_ind_of_seasonality
 
 
 # A function to regrid an age-month-lat-lon array to a standardized grid

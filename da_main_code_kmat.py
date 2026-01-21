@@ -28,7 +28,7 @@ starttime_total = time.time() # Start timer
 
 # Use a given config file.  If not given, use config_default.yml.
 if len(sys.argv) > 1: config_file = sys.argv[1]
-else:                 config_file = 'config.yml'
+else:                 config_file = 'config_kmat.yml'
 if len(sys.argv) > 2: seed_overwrite = sys.argv[2]
 else:                 seed_overwrite = 'None'
 
@@ -154,6 +154,10 @@ prior_global_all  = np.zeros((n_ages,n_ens,n_vars));            prior_global_all
 prior_proxy_means = np.zeros((n_ages,n_proxies));               prior_proxy_means[:] = np.nan
 prior_proxy_ens   = np.zeros((n_ages,n_ens_to_save,n_proxies)); prior_proxy_ens[:]   = np.nan
 proxies_to_assimilate_all = np.zeros((n_ages,n_proxies));       proxies_to_assimilate_all[:] = np.nan
+kmat_all                     = np.zeros((n_ages,n_state,n_proxies)); kmat_all[:]                     = np.nan
+cov_over_var_all             = np.zeros((n_ages,n_state,n_proxies)); cov_over_var_all[:]             = np.nan
+cov_over_var_with_locrad_all = np.zeros((n_ages,n_state,n_proxies)); cov_over_var_with_locrad_all[:] = np.nan
+varye_all                    = np.zeros((n_ages,n_proxies));         varye_all[:]                    = np.nan
 
 
 #%% FIND PROXIES TO ASSIMILATE AND MORE
@@ -330,9 +334,13 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
                 if options['localization_radius'] != 'None': loc = proxy_localization_all[proxy_ind_to_assimilate[proxy],:]
                 else: loc = None
                 #
-                # Do data assimilation
-                Xb = da_utils_lmr.enkf_update_array(Xb,proxy_value,proxy_modelbased_estimates,proxy_uncertainty,loc=loc,inflate=None)
+                # Do data assimilation - to calculate the Kalman filter equally, the prior isn't actually updated.
+                _,kmat,cov_over_var,cov_over_var_with_locrad,varye = da_utils_lmr.enkf_update_array_explore(Xb,proxy_value,proxy_modelbased_estimates,proxy_uncertainty,loc=loc,inflate=None)
                 if np.isnan(Xb).all(): print(' !!! ERROR.  ALL RECONSTRUCTION VALUES SET TO NAN.  Age='+str(age)+', proxy number='+str(proxy)+' !!!')
+                kmat_all[age_counter,:,proxy_ind_to_assimilate[proxy]]                     = np.squeeze(kmat)
+                cov_over_var_all[age_counter,:,proxy_ind_to_assimilate[proxy]]             = np.squeeze(cov_over_var)
+                cov_over_var_with_locrad_all[age_counter,:,proxy_ind_to_assimilate[proxy]] = np.squeeze(cov_over_var_with_locrad)
+                varye_all[age_counter,proxy_ind_to_assimilate[proxy]]                      = varye
             #
             # Set the final values
             Xa = Xb
@@ -378,6 +386,9 @@ recon_mean_grid = np.reshape(recon_mean[:,:n_varslatlon], (n_ages,              
 recon_ens_grid  = np.reshape(recon_ens[:,:,:n_varslatlon],(n_ages,n_ens_to_save,n_vars,n_lat,n_lon))
 prior_mean_grid = np.reshape(prior_mean[:,:n_varslatlon], (n_ages,              n_vars,n_lat,n_lon))
 prior_ens_grid  = np.reshape(prior_ens[:,:,:n_varslatlon],(n_ages,n_ens_to_save,n_vars,n_lat,n_lon))
+kmat_all_grid                     = np.reshape(kmat_all[:,:n_varslatlon,:],                    (n_ages,n_vars,n_lat,n_lon,n_proxies))
+cov_over_var_all_grid             = np.reshape(cov_over_var_all[:,:n_varslatlon,:],            (n_ages,n_vars,n_lat,n_lon,n_proxies))
+cov_over_var_with_locrad_all_grid = np.reshape(cov_over_var_with_locrad_all[:,:n_varslatlon,:],(n_ages,n_vars,n_lat,n_lon,n_proxies))
 
 # Put the proxy reconstructions into separate variables
 recon_mean_proxies = recon_mean[:,n_varslatlon:]
@@ -411,6 +422,7 @@ outputfile.createDimension('metadata',    proxy_data['metadata'].shape[1])
 outputfile.createDimension('exp_options', n_options)
 
 output_recon_mean,output_recon_ens,output_recon_global,output_recon_nh,output_recon_sh,output_prior_mean,output_prior_ens,output_prior_global = {},{},{},{},{},{},{},{}
+output_kmat,output_cov_over_var,output_cov_over_var_with_locrad = {},{},{}
 for i,var_name in enumerate(options['vars_to_reconstruct']):
     output_recon_mean[var_name]   = outputfile.createVariable('recon_'+var_name+'_mean',       'f4',('ages','lat','lon',))
     output_recon_ens[var_name]    = outputfile.createVariable('recon_'+var_name+'_ens',        'f4',('ages','ens_selected','lat','lon',))
@@ -420,6 +432,9 @@ for i,var_name in enumerate(options['vars_to_reconstruct']):
     output_prior_mean[var_name]   = outputfile.createVariable('prior_'+var_name+'_mean',       'f4',('ages','lat','lon',))
     output_prior_ens[var_name]    = outputfile.createVariable('prior_'+var_name+'_ens',        'f4',('ages','ens_selected','lat','lon',))
     output_prior_global[var_name] = outputfile.createVariable('prior_'+var_name+'_global_mean','f4',('ages','ens',))
+    output_kmat[var_name]                     = outputfile.createVariable('kmat_'+var_name+'_all',                    'f4',('ages','lat','lon','proxy',))
+    output_cov_over_var[var_name]             = outputfile.createVariable('cov_over_var_'+var_name+'_all',            'f4',('ages','lat','lon','proxy',))
+    output_cov_over_var_with_locrad[var_name] = outputfile.createVariable('cov_over_var_with_locrad_'+var_name+'_all','f4',('ages','lat','lon','proxy',))
     output_recon_mean[var_name][:]   = recon_mean_grid[:,i,:,:]
     output_recon_ens[var_name][:]    = recon_ens_grid[:,:,i,:,:]
     output_recon_global[var_name][:] = recon_global_all[:,:,i]
@@ -428,6 +443,9 @@ for i,var_name in enumerate(options['vars_to_reconstruct']):
     output_prior_mean[var_name][:]   = prior_mean_grid[:,i,:,:]
     output_prior_ens[var_name][:]    = prior_ens_grid[:,:,i,:,:]
     output_prior_global[var_name][:] = prior_global_all[:,:,i]
+    output_kmat[var_name][:]                     = kmat_all_grid[:,i,:,:,:]
+    output_cov_over_var[var_name][:]             = cov_over_var_all_grid[:,i,:,:,:]
+    output_cov_over_var_with_locrad[var_name][:] = cov_over_var_with_locrad_all_grid[:,i,:,:,:]
 
 output_proxyprior_mean     = outputfile.createVariable('proxyprior_mean',    'f4',('ages','proxy',))
 output_proxyprior_ens      = outputfile.createVariable('proxyprior_ens',     'f4',('ages','ens_selected','proxy',))
@@ -444,6 +462,7 @@ output_metadata            = outputfile.createVariable('proxy_metadata',     'st
 output_options             = outputfile.createVariable('options',            'str',('exp_options',))
 output_proxies_selected    = outputfile.createVariable('proxies_selected',   'i1',('proxy',))
 output_proxies_assimilated = outputfile.createVariable('proxies_assimilated','i1',('ages','proxy',))
+output_varye_all           = outputfile.createVariable('proxy_variance',     'f4',('ages','proxy',))
 
 output_proxyprior_mean[:]     = prior_proxy_means
 output_proxyprior_ens[:]      = prior_proxy_ens
@@ -459,6 +478,7 @@ output_metadata[:]            = proxy_data['metadata']
 output_options[:]             = np.array(options_list)
 output_proxies_selected[:]    = proxy_ind_selected.astype(int)
 output_proxies_assimilated[:] = proxies_to_assimilate_all.astype(int)
+output_varye_all[:]           = varye_all
 
 outputfile.title = 'Holocene climate reconstruction'
 outputfile.close()

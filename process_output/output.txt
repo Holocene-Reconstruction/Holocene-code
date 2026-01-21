@@ -1,0 +1,3 @@
+Processing locrad_5k_temp_precip. files found: 10
+/projects/pd_lab/mpe32/conda/envs/python3_new/lib/python3.9/site-packages/xarray/core/concat.py:527: FutureWarning: unique with argument that is not not a Series, Index, ExtensionArray, or np.ndarray is deprecated and will raise in a future version.
+  common_dims = tuple(pd.unique([d for v in vars for d in v.dims]))
