@@ -11,6 +11,7 @@ library(geoChronR)
 library(ggplot2)
 library(tidyverse)
 library(data.table)
+library(writexl)
 
 proxy_dir <- 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/proxies/dropbox/'
 da_dir    <- 'C:/Users/erbm/Documents/data_climate/data_assimilation/proxies/ecoclimate/'
@@ -196,3 +197,4 @@ metadata_selected <- metadata_selected[ind_selected_step2,]
 # Save filtered data
 #saveRDS(ts_selected,file=paste0(da_dir,'ecoclimate_selected_ts_',data_date,'.rds'))
 saveRDS(metadata_selected,file=paste0(da_dir,'ecoclimate_selected_metadata_',data_date,'.rds'))
+write.csv(metadata_selected$tsid,file=paste0(da_dir,'ecoclimate_selected_metadata_',data_date,'.csv'))

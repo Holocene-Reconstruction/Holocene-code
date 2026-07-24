@@ -14,7 +14,7 @@ import geopy.distance
 import pandas as pd
 
 plt.style.use('ggplot')
-save_instead_of_plot = True
+save_instead_of_plot = False
 
 # Settings
 n_points_necessary = 10
@@ -108,6 +108,8 @@ for i in range(n_proxies):
             proxy_id_2 = filtered_ts[j]['dataSetName'][0]+' - '+filtered_ts[j]['paleoData_TSid'][0]
             data1 = np.array(filtered_ts[i]['paleoData_values'])
             data2 = np.array(filtered_ts[j]['paleoData_values'])
+            ages1 = np.array(filtered_ts[i]['age'])
+            ages2 = np.array(filtered_ts[j]['age'])
             try:    variable1 = str(filtered_ts[i]['paleoData_variableName'][0])
             except: variable1 = ''
             try:    variable2 = str(filtered_ts[j]['paleoData_variableName'][0])
@@ -116,6 +118,18 @@ for i in range(n_proxies):
             except: season1 = ''
             try:    season2 = str(filtered_ts[j]['interpretation1_seasonality'][0])
             except: season2 = ''
+            #
+            # Sort the ages, then reassign them to dataframes
+            ind_sorted1 = np.argsort(ages1)
+            data1 = data1[ind_sorted1]
+            ages1 = ages1[ind_sorted1]
+            ind_sorted2 = np.argsort(ages2)
+            data2 = data2[ind_sorted2]
+            ages2 = ages2[ind_sorted2]
+            filtered_ts[i]['paleoData_values'] = data1
+            filtered_ts[j]['paleoData_values'] = data2
+            filtered_ts[i]['age'] = ages1
+            filtered_ts[j]['age'] = ages2
             #
             # Figure out which set the possible match belongs to
             if   np.array_equal(data1,data2):                                    set_txt = 'set1_values_same'
@@ -150,7 +164,7 @@ for i in range(n_proxies):
             ax.legend()
             ax.set_ylabel('Value')
             ax.set_xlabel('Age B.P')
-            ax.set_xlim(12000,0)
+            ax.set_xlim(22000,0)
             ax.set_title('Possible duplicates. Correlation='+str('%1.5f' % correlations[i,j])+'. N_points_overlap='+str(sum(valid_data)))
             #
             # Metadata display parameters
