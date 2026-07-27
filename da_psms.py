@@ -125,9 +125,62 @@ def get_model_values_nearest(model_data,proxy_data,var_name,i,verbose=False):
     return var_model_location_season
 
 
-# A function to do rank-based comparison with temperature data
+# A function to do rank-based comparison with model data
 #var_name,verbose = 'tas',False
 def rank_based(model_data,proxy_data,var_name,i,options,verbose=False):
+    #
+    age_model    = model_data['age']
+    proxy_ages   = proxy_data['age_centers']
+    proxy_values = proxy_data['values_binned'][i]
+    var_model_location_season = get_model_values_bilinear(model_data,proxy_data,var_name,i)
+    #
+    # Get the model values corresponding to the valid data of the proxy
+    logical_proxy_valid = np.isfinite(proxy_values)
+    if sum(logical_proxy_valid) == 0: return proxy_values,proxy_values
+    proxy_values_valid = proxy_values[logical_proxy_valid]
+    proxy_ages_valid   = proxy_ages[logical_proxy_valid]
+    ind_model_selected = [ind for ind in range(len(age_model)) if age_model[ind] in proxy_ages_valid]
+    var_model_selected = var_model_location_season[ind_model_selected]
+    #
+    if sum(np.isfinite(proxy_values_valid)) != sum(np.isfinite(var_model_selected)): print("WARNING: Rank-based PSM: Number of indices don't match")
+    #
+    # Calculate ranks for the proxy and prior data
+    ranks_proxy_values = rankdata(proxy_values_valid)
+    ranks_prior_values = rankdata(var_model_selected, method="ordinal")
+    #
+    # Assign ranked values from the model to the proxy
+    proxy_values_valid_new = np.zeros((len(proxy_values_valid))); proxy_values_valid_new[:] = np.nan
+    for counter in range(len(proxy_values_valid_new)):
+        rank_selected = ranks_proxy_values[counter]
+        if rank_selected.is_integer():
+            ind_of_ranked_prior = np.where(ranks_prior_values == rank_selected)[0]
+            proxy_values_valid_new[counter] = var_model_selected[ind_of_ranked_prior]
+        else:
+            rank_lower  = np.floor(rank_selected)
+            rank_higher = np.ceil(rank_selected)
+            ind_rank_lower  = np.where(ranks_prior_values == rank_lower)[0]
+            ind_rank_higher = np.where(ranks_prior_values == rank_higher)[0]
+            ind_combined = np.concatenate((ind_rank_lower,ind_rank_higher),axis=0)
+            proxy_values_valid_new[counter] = np.mean(var_model_selected[ind_combined])
+    #
+    # Put the proxy data into the same length array as it was originally
+    proxy_values_new = np.zeros((len(proxy_values))); proxy_values_new[:] = np.nan
+    proxy_values_new[logical_proxy_valid] = proxy_values_valid_new
+    #
+    """
+    import matplotlib.pyplot as plt
+    plt.plot(proxy_ages,proxy_values,'k-')
+    plt.plot(proxy_ages,proxy_values_new,'b-')
+    plt.title("Original")
+    plt.show()
+    """
+    #
+    return var_model_location_season,proxy_values_new
+
+
+# A function to do rank-based comparison with model data
+#var_name,verbose = 'tas',False
+def rank_based_older(model_data,proxy_data,var_name,i,options,verbose=False):
     #
     age_model    = model_data['age']
     proxy_ages   = proxy_data['age_centers']

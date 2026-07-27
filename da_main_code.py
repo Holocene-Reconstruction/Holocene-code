@@ -28,8 +28,8 @@ import da_psms
 import da_plot_results
 
 # Make maps of proxy-by-proxy updates
-#age_ind_to_map = False
-age_ind_to_map = [0,100,200]
+age_ind_to_map = False
+#age_ind_to_map = [0,100,200]
 
 
 #%% SETTINGS
@@ -74,9 +74,10 @@ proxy_ts,collection_all = da_load_proxies.load_proxies(options)
 
 # Print summaries of proxy data
 # (Use this to look for useful proxies and iterate the experimental design)
+#da_utils.print_proxy_metadata(proxy_ts,'interpretation1_variable')
+#da_utils.print_proxy_metadata(proxy_ts,'paleoData_variableName')
 #da_utils.print_proxy_metadata(proxy_ts,'archiveType')
 #da_utils.print_proxy_metadata(proxy_ts,'paleoData_proxy')
-#da_utils.print_proxy_metadata(proxy_ts,'interpretation1_variable')
 #da_utils.print_proxy_metadata(proxy_ts,'paleoData_units')
 #da_utils.print_proxy_metadata(proxy_ts,'interpretation1_direction')
 

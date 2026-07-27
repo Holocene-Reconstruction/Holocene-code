@@ -66,7 +66,7 @@ def filter_proxies_and_set_psms(proxy_ts,collection_all,options):
     n_combinations = len(options['proxies_to_use'])
     for i in range(n_combinations):
         #
-        combination_selected = options['proxies_to_use'][0]
+        combination_selected = options['proxies_to_use'][i]
         chosen_interp   = combination_selected.split('|')[0].split(',')
         chosen_variable = combination_selected.split('|')[1].split(',')
         chosen_archive  = combination_selected.split('|')[2].split(',')
