@@ -9,7 +9,7 @@ os.chdir('C:/Users/erbm/Documents/GitHub/Holocene-code/')
 
 # Import libraries
 import sys
-sys.path.append('C:/Users/erbm/Dropbox/Academia/AppState/Project_EcoClimate_Sensitivity/analysis/utils/')
+sys.path.append('C:/Users/erbm/Dropbox/Academia/NAU/Project_EcoClimate_Sensitivity/analysis/utils/')
 import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs

@@ -278,6 +278,13 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
         elif options['assign_seasonality'] == 'djf':
             proxy_seasonality_array = np.array([-12,1,2])
         #
+        # In the interpretation direction is negative, flip the proxy data
+        try:    interp_direction = proxy_ts_selected[i]['interpretation1_direction'][0]
+        except: interp_direction = 'Not given'
+        if interp_direction.lower() == "negative":
+            print("Interpretation direction is negative. Flipping proxy")
+            proxy_values_12ka = -1 * proxy_values_12ka
+        #
         # Save proxy data (y and ya)
         proxy_data['values_binned'][i,:]     = proxy_values_12ka
         proxy_data['resolution_binned'][i,:] = proxy_res_12ka
@@ -286,8 +293,6 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
         # Save proxy metdata
         try:    proxy_type = proxy_ts_selected[i]['paleoData_proxy'][0]
         except: proxy_type = 'Not given'
-        try:    interp_direction = proxy_ts_selected[i]['interpretation1_direction'][0]
-        except: interp_direction = 'Not given'
         proxy_data['archivetype'].append(proxy_ts_selected[i]['archiveType'][0])
         proxy_data['proxytype'].append(proxy_type)
         proxy_data['units'].append(data_units)
@@ -340,10 +345,9 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
 
 # Average records within 1 km of each other
 def average_nearby_records(proxy_data,options):
-    print('NOTE: Proxy averaging not yet implmented')
-    return proxy_data
+    #print('NOTE: Proxy averaging not yet implmented')
+    #return proxy_data
     #
-    """
     # Settings
     distance_threshhold = 1  # Distance threshhold in km
     #
@@ -387,7 +391,7 @@ def average_nearby_records(proxy_data,options):
     proxy_data_new['metadata']          = np.zeros((n_groups,11),dtype=object); proxy_data_new['metadata'][:]          = np.nan
     proxy_data_new['lats']              = np.zeros((n_groups));                 proxy_data_new['lats'][:]              = np.nan
     proxy_data_new['lons']              = np.zeros((n_groups));                 proxy_data_new['lons'][:]              = np.nan
-    proxy_data_new['uncertainty']       = []
+    proxy_data_new['uncertainty']       = np.zeros((n_groups));                 proxy_data_new['uncertainty'][:]       = np.nan
     proxy_data_new['archivetype']       = []
     proxy_data_new['proxytype']         = []
     proxy_data_new['units']             = []
@@ -400,22 +404,38 @@ def average_nearby_records(proxy_data,options):
     i = 0
     for i in range(n_groups):
         ind_to_mean = groups[i]
+        # Compute mean of some fields
+        proxy_data_new['values_binned'][i,:]     = np.nanmean(proxy_data['values_binned'][ind_to_mean,:],axis=0)
+        proxy_data_new['resolution_binned'][i,:] = np.nanmean(proxy_data['resolution_binned'][ind_to_mean,:],axis=0)
+        proxy_data_new['lats'][i]                = np.nanmean(proxy_data['lats'][ind_to_mean],axis=0)
+        proxy_data_new['lons'][i]                = np.nanmean(proxy_data['lons'][ind_to_mean],axis=0)
+        proxy_data_new['uncertainty'][i]         = np.nanmean(proxy_data['uncertainty'][ind_to_mean],axis=0)
+        # Concatenate some fields
+        proxy_data_new['archivetype'].append("_".join(proxy_data['archivetype'][ind_to_mean]))
+        proxy_data_new['proxytype'].append("_".join(proxy_data['proxytype'][ind_to_mean]))
+        proxy_data_new['units'].append("_".join(proxy_data['units'][ind_to_mean]))
+        proxy_data_new['interp'].append("_".join(np.array(proxy_data['interp'])[ind_to_mean]))
+        proxy_data_new['direction'].append("_".join(np.array(proxy_data['direction'])[ind_to_mean]))
+        # Use the first value for PSM
+        proxy_data_new['psm'].append(proxy_data['psm'][ind_to_mean[0]])
+        # Use a different approach for some fields
         if len(ind_to_mean) == 0:
-            proxy_data_new['values_binned'][i,:]     = np.nanmean(proxy_data['values_binned'][ind_to_mean,:],axis=0)
-            proxy_data_new['resolution_binned'][i,:] = np.nanmean(proxy_data['resolution_binned'][ind_to_mean,:],axis=0)
-            #proxy_data_new['metadata'][i,:]          = np.nanmean(proxy_data['values_binned'][ind_to_mean,:],axis=0)
-            proxy_data_new['lats'][i]                = np.nanmean(proxy_data['lats'][ind_to_mean],axis=0)
-            proxy_data_new['lons'][i]                = np.nanmean(proxy_data['lons'][ind_to_mean],axis=0)
-            proxy_data_new['uncertainty'].append(np.nanmean(proxy_data['uncertainty'][ind_to_mean],axis=0))
-            proxy_data_new['archivetype']       = []
-            proxy_data_new['proxytype']         = []
-            proxy_data_new['units']             = []
-            proxy_data_new['interp']            = []
-            proxy_data_new['direction']         = []
-            proxy_data_new['seasonality_array'] = {}
-            proxy_data_new['psm']               = []
-     """
-
+            proxy_data_new['metadata'][i,:]        = proxy_data['metadata'][ind_to_mean[0],:]
+            proxy_data_new['seasonality_array'][i] = proxy_data['seasonality_array'][ind_to_mean[0]]
+            proxy_data_new['metadata'][i,2]        = proxy_data['metadata'][ind_to_mean[0],2]
+            proxy_data_new['metadata'][i,3]        = proxy_data['metadata'][ind_to_mean[0],3]
+            proxy_data_new['metadata'][i,5]        = proxy_data['metadata'][ind_to_mean[0],5]
+        else:
+            proxy_data_new['seasonality_array'][i] = np.arange(1,13)
+            proxy_data_new['metadata'][i,2]        = np.nanmean(proxy_data['metadata'][ind_to_mean,2].astype(float),axis=0)
+            proxy_data_new['metadata'][i,3]        = np.nanmean(proxy_data['metadata'][ind_to_mean,3].astype(float),axis=0)
+            proxy_data_new['metadata'][i,5]        = "annual"
+    #
+    # Copy the age_centers values
+    proxy_data_new['age_centers'] = proxy_data['age_centers']
+    #
+    return proxy_data_new
+            
 
 """
 # A wrapper for average_nearby_records function, so that only records with the same PSM are averaged

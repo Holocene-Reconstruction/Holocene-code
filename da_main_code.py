@@ -16,6 +16,7 @@ os.chdir('C:/Users/erbm/Documents/GitHub/Holocene-code/')
 # Import libraries
 import sys
 import numpy as np
+#import matplotlib.pyplot as plt
 import xarray as xr
 import yaml
 import time
@@ -28,7 +29,7 @@ import da_psms
 import da_plot_results
 
 # Make maps of proxy-by-proxy updates
-age_ind_to_map = False
+age_ind_to_map = []
 #age_ind_to_map = [0,100,200]
 
 
@@ -143,6 +144,18 @@ if options['change_uncertainty'] != False:
         print(' --- Processing proxies: uncertainty values SET TO the standard deviation of each record MULTIPLIED BY '+str(uncertainty_multiplier)+' ---')
         for i in range(n_proxies):
             proxy_data['uncertainty'][i] = np.nanstd(proxy_data['values_binned'][i,:])*uncertainty_multiplier
+
+    elif options['change_uncertainty'][0:4] == 'var_':
+        uncertainty_multiplier = float(options['change_uncertainty'][4:])
+        print(' --- Processing proxies: uncertainty values SET TO the variance of each record MULTIPLIED BY '+str(uncertainty_multiplier)+' ---')
+        for i in range(n_proxies):
+            proxy_data['uncertainty'][i] = np.nanvar(proxy_data['values_binned'][i,:])*uncertainty_multiplier
+
+    elif options['change_uncertainty'][0:9] == 'varmodel_':
+        uncertainty_multiplier = float(options['change_uncertainty'][9:])
+        print(' --- Processing proxies: uncertainty values SET TO the variance of the prior at that location MULTIPLIED BY '+str(uncertainty_multiplier)+' ---')
+        proxy_data['uncertainty'][:] = 1
+        # Note: Since this is time-varying, it is set later, at the DA step. Setting it to 1 above just ensures that all valid proxies get used.
     
     else:
         # If using this option, the text file below should contain TSids and MSE for every proxy record
@@ -356,8 +369,8 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
             Xa,_,_ = da_utils.damup(Xb,np.transpose(model_estimates_selected),R_diagonal,proxy_values_selected)
         else:
             ind_proxy = proxy_ind_to_assimilate[0]
-            for ind_proxy in proxy_ind_to_assimilate:
-                #print(ind_proxy)
+            for num_proxy,ind_proxy in enumerate(proxy_ind_to_assimilate):
+                print('Time step '+str(age_counter)+'/'+str(len(proxy_data['age_centers']))+', Proxy '+str(num_proxy)+'/'+str(len(proxy_ind_to_assimilate)))
                 #
                 # Get values for proxy
                 proxy_value       = proxy_values_for_age[ind_proxy]
@@ -369,6 +382,7 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
                 else: loc = None
                 #
                 # Do data assimilation
+                if options['change_uncertainty'][0:9] == 'varmodel_': proxy_uncertainty = np.var(model_estimates) * uncertainty_multiplier
                 Xb_updated = da_utils_lmr.enkf_update_array(Xb,proxy_value,model_estimates,proxy_uncertainty,options,loc=loc,inflate=None)
                 if np.isnan(Xb).all(): print(' !!! ERROR.  ALL RECONSTRUCTION VALUES SET TO NAN.  Age='+str(age)+', proxy number='+str(ind_proxy)+' !!!')
                 #
@@ -378,7 +392,9 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
                     var_toplot_start   = np.mean(np.reshape(Xb[:n_varslatlon,:],        (n_vars,n_lat,n_lon,n_ens))[0,:,:,:],axis=2)
                     var_toplot_updated = np.mean(np.reshape(Xb_updated[:n_varslatlon,:],(n_vars,n_lat,n_lon,n_ens))[0,:,:,:],axis=2)
                     var_toplot_change  = var_toplot_updated-var_toplot_start
-                    da_plot_results.make_map(var_toplot_updated,model_data,proxy_value,proxy_lat,proxy_lon,proxy_uncertainty,ind_proxy,age,'after', exp_name_full,bounds=5,  save_instead_of_plot=True)
+                    if vars_to_reconstruct_root[0] == "precip": bounds = 0.1
+                    else: bounds = 5
+                    da_plot_results.make_map(var_toplot_updated,model_data,proxy_value,proxy_lat,proxy_lon,proxy_uncertainty,ind_proxy,age,'after',exp_name_full,bounds=bounds,save_instead_of_plot=True)
                     #da_plot_results.make_map(var_toplot_change, model_data,proxy_value,proxy_lat,proxy_lon,proxy_uncertainty,ind_proxy,age,'C_diff',exp_name_full,bounds=.25,save_instead_of_plot=True)
                 #
                 Xb = Xb_updated

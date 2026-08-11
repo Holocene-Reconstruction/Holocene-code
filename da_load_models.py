@@ -48,6 +48,9 @@ def load_model_data(options):
             model_individual[var_name]     = handle_model[var_name].values
             handle_model.close()
             #
+            # Adjust longitude where needed
+            if model == "trace_downscaled": model_data['lon'] = model_data['lon'] + 360
+            #
             # Crop model to the selected region
             j_selected = np.where((model_data['lat'] >= options['model_region'][0]) & (model_data['lat'] <= options['model_region'][1]))[0]
             i_selected = np.where((model_data['lon'] >= options['model_region'][2]) & (model_data['lon'] <= options['model_region'][3]))[0]
@@ -209,27 +212,29 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     return_variables   = False
     """
     #
-    # If the model name ends in "_regrid", remove that part of the model name.
-    if model_name[-7:]  == '_regrid': model_name = model_name[:-7]
-    #if model_name[-14:] == '_regrid_arctic': model_name = model_name[:-14]
+    # If the model name has an option (regrid or downscaled), remove it from the model name.
+    model_name_split = model_name.split('_')
+    model_name   = model_name_split[0]
+    if len(model_name_split) == 1: model_option = 'none'
+    else:                          model_option = model_name_split[1]
     #
     # Set directories
     data_dir = {}
     """
     data_dir['hadcm3'] = original_model_dir+'HadCM3B_transient21k/'
     data_dir['trace']  = original_model_dir+'TraCE_21ka/'
-    data_dir['famous'] = original_model_dir+'FAMOUS_glacial_cycle/'
     """
     data_dir['trace']  = 'P:/data_models/trace21k/'
+    data_dir['trace2'] = 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/models/trace21k2/'
     data_dir['itrace'] = 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/models/itrace_combined/'
+    data_dir['hadcm3'] = 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/models/HadCM3/'  #TODO: Transfer the HadCM3 simulation
     #
     # Set the names of the variables
     var_names = {}
-    var_names['trace']  = {'tas':'TREFHT',         'precip':'special'}
-    var_names['itrace'] = {'tas':'tas',            'precip':'precip'}
-    var_names['hadcm3'] = {'tas':'temp_mm_1_5m',   'precip':'precip_mm_srf'}
-    var_names['trace']  = {'tas':'TREFHT',         'precip':'special'}
-    var_names['famous'] = {'tas':'air_temperature','precip':'precipitation_flux'}
+    var_names['trace']  = {'tas':'TREFHT',      'precip':'special'}
+    var_names['trace2'] = {'tas':'TREFHT',      'precip':'PRECT'}
+    var_names['itrace'] = {'tas':'tas',         'precip':'precip'}
+    var_names['hadcm3'] = {'tas':'temp_mm_1_5m','precip':'precip_mm_srf'}
     #
     var_txt = var_names[model_name][var_name]
     print(' === Processing model data for '+model_name+', variable: '+var_name+', directory: '+data_dir[model_name]+' ===')
@@ -261,6 +266,28 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         if   var_name == 'tas':    var_model_yearsmonths = var_model_yearsmonths - 273.15
         elif var_name == 'precip': var_model_yearsmonths = var_model_yearsmonths*60*60*24*1000
         #
+    if model_name == 'trace2':
+        #
+        # Load model data
+        handle_model = xr.open_dataset(data_dir[model_name]+'TraCE-21K-II.monthly.'+var_txt+'.nc',decode_times=False)
+        var_model         = np.squeeze(handle_model[var_txt].values)
+        lat_model         = handle_model['lat'].values
+        lon_model         = handle_model['lon'].values
+        age_model_monthly = handle_model['time'].values
+        handle_model.close()
+        age_model = -1*np.floor(np.mean(np.reshape(age_model_monthly*1000,(int(len(age_model_monthly)/12),12)),axis=1))
+        #
+        # Set the number of days per month in every year
+        time_ndays_model = np.array([31,28,31,30,31,30,31,31,30,31,30,31])
+        time_ndays_model_yearsmonths = np.repeat(time_ndays_model[None,:],len(age_model),axis=0)
+        #
+        # Reshape the TraCE-21ka-II array to have months and years on different axes.
+        var_model_yearsmonths = np.reshape(var_model,(int(len(age_model)),12,len(lat_model),len(lon_model)))
+        #
+        # Convert the model units to tas=C, precip=mm/day
+        if   var_name == 'tas':    var_model_yearsmonths = var_model_yearsmonths - 273.15
+        elif var_name == 'precip': var_model_yearsmonths = var_model_yearsmonths*60*60*24*1000
+        #
     elif model_name == 'itrace':
         #
         # Load model data
@@ -270,7 +297,6 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         lon_model             = handle_model['lon'].values
         age_model             = handle_model['age'].values
         handle_model.close()
-        #age_model = -1*np.floor(np.mean(np.reshape(age_model_monthly,(int(len(age_model_monthly)/12),12)),axis=1))
         #
         # Set the number of days per month in every year
         time_ndays_model = np.array([31,28,31,30,31,30,31,31,30,31,30,31])
@@ -293,52 +319,6 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         #
         # Reshape the HadMC3 array to have months and years on different axes.
         var_model_yearsmonths = np.reshape(var_model,(int(len(age_model)),12,len(lat_model),len(lon_model)))
-        #
-        # Convert the model units to tas=C, precip=mm/day
-        if   var_name == 'tas':    var_model_yearsmonths = var_model_yearsmonths - 273.15
-        elif var_name == 'precip': var_model_yearsmonths = var_model_yearsmonths*60*60*24
-        #
-    elif model_name == 'famous':
-        #
-        if   var_name == 'tas':    filename_txt = 'ALL-5G-MON_3236.cdf'
-        elif var_name == 'precip': filename_txt = 'ALL-5G-MON_5216.cdf'
-        #        
-        # Load model surface air temperature
-        handle_model = xr.open_dataset(data_dir[model_name]+filename_txt,decode_times=False)
-        var_model = handle_model[var_txt].values[1:-1,:,:]
-        lat_model = handle_model['latitude'].values
-        lon_model = handle_model['longitude'].values
-        age_model_monthly = handle_model['time'].values[1:-1]
-        handle_model.close()
-        #
-        age_model = -1*np.floor(np.mean(np.reshape(age_model_monthly,(int(len(age_model_monthly)/12),12)),axis=1))
-        age_model = age_model*10   # The model was 10x acceleration
-        age_model = age_model+1950 # Make the time relative to 1950 CE
-        #
-        # Reshape the FAMOUS array to have months and years on different axes.
-        var_model_yearsmonths = np.reshape(var_model,(int(len(age_model)),12,len(lat_model),len(lon_model)))
-        #
-        # A note about FAMOUS ages:
-        # FAMOUS output is annual representing one year every decade, starting at 121950, 121940 yr BP, etc.
-        # The FAMOUS output is missing several ages: 120000,119990,119980,119970,119960 and 2940 yr BP.
-        # The older ages are outside of the Holocene, so they are not important for this project.
-        # However, the missing age at 2940 yr BP presents a problem.  We cannot put a NaN here
-        # because our DA method doesn't allow NaNs.  However, we want to have a consistant number of
-        # ensemble members in the prior.  To solve this, the missing age is filled in with an average
-        # of the two surrounding ages.  While not an ideal solution, we do not expect this to have
-        # much affect on the results.
-        #
-        # Replace the missing decade with an average of the two surrounding decades.
-        ind_decade1 = np.argmin(np.abs(age_model-2950))
-        ind_decade2 = np.argmin(np.abs(age_model-2930))
-        average_of_decades = np.mean(var_model_yearsmonths[[ind_decade1,ind_decade2],:,:,:],axis=0)
-        average_of_ages    = np.mean(age_model[[ind_decade1,ind_decade2]],axis=0)
-        var_model_yearsmonths = np.insert(var_model_yearsmonths,ind_decade2,average_of_decades,axis=0)
-        age_model             = np.insert(age_model,ind_decade2,average_of_ages)
-        #
-        # Set the number of days per month in every year
-        time_ndays_model = np.array([30,30,30,30,30,30,30,30,30,30,30,30])
-        time_ndays_model_yearsmonths = np.repeat(time_ndays_model[None,:],len(age_model),axis=0)
         #
         # Convert the model units to tas=C, precip=mm/day
         if   var_name == 'tas':    var_model_yearsmonths = var_model_yearsmonths - 273.15
@@ -379,7 +359,7 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         time_ndays_model_nyearmean      = time_ndays_model_yearsmonths[age_indices_for_model_means,:]
     else:
         n_means = int(len(age_indices_for_model_means)/effective_time_resolution)
-        var_model_yearsmonths_nyearmean = np.nanmean(np.reshape(var_model_yearsmonths[age_indices_for_model_means,:,:,:],   (n_means,effective_time_resolution,12,len(lat_model),len(lon_model))),axis=1)  # Note: nanmean is used here because itrace has two missing decades toward the older end.
+        var_model_yearsmonths_nyearmean = np.nanmean(np.reshape(var_model_yearsmonths[age_indices_for_model_means,:,:,:],(n_means,effective_time_resolution,12,len(lat_model),len(lon_model))),axis=1)  # Note: nanmean is used here because itrace has two missing decades toward the older end.
         age_model_nyearmean             = np.mean(np.reshape(age_model[age_indices_for_model_means],                     (n_means,effective_time_resolution)),   axis=1)
         time_ndays_model_nyearmean      = np.mean(np.reshape(time_ndays_model_yearsmonths[age_indices_for_model_means,:],(n_means,effective_time_resolution,12)),axis=1)
     #

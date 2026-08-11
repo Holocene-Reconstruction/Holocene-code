@@ -20,15 +20,17 @@ def psm_main(model_data,proxy_data,options):
         #
         # Calculate the model-based proxy estimate depending on the PSM (or variable to compare, if the proxy is already calibrated)
         # Model values are in units of degree C (for tas) and mm/day (for precip)
-        if   psm_selected == 'calibrated_tas':    proxy_estimate = get_model_values_bilinear(model_data,proxy_data,'tas',i)
-        elif psm_selected == 'calibrated_precip': proxy_estimate = get_model_values_bilinear(model_data,proxy_data,'precip',i)
+        if   psm_selected == 'calibrated_tas':            proxy_estimate = get_model_values_bilinear(model_data,proxy_data,'tas',i)
+        elif psm_selected == 'calibrated_precip':         proxy_estimate = get_model_values_bilinear(model_data,proxy_data,'precip',i)
+        elif psm_selected == 'calibrated_tas_nearest':    proxy_estimate = get_model_values_nearest(model_data,proxy_data,'tas',i)
+        elif psm_selected == 'calibrated_precip_nearest': proxy_estimate = get_model_values_nearest(model_data,proxy_data,'precip',i)
         elif psm_selected[:10] == 'rank_based':
             if   psm_selected == 'rank_based_tas':    proxy_estimate,proxy_update = rank_based(model_data,proxy_data,'tas',i,options)
             elif psm_selected == 'rank_based_precip': proxy_estimate,proxy_update = rank_based(model_data,proxy_data,'precip',i,options)
             proxy_data['values_binned'][i,:] = proxy_update
-            units_new = proxy_data['units'][i]+'_percentile'
-            proxy_data['units'][i]      = units_new
-            proxy_data['metadata'][i,8] = units_new
+            #units_new = proxy_data['units'][i]+'_percentile'
+            #proxy_data['units'][i]      = units_new
+            #proxy_data['metadata'][i,8] = units_new
         elif psm_selected == 'use_nans': proxy_estimate = use_nans(model_data)
         else:                            proxy_estimate = use_nans(model_data)
         #
@@ -60,7 +62,7 @@ def get_model_values_bilinear(model_data,proxy_data,var_name,i,verbose=False):
     proxy_lon    = proxy_data['lons'][i]
     proxy_season = proxy_data['seasonality_array'][i]
     ndays_model  = model_data['time_ndays']
-    proxy_direction = proxy_data['direction'][i]
+    #proxy_direction = proxy_data['direction'][i]
     #
     if (proxy_lat > np.max(model_data['lat'])) | (proxy_lat < np.min(model_data['lat'])): print("WARNING: Proxy lat outside of model bounds:",proxy_lat)
     if (proxy_lon > np.max(model_data['lon'])) | (proxy_lon < np.min(model_data['lon'])): print("WARNING: Proxy lon outside of model bounds:",proxy_lon)
@@ -87,7 +89,7 @@ def get_model_values_bilinear(model_data,proxy_data,var_name,i,verbose=False):
     proxy_seasonality_indices = np.abs(proxy_season)-1
     proxy_seasonality_indices[proxy_seasonality_indices > 11] = proxy_seasonality_indices[proxy_seasonality_indices > 11] - 12
     var_model_location_season = np.average(var_model_location[:,proxy_seasonality_indices],weights=ndays_model[:,proxy_seasonality_indices],axis=1)
-    if proxy_direction.lower() == 'negative': var_model_location_season = -1*var_model_location_season  # Note: If interpretation direction is not given, it is assumed to be positive.
+    #if proxy_direction.lower() == 'negative': var_model_location_season = -1*var_model_location_season  # Note: If interpretation direction is not given, it is assumed to be positive.
     #
     return var_model_location_season
 
@@ -102,7 +104,7 @@ def get_model_values_nearest(model_data,proxy_data,var_name,i,verbose=False):
     proxy_lat    = proxy_data['lats'][i]
     proxy_lon    = proxy_data['lons'][i]
     proxy_season = proxy_data['seasonality_array'][i]
-    proxy_direction = proxy_data['direction'][i]
+    #proxy_direction = proxy_data['direction'][i]
     #
     # Find the model gridpoint closest to the proxy location
     if proxy_lon < 0: proxy_lon = proxy_lon+360
@@ -120,7 +122,7 @@ def get_model_values_nearest(model_data,proxy_data,var_name,i,verbose=False):
     proxy_seasonality_indices = np.abs(proxy_season)-1
     proxy_seasonality_indices[proxy_seasonality_indices > 11] = proxy_seasonality_indices[proxy_seasonality_indices > 11] - 12
     var_model_location_season = np.average(var_model_location[:,proxy_seasonality_indices],weights=ndays_model[:,proxy_seasonality_indices],axis=1)
-    if proxy_direction.lower() == 'negative': var_model_location_season = -1*var_model_location_season  # Note: If interpretation direction is not given, it is assumed to be positive.
+    #if proxy_direction.lower() == 'negative': var_model_location_season = -1*var_model_location_season  # Note: If interpretation direction is not given, it is assumed to be positive.
     #
     return var_model_location_season
 
@@ -166,6 +168,9 @@ def rank_based(model_data,proxy_data,var_name,i,options,verbose=False):
     # Put the proxy data into the same length array as it was originally
     proxy_values_new = np.zeros((len(proxy_values))); proxy_values_new[:] = np.nan
     proxy_values_new[logical_proxy_valid] = proxy_values_valid_new
+    #
+    # If the proxy has too little varibility (e.g., all initial values were the same), set values to na
+    if np.nanstd(proxy_values_new) < 1e-5: proxy_values_new[:] = np.nan
     #
     """
     import matplotlib.pyplot as plt

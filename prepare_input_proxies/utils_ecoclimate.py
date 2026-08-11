@@ -143,7 +143,7 @@ def var_time_means(var,ndays_per_month):
 def mask_NorthAmerica(lat,lon,region_to_use='all'):
     #
     # Load the state boundary data
-    dir_data = 'C:/Users/erbm/Dropbox/Academia/AppState/Project_EcoClimate_Sensitivity/analysis/utils/data/continents_shapefile/World_Continents_-8398826466908339531/'
+    dir_data = 'C:/Users/erbm/Dropbox/Academia/NAU/Project_EcoClimate_Sensitivity/analysis/utils/data/continents_shapefile/World_Continents_-8398826466908339531/'
     continents_shapefile = gpd.read_file(dir_data+'World_Continents.shp')
     continents_shapefile = continents_shapefile.to_crs('EPSG:4326')  # Convert to lat/lon
     #

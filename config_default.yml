@@ -7,18 +7,9 @@
 # Location of data and lipd directories
 data_dir: 'C:/Users/erbm/Documents/data_climate/data_assimilation/'
 
-#exp_name:            'eco21ka_trace_tas_locrad_5000_uncertain_std_1_avg_nearby_rankbased'
-#vars_to_reconstruct: ['tas_annual']
-#proxies_to_use:      ['temperature|temperature|any|any|degC|rank_based_tas']
-
-#exp_name:            'eco21ka_trace_precip_locrad_5000_uncertain_uncer_0.1_avg_nearby_rankbased'
-#vars_to_reconstruct: ['precip_annual']
-#proxies_to_use:      ['effectivePrecipitation|lakeLevel|any|lake level|unitless|rank_based_precip','effectivePrecipitation|lakeLevel|any|lake level|m|rank_based_precip']
-
 # Primary options
-exp_name: 'eco21ka_trace_tas_locrad_5000_uncertain_0.5_avg_nearby_lowres'  # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
-vars_to_reconstruct:   ['tas_annual','precip_annual']  # The variables to reconstruct {['tas','precip']}, then season after underscore (e.g., "annual", "jja", "djf", "month_01", "month_02").
-#vars_to_reconstruct:   ['tas_annual','tas_month_01','tas_month_02','tas_month_03','tas_month_04','tas_month_05','tas_month_06','tas_month_07','tas_month_08','tas_month_09','tas_month_10','tas_month_11','tas_month_12']
+exp_name: 'eco21ka'  # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
+vars_to_reconstruct:   ['tas_annual','tas_month_01','tas_month_02','tas_month_03','tas_month_04','tas_month_05','tas_month_06','tas_month_07','tas_month_08','tas_month_09','tas_month_10','tas_month_11','tas_month_12']  # The variables to reconstruct {['tas','precip']}, then season after underscore (e.g., "annual", "jja", "djf", "month_01", "month_02").
 time_resolution:       100      # The base temporal resolution, in years {100}
 maximum_resolution:    100      # The maximum temporal resolution to assimilate proxies at, in years {100}
 prior_window:          5100     # The size of the window for the time-varying prior, in years {'all',5010,1010}
@@ -28,7 +19,7 @@ percent_of_prior:      100      # What percentage of the prior states to assimil
 seed_for_prior:        0        # This seed is only used if 'percent_of_prior' is below 100 {0}
 
 # Proxies to assimilate
-proxies_to_use: ['temperature|temperature|any|any|degC|calibrated_tas_nearest']  # Proxies to assimilate, in the format of interp|variable|archive|proxy|units|psm. Use "any" to select anything in a category. "psm" specifies the PSM to use. Use commas to select multiple values in a category. Available psms: calibrated_tas, calibrated_precip, calibrated_tas_nearest, calibrated_precip_nearest, rank_based_tas, rank_based_precip
+proxies_to_use: ['temperature|temperature|any|any|degC|calibrated_tas']  # Proxies to assimilate, in the format of interp|variable|archive|proxy|units|psm. Use "any" to select anything in a category. "psm" specifies the PSM to use. Use commas to select multiple values in a category. Available psms: calibrated_tas, calibrated_precip, calibrated_tas_nearest, calibrated_precip_nearest, rank_based_tas, rank_based_precip
 assimilate_selected_seasons:    ['annual','summer','winter']  # Assimilate proxies with the selected seasonality. Note, the reconstruction will still try to represent annual means. {False, ['annual','summeronly','winteronly','summer+','winter+'], 'jja_preferred', 'djf_preferred'}
 assimilate_selected_archives:   False  # Provide a list of one or more archive types to assimilate {False, ['LakeSediment','MarineSediment','Peat','GlacierIce','Midden','Speleothem','Wood','Ice-other']}
 assimilate_selected_region:     False  # Provide bounds to assimilate only proxies in a given region {False, [lat_min,lat_max,lon_min,lon_max]} using lons between 0-360.
@@ -38,15 +29,14 @@ seed_for_proxy_choice:          0      # This seed is only used if 'percent_to_a
 average_nearby_proxies:         True  # If True, average together proxy records within 1km of each other {True,False}  NOTE: Not yet implemented
 
 # Models for prior
-models_for_prior: ['itrace']   # The model to use {['trace','trace2','itrace','hadcm3','trace_downscaled']}
+models_for_prior: ['trace']   # The model to use {['trace','itrace','hadcm3','trace_downscaled']}
 model_region: [-5,89,180,360]  # The region to reconstruct {[-90,90,0,360]}
 
 # Proxy datasets
 proxy_datasets_to_assimilate: ['ecoclimate_selected_ts_2026-07-16']
 
 # Age ranges
-#age_range_to_reconstruct: [0,21000]
-age_range_to_reconstruct: [0,1000]
+age_range_to_reconstruct: [0,21000]
 reference_period:         [3000,5000]  # This is only used if 'reconstruction_type' is set to 'relative'
 age_range_model:          [0,22000]
 
