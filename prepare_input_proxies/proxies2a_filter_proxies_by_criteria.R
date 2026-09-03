@@ -195,7 +195,98 @@ metadata_selected <- metadata_selected[ind_selected_step2,]
 # SAVE RECORDS =================================================================
 
 # Save filtered data
-saveRDS(ts_selected,             file=paste0(da_dir,'ecoclimate_selected_ts_',data_date,'_by_criteria.rds'))
-saveRDS(metadata_selected,       file=paste0(da_dir,'ecoclimate_selected_metadata_',data_date,'_by_criteria.rds'))
-write.csv(metadata_selected$tsid,file=paste0(da_dir,'ecoclimate_selected_metadata_',data_date,'_by_criteria.csv'))
+#saveRDS(ts_selected,             file=paste0(da_dir,'ecoclimate_selected_ts_',data_date,'_by_criteria.rds'))
+#saveRDS(metadata_selected,       file=paste0(da_dir,'ecoclimate_selected_metadata_',data_date,'_by_criteria.rds'))
+#write.csv(metadata_selected$tsid,file=paste0(da_dir,'ecoclimate_selected_metadata_',data_date,'_by_criteria.csv'))
+
+library(ggpubr)
+
+# CHRIS
+i=30
+df<-data.frame()
+for (i in 1:length(ts_selected)){
+  ts= ts_selected[[i]]
+  if (sum(is.finite(ts$paleoData_values))<3){next}
+  if (length(unique(ts$paleoData_values))<3){next}
+  print(i)
+  if (is.null(ts$interpretation1_interpDirection)){
+    interpDir <- ""
+  }else if (ts$interpretation1_interpDirection %in% c("negative","-1")){
+    interpDir <- "*-1"
+    ts$vals<-ts$vals*-1
+  } else{
+    interpDir <- ""
+  }
+  if (is.null(ts$interpretation1_direction)){
+    interpDir <- ""
+  }else if (ts$interpretation1_direction %in% c("negative","-1")){
+    interpDir <- "*-1"
+    ts$vals<-ts$vals*-1
+  } else{
+    interpDir <- ""
+  }
+  ts_bin <- data.frame(age=seq(0,21000,100),
+                       vals=compositeR::simpleBinTs(ts,binvec=seq(-50,21050,100),spread=T))#,spreadMax=500))
+  ts_percent = data.frame(age=ts_bin$age,vals=ts_bin$vals) %>%
+    mutate(vals = percent_rank(vals) * 100)
+
+  y1_range <- range(ts_bin$vals, na.rm = TRUE)
+  y2_range <- range(ts_percent$vals, na.rm = TRUE)
+  scale_factor <- diff(y1_range) / diff(y2_range)
+  offset <- y1_range[1] - y2_range[1] * scale_factor
+
+  idx <- (is.finite(ts_bin$vals) & is.finite(ts_percent$vals))
+  corcoef<-sprintf("%.3f",cor(ts_bin$vals[idx],ts_percent$vals[idx]))
+  a <- ggplot()+
+    geom_line(aes(x=ts_bin$age[is.finite(ts_bin$vals)],y=ts_bin$vals[is.finite(ts_bin$vals)],color='binned data'))+
+    geom_point(aes(x=ts_bin$age[is.finite(ts_bin$vals)],y=ts_bin$vals[is.finite(ts_bin$vals)],color='binned data'))+
+    geom_line(aes(x=ts_percent$age, y=ts_percent$vals * scale_factor + offset, color='percentile'))+
+    geom_point(aes(x=ts_percent$age,y=ts_percent$vals * scale_factor + offset, color='percentile'))+
+    geom_point(aes(x=ts$age,y=ts$paleoData_values),color='black',fill=NA,shape=21)+
+
+    #
+    scale_y_continuous(
+      name = paste0(ts$paleoData_variableName,' - ',ts$interpretation1_variable,' (',ts$paleoData_units,')'),
+      sec.axis = sec_axis(
+        ~ (. - offset) / scale_factor,name = "Percentile"),#,limits=c(0,100))
+      )+
+    scale_x_reverse(name=paste0('age (',ts$ageUnits,')'), )+#lim=c(21000,0))+
+    labs(title=paste(ts$dataSetName,ts$paleoData_TSid,ts$paleoData_proxy,sep=' ///// '),
+         subtitle=paste('correlation coefficient:',corcoef))+
+    theme_bw()
+
+  b <- ggplot() +
+    geom_histogram(aes(x = ts_bin$vals, color='binned data'), fill = NA, , bins=30) +
+    geom_histogram(aes(x = ts_percent$vals* scale_factor + offset, color='percentile'),  fill = NA,linetype='dashed', bins=30)+
+    labs(x=paste0(ts$paleoData_variableName,' - ',ts$interpretation1_variable,' (',ts$paleoData_units,interpDir,')'),
+         title='Histrogram of values')+
+    scale_x_continuous(
+      name = paste0(ts$paleoData_variableName,' - ',ts$interpretation1_variable,' (',ts$paleoData_units,interpDir,')'),
+      sec.axis = sec_axis(
+        ~ (. - offset) / scale_factor,name = "Percentile"),#,limits=c(0,100))
+    )+
+    theme_bw() +
+    theme(legend.position="none")
+
+  plt<-ggarrange(a,b, ncol = 2, nrow = 1, common.legend = TRUE, legend = "bottom",widths=c(0.66,0.34))
+  if (ts$interpretation1_variable=='temperature'){
+    path <- file.path(da_dir,'PercentileCorr','temp')
+  }else{
+    path <- file.path(da_dir,'PercentileCorr','hydro')
+  }
+  fn <- paste0(paste(corcoef,ts$dataSetName,ts$paleoData_TSid,sep='_'),'.png')
+  ggsave(filename=fn,path=path,plot=plt,width=8,height=4,units='in')
+
+  if (is.null(ts$paleoData_proxy)){
+    proxy<-'NA'
+  }else{
+    proxy<- ts$paleoData_proxy
+  }
+
+  df_i <- data.frame(tsid=ts$paleoData_TSid,
+                     proxy=proxy,
+                     interp=ts$interpretation1_variable,
+                     correlation=corcoef)
+  df<-rbind(df,df_i)
+}
 

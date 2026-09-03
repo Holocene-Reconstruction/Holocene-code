@@ -92,6 +92,15 @@ def load_model_data(options):
             for key in list(model_individual.keys()):
                 if i == 0: model_data[key] = model_individual[key]
                 else:      model_data[key] = np.concatenate((model_data[key],model_individual[key]),axis=0)
+    if n_models > 1:
+        for var in list(options['vars_root'])+options['vars_to_reconstruct']:
+            models_na =[]
+            for i in range(n_models):
+                ind_for_model = (model_data['number'] == (i+1))
+                models_na.append(np.isfinite(model_data[var][ind_for_model]))
+            models_na = np.sum(models_na,axis=0)==n_models        
+            model_data[var] = np.where(np.concatenate([models_na, models_na], axis=0),model_data[var],np.nan)
+        
     #
     print('\n=== MODEL DATA LOADED ===')
     print('Models loaded    (n='+str(n_models)+'):'+str(options['models_for_prior']))
@@ -192,9 +201,19 @@ def load_trace(var_txt,data_dir_model):
     handle_model.close()
     #
     # Reshape the variable to 2D and calculate the ages
-    nyears = int(var_model.shape[0]/12)
-    var_model_yearsmonths = np.reshape(var_model,(nyears,12,len(lat_model),len(lon_model)))
-    age_model = -1*np.floor(np.mean(np.reshape(age_model_monthly*1000,(int(len(age_model_monthly)/12),12)),axis=1))
+    if np.median(np.diff(age_model_monthly*1000))<1: #monthly data
+        nyears = int(var_model.shape[0]/12)
+        var_model_yearsmonths = np.reshape(var_model,(nyears,12,len(lat_model),len(lon_model)))
+        age_model = -1*np.floor(np.mean(np.reshape(age_model_monthly*1000,(int(len(age_model_monthly)/12),12)),axis=1))
+    else:
+        nyears = int(var_model.shape[0]) #annual decadal data
+        var_model_yearsmonths = np.reshape(var_model,(nyears,1,len(lat_model),len(lon_model)))
+        #Convert annual data to monthly with repeated valyes
+        var_model_yearsmonths = np.repeat(var_model_yearsmonths, repeats=12, axis=1)
+        age_model = -1*np.array([int(np.round(x)) for x in age_model_monthly*1000])
+        #Converts decadal data to annual data
+        var_model_yearsmonths = np.repeat(var_model_yearsmonths, int(abs(np.median(np.diff(age_model)))), axis=0)
+        age_model = np.max(age_model) - range(np.shape(var_model_yearsmonths)[0])
     #
     return var_model_yearsmonths,lat_model,lon_model,age_model
 
@@ -221,21 +240,24 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     #
     # Set directories
     data_dir = {}
-    """
+    
     data_dir['hadcm3'] = original_model_dir+'HadCM3B_transient21k/'
     data_dir['trace']  = original_model_dir+'TraCE_21ka/'
     """
     data_dir['trace']  = 'P:/data_models/trace21k/'
+    data_dir['itrace'] = 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/models/itrace_combined/'
+    """
     data_dir['trace2'] = 'P:/data_paleoclimate/models/trace21k2/'
     data_dir['itrace'] = 'P:/data_paleoclimate/models/itrace_combined/'
     data_dir['hadcm3'] = 'P:/data_paleoclimate/models/HadCM3/'  #TODO: Transfer the HadCM3 simulation
     #
     # Set the names of the variables
     var_names = {}
-    var_names['trace']  = {'tas':'TREFHT',      'precip':'special'}
-    var_names['trace2'] = {'tas':'TREFHT',      'precip':'PRECT'}
-    var_names['itrace'] = {'tas':'tas',         'precip':'precip'}
-    var_names['hadcm3'] = {'tas':'temp_mm_1_5m','precip':'precip_mm_srf'}
+    var_names['trace']  = {'tas':'TREFHT',         'precip':'special'}
+    var_names['itrace'] = {'tas':'tas',            'precip':'precip'}
+    var_names['hadcm3'] = {'tas':'temp_mm_1_5m',   'precip':'precip_mm_srf',     'LakeStatus':'LakeStatus'}
+    var_names['trace']  = {'tas':'TREFHT',         'precip':'special',           'LakeStatus':'LakeStatus'}
+    var_names['famous'] = {'tas':'air_temperature','precip':'precipitation_flux'}
     #
     var_txt = var_names[model_name][var_name]
     print(' === Processing model data for '+model_name+', variable: '+var_name+', directory: '+data_dir[model_name]+' ===')
@@ -256,6 +278,11 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
             var_precc,lat_model,lon_model,age_model = load_trace('PRECC',data_dir[model_name])
             var_precl,_,_,_                         = load_trace('PRECL',data_dir[model_name])
             var_model_yearsmonths = var_precc + var_precl
+        elif var_name == 'P-E':
+            var_precc,lat_model,lon_model,age_model = load_trace('PRECC',data_dir[model_name])
+            var_precl,_,_,_                         = load_trace('PRECL',data_dir[model_name])
+            var_qflx,_,_,_                         = load_trace('QFLX',data_dir[model_name])
+            var_model_yearsmonths = (var_precc + var_precl) - var_qflx 
         else:
             var_model_yearsmonths,lat_model,lon_model,age_model = load_trace(var_txt,data_dir[model_name])
         #
@@ -306,20 +333,29 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     elif model_name == 'hadcm3':
         #
         # Load model data
-        handle_model = xr.open_dataset(data_dir[model_name]+'deglh.vn1_0.'+var_txt+'.monthly.MON.001_s.nc',decode_times=False)
+        try:    handle_model = xr.open_dataset(data_dir[model_name]+'deglh.vn1_0.'+var_txt+'.monthly.MON.001_s.nc',decode_times=False)
+        except: handle_model = xr.open_dataset(data_dir[model_name]+'deglh.vn1_0.'+var_txt+'.monthly.ANN.001.nc',decode_times=False)
         var_model = np.squeeze(handle_model[var_txt].values)
         lat_model = handle_model['latitude'].values
         lon_model = handle_model['longitude'].values
         age_model_monthly = handle_model['t'].values
         handle_model.close()
-        age_model = -1*np.floor(np.mean(np.reshape(age_model_monthly,(int(len(age_model_monthly)/12),12)),axis=1))
+        #
+        # Set age_model based on monthly or annual data
+        if np.median(np.diff(age_model_monthly)) < 1 : age_model = -1*np.floor(np.mean(np.reshape(age_model_monthly,(int(len(age_model_monthly)/12),12)),axis=1))
+        else: age_model = -1*np.floor(age_model_monthly)
         #
         # Set the number of days per month in every year
         time_ndays_model = np.array([30,30,30,30,30,30,30,30,30,30,30,30])
         time_ndays_model_yearsmonths = np.repeat(time_ndays_model[None,:],len(age_model),axis=0)
         #
         # Reshape the HadMC3 array to have months and years on different axes.
-        var_model_yearsmonths = np.reshape(var_model,(int(len(age_model)),12,len(lat_model),len(lon_model)))
+        try:
+            var_model_yearsmonths = np.reshape(var_model,(int(len(age_model)),12,len(lat_model),len(lon_model)))
+        except:
+            #Convert annual data to monthly with repeated valyes
+            var_model_yearsmonths = np.reshape(var_model,(int(len(age_model)),1,len(lat_model),len(lon_model)))
+            var_model_yearsmonths = np.repeat(var_model_yearsmonths, repeats=12, axis=1)
         #
         # Convert the model units to tas=C, precip=mm/day
         if   var_name == 'tas':    var_model_yearsmonths = var_model_yearsmonths - 273.15

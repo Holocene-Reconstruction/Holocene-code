@@ -9,6 +9,7 @@ import lipd
 from scipy import interpolate
 import rdata
 import geopy.distance
+import pickle
 
 # A function to load the chosen proxy datasets
 def load_proxies(options):
@@ -16,21 +17,88 @@ def load_proxies(options):
     # Create lists to the store the proxy data in
     collection_all = []
     proxy_ts       = []
-    #
+    #%%
     #i = 0; proxy_dataset = options['proxy_datasets_to_assimilate'][i]
     for i,proxy_dataset in enumerate(options['proxy_datasets_to_assimilate']):
         #
         # Load the EcoClimate proxy metadata
         print('Loading proxy dataset: '+proxy_dataset)
-        try: proxy_ts_ecoclimate = rdata.read_rds(options['data_dir']+'proxies/ecoclimate/'+proxy_dataset+'.rds')
-        except: print('ERROR: invalid proxy dataset: '+proxy_dataset)
-        if options['reconstruction_type'] == 'absolute': proxy_ts_ecoclimate = lipd.filterTs(proxy_ts_ecoclimate,'paleoData_datum == abs')
+        if proxy_dataset == 'ecoclimate':
+            try: proxy_ts_ecoclimate = rdata.read_rds(options['data_dir']+'proxies/ecoclimate/'+proxy_dataset+'.rds')
+            except: print('ERROR: invalid proxy dataset: '+proxy_dataset)
+            if options['reconstruction_type'] == 'absolute': proxy_ts_ecoclimate = lipd.filterTs(proxy_ts_ecoclimate,'paleoData_datum == abs')
+            # Add these proxies to the full proxy dataset
+            proxy_ts = proxy_ts + proxy_ts_ecoclimate
+            proxy_dataset_short = proxy_dataset.split('_')[0]
         #
-        # Add these proxies to the full proxy dataset
-        proxy_ts = proxy_ts + proxy_ts_ecoclimate
-        proxy_dataset_short = proxy_dataset.split('_')[0]
-        collection_all = collection_all + ([proxy_dataset_short] * len(proxy_ts_ecoclimate))
-    #
+        else: # CH - Load compilation data if not in rdata file
+            proxy_dataset_name,proxy_version = proxy_dataset.split('/')
+            dir_proxies = options['data_dir']+'proxies/'+proxy_dataset_name+proxy_version+'/'
+            # load data
+            try: 
+                file_to_open = open(dir_proxies+proxy_dataset_name+proxy_version+'.pkl','rb') #DAMP12k- make more flexible
+                proxies_all = pickle.load(file_to_open)['D']
+                file_to_open.close()
+                # Extract the time series
+                all_ts = lipd.extractTs(proxies_all)
+            except: #pickle not available for 0_7_0. load npy file saved by except code if running the script for the first time #TODO
+                try:
+                    all_ts = np.load(dir_proxies+proxy_dataset_name+proxy_version+'.npy',allow_pickle=True)
+                except:
+                    D = lipd.readLipd(dir_proxies)
+                    all_ts = lipd.extractTs(D)
+                    np.save(dir_proxies+proxy_dataset_name+proxy_version+'.npy',all_ts,allow_pickle=True)
+            proxy_ts_ds = []
+            #
+            # Add data based on inCompilation metadata
+            for i in range(len(all_ts)):
+                # Exclude based on geo
+                if all_ts[i]['geo_meanLat'] < options['model_region'][0]: continue
+                if all_ts[i]['geo_meanLat'] > options['model_region'][1]: continue
+                lon = all_ts[i]['geo_meanLon']
+                if lon < 0: lon = 360 + lon
+                if lon < options['model_region'][2]: continue
+                if lon > options['model_region'][3]: continue
+                # Exclude include relative data for absolute reconsutriction
+                if options['reconstruction_type'] == 'absolute':
+                    if ('paleoData_datum' not in all_ts[i].keys()): continue     
+                    if (all_ts[i]['paleoData_datum'] != 'abs'): continue   
+                if 'paleoData_inCompilation' in all_ts[i].keys():
+                    # Incliude data based on comilation
+                    for comp in all_ts[i]['paleoData_inCompilation']:
+                        if (proxy_version in comp['compilationVersion']) & (proxy_dataset_name == comp['compilationName']):
+                            proxy_ts_ds.append(all_ts[i])
+            print(f'Number of {proxy_dataset_name} records selected:',len(proxy_ts_ds))
+            #
+            # Some proxies have problems in the metadata.  Fix them here.
+            for i in range(len(proxy_ts_ds)):
+                proxy_ts_ds[i]['paleoData_values'] = [float(x) for x in proxy_ts_ds[i]['paleoData_values']]
+                if ('paleoData_interpretation' in proxy_ts_ds[i].keys()) & ('interpretation1_variable' not in proxy_ts_ds[i].keys()):
+                    proxy_ts_ds[i]['interpretation1_variable'] = proxy_ts_ds[i]['paleoData_interpretation'][0]['variable']
+                if ('paleoData_interpretation' in proxy_ts_ds[i].keys()) & ('interpretation1_seasonality' not in proxy_ts_ds[i].keys()):
+                    try: proxy_ts_ds[i]['interpretation1_seasonality'] = proxy_ts_ds[i]['paleoData_interpretation'][0]['seasonality']
+                    except:  proxy_ts_ds[i]['interpretation1_seasonality'] = 'Not Given'
+                if ('paleoData_interpretation' in proxy_ts_ds[i].keys()) & ('interpretation1_variable' not in proxy_ts_ds[i].keys()):
+                    try: proxy_ts_ds[i]['interpretation1_seasonalityGeneral'] = proxy_ts_ds[i]['interpretation1_seasonalityGeneral'][0]['seasonalityGeneral']
+                    except:  proxy_ts_ds[i]['interpretation1_seasonalityGeneral'] = 'Not Given'
+                if ('paleoData_interpretation' in proxy_ts_ds[i].keys()) & ('interpretation1_direction' not in proxy_ts_ds[i].keys()):
+                    try: proxy_ts_ds[i]['interpretation1_direction'] = proxy_ts_ds[i]['paleoData_interpretation'][0]['direction']
+                    except:  proxy_ts_ds[i]['interpretation1_direction'] = 'Not Given'
+                #if ('seasonality'        in proxy_ts_da[i]['paleoData_interpretation'][0].keys())==False: proxy_ts_da[i]['paleoData_interpretation'][0]['seasonality']        = ''
+                #if ('seasonalityGeneral' in proxy_ts_da[i]['paleoData_interpretation'][0].keys())==False: proxy_ts_da[i]['paleoData_interpretation'][0]['seasonalityGeneral'] = ''
+                # Fix the GISP2 ages - Note: this is a temporary fix, since lipd isn't loading the right ages.
+                # for i in range(len(all_ts_12k)):
+                #     if (all_ts_12k[i]['dataSetName'] == 'Alley.GISP2.2000') and (all_ts_12k[i]['paleoData_variableName'] == 'age'): gisp2_ages = all_ts_12k[i]['paleoData_values']
+                # #
+                # for i in range(len(all_ts_12k)):
+                #     if (all_ts_12k[i]['dataSetName'] == 'Alley.GISP2.2000') and (all_ts_12k[i]['paleoData_variableName'] == 'temperature') and (np.max(np.array(all_ts_12k[i]['age']).astype(float)) < 50):
+                #         print('Fixing GISP2 ages:',all_ts_12k[i]['paleoData_variableName'],', Index:',i)
+                #                                 all_ts_hydro12k[i]['paleoData_temperature12kUncertainty'] = 30#round(np.nanmax(np.diff(np.unique(np.append(vals,[0,1])))),3) #Median difference between percentile ranks as unc. value
+                #add uncertainty 
+            proxy_ts = proxy_ts + proxy_ts_ds
+            collection_all = collection_all + ([proxy_dataset] * len(proxy_ts_ds))   #
+            #%%
+    # Process proxy data
     return proxy_ts,collection_all
 
 
@@ -50,16 +118,17 @@ def filter_proxies_and_set_psms(proxy_ts,collection_all,options):
     proxy_archive  = []
     proxy_proxy    = []
     proxy_unit     = []
-    for i in range(n_proxies):
-        try:    proxy_interp.append(proxy_ts[i]['interpretation1_variable'][0])
+    
+    for i in range(n_proxies): #paleoData_interpretation
+        try:    proxy_interp.append(proxy_ts[i]['interpretation1_variable'][0] if type(proxy_ts[i]['interpretation1_variable']) == list else proxy_ts[i]['interpretation1_variable'])
         except: proxy_interp.append("Not given")
-        try:    proxy_variable.append(proxy_ts[i]['paleoData_variableName'][0])
+        try:    proxy_variable.append(proxy_ts[i]['paleoData_variableName'][0] if type(proxy_ts[i]['paleoData_variableName']) == list else proxy_ts[i]['paleoData_variableName'])
         except: proxy_variable.append("Not given")
-        try:    proxy_archive.append(proxy_ts[i]['archiveType'][0])
+        try:    proxy_archive.append(proxy_ts[i]['archiveType'][0] if type(proxy_ts[i]['archiveType']) == list else proxy_ts[i]['archiveType'])
         except: proxy_archive.append("Not given")
-        try:    proxy_proxy.append(proxy_ts[i]['paleoData_proxy'][0])
+        try:    proxy_proxy.append(proxy_ts[i]['paleoData_proxy'][0] if type(proxy_ts[i]['paleoData_proxy']) == list else proxy_ts[i]['paleoData_proxy'])
         except: proxy_proxy.append("Not given")
-        try:    proxy_unit.append(proxy_ts[i]['paleoData_units'][0])
+        try:    proxy_unit.append(proxy_ts[i]['paleoData_units'][0] if type(proxy_ts[i]['paleoData_units']) == list else proxy_ts[i]['paleoData_units'])
         except: proxy_unit.append("Not given")
     #
     # Find the proxies to keep
@@ -107,7 +176,7 @@ def filter_proxies_and_set_psms(proxy_ts,collection_all,options):
 
 # Process the proxy data
 def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options):
-    #
+    #%%
     print('\n=== Processing proxy data. This can take a few minutes. Please wait. ===')
     #
     # Set age range to reconstruct, as well as the reference period (The -0.5 accounts for the fact that age years are represented as whole numbers)
@@ -163,12 +232,16 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
         try:    proxy_uncertainty = proxy_ts_selected[i]['paleoData_temperature12kUncertainty'][0]
         except: proxy_uncertainty = missing_uncertainty_value; missing_uncertainty += 1
         if proxy_uncertainty == 'NA': proxy_uncertainty = missing_uncertainty_value; missing_uncertainty += 1
+        elif type(proxy_uncertainty) == str: proxy_uncertainty = missing_uncertainty_value; missing_uncertainty += 1
         proxy_uncertainty = np.square(float(proxy_uncertainty))  # Proxy uncertainty was give as RMSE, but the code uses MSE
         #
         # Update the units  #TODO: Work on this (and consider using a different value than 365.25)
         #  - Precipitation: mm/yr -> mm/day
-        try:    data_units = proxy_ts_selected[i]['paleoData_units'][0]
-        except: data_units = 'Not given'
+        if 'paleoData_units' in proxy_ts_selected[i].keys():
+            if type(proxy_ts_selected[i]['paleoData_units']) == list:
+                data_units = proxy_ts_selected[i]['paleoData_units'][0]
+            else: data_units = proxy_ts_selected[i]['paleoData_units']
+        else: data_units = 'Not given'
         if data_units == 'mm/yr':
             proxy_values      = proxy_values/365.25
             proxy_uncertainty = proxy_uncertainty/365.25
@@ -259,10 +332,23 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
             if np.isnan(proxy_values_interp[ind_ref]).all(): print('No data in reference period, index: '+str(i)); no_ref_data += 1
         #
         # Convert seasonality to a list of months, with negative values corresponding to the previous year.
-        proxy_lat = proxy_ts_selected[i]['geo_latitude'][0]
-        proxy_lon = proxy_ts_selected[i]['geo_longitude'][0]
-        try:    proxy_seasonality_txt = proxy_ts_selected[i]['interpretation1_seasonality'][0]
-        except: proxy_seasonality_txt = 'Not given'
+        try:    proxy_lat = proxy_ts_selected[i]['geo_latitude']
+        except: proxy_lat = proxy_ts_selected[i]['geo_meanLat']
+        if type(proxy_lat) == list(): proxy_lat=proxy_lat[0]
+        try:    proxy_lon = proxy_ts_selected[i]['geo_longitude']
+        except: proxy_lon = proxy_ts_selected[i]['geo_meanLon']
+        if type(proxy_lon) == list(): proxy_lat=proxy_lon[0]
+        #
+        if 'interpretation1_seasonality' in proxy_ts_selected[i].keys():
+            if type(proxy_ts_selected[i]['interpretation1_seasonality']) == list:
+                proxy_seasonality_txt = proxy_ts_selected[i]['interpretation1_seasonality'][0]
+            else: proxy_seasonality_txt = proxy_ts_selected[i]['interpretation1_seasonality']
+        elif  'paleoData_interpretation' in proxy_ts_selected[i].keys():
+            if 'variable' in proxy_ts_selected[i]['paleoData_interpretation'][0].keys():
+                proxy_seasonality_txt = proxy_ts_selected[i]['paleoData_interpretation'][0]['seasonality']   
+            else:  proxy_seasonality_txt = 'Not given'
+        else: proxy_seasonality_txt = 'Not given'
+        #
         proxy_seasonality,proxy_seasonality_general = da_utils.interpret_seasonality(proxy_seasonality_txt,proxy_lat,unknown_option='annual')
         proxy_seasonality_array = np.array(proxy_seasonality.split()).astype(int)
         #
@@ -293,20 +379,49 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
         proxy_data['uncertainty'].append(proxy_uncertainty)
         #
         # Save proxy metdata
-        try:    proxy_type = proxy_ts_selected[i]['paleoData_proxy'][0]
-        except: proxy_type = 'Not given'
-        proxy_data['archivetype'].append(proxy_ts_selected[i]['archiveType'][0])
+        if 'archiveType' in proxy_ts_selected[i].keys():
+            if type(proxy_ts_selected[i]['archiveType']) == list:
+                archive_type = proxy_ts_selected[i]['archiveType'][0]
+            else: archive_type = proxy_ts_selected[i]['archiveType']
+        else: archive_type = 'Not given'
+        if 'paleoData_proxy' in proxy_ts_selected[i].keys():
+            if type(proxy_ts_selected[i]['paleoData_proxy']) == list:
+                proxy_type = proxy_ts_selected[i]['paleoData_proxy'][0]
+            else: proxy_type = proxy_ts_selected[i]['paleoData_proxy']
+        else: proxy_type = 'Not given'
+        #
+        if 'interpretation1_variable' in proxy_ts_selected[i].keys():
+            if type(proxy_ts_selected[i]['interpretation1_variable']) == list:
+                interp_variable = proxy_ts_selected[i]['interpretation1_variable'][0]
+            else: interp_variable = proxy_ts_selected[i]['interpretation1_variable']
+        elif  'paleoData_interpretation' in proxy_ts_selected[i].keys():
+            if 'variable' in proxy_ts_selected[i]['paleoData_interpretation'][0].keys():
+                interp_variable = proxy_ts_selected[i]['paleoData_interpretation'][0]['variable']   
+            else:  interp_variable = 'Not given'
+        else: interp_variable = 'Not given'
+        #
+        if 'interpretation1_direction' in proxy_ts_selected[i].keys():
+            if type(proxy_ts_selected[i]['interpretation1_direction']) == list:
+                interp_direction = proxy_ts_selected[i]['interpretation1_direction'][0]
+            else: interp_direction = proxy_ts_selected[i]['interpretation1_direction']
+        elif  'paleoData_interpretation' in proxy_ts_selected[i].keys():
+            if 'variable' in proxy_ts_selected[i]['paleoData_interpretation'][0].keys():
+                interp_direction = proxy_ts_selected[i]['paleoData_interpretation'][0]['direction']   
+            else:  interp_direction = 'Not given'
+        else: interp_direction = 'Not given'
+        #
+        proxy_data['archivetype'].append(archive_type)
         proxy_data['proxytype'].append(proxy_type)
         proxy_data['units'].append(data_units)
-        proxy_data['interp'].append(proxy_ts_selected[i]['interpretation1_variable'][0])
+        proxy_data['interp'].append(interp_variable)
         proxy_data['direction'].append(interp_direction)
         proxy_data['psm'].append(psms_selected[i])
         proxy_data['seasonality_array'][i] = proxy_seasonality_array
         #
         # Save more metadata
         if proxy_lon < 0: proxy_lon = proxy_lon+360
-        proxy_data['metadata'][i,0] = proxy_ts_selected[i]['dataSetName'][0]
-        proxy_data['metadata'][i,1] = proxy_ts_selected[i]['paleoData_TSid'][0]
+        proxy_data['metadata'][i,0] = proxy_ts_selected[i]['dataSetName'][0] if type(proxy_ts_selected[i]['dataSetName']) == list else proxy_ts_selected[i]['dataSetName']
+        proxy_data['metadata'][i,1] = proxy_ts_selected[i]['paleoData_TSid'][0] if type(proxy_ts_selected[i]['paleoData_TSid']) == list else proxy_ts_selected[i]['paleoData_TSid']
         proxy_data['metadata'][i,2] = str(proxy_lat)
         proxy_data['metadata'][i,3] = str(proxy_lon)
         proxy_data['metadata'][i,4] = str(proxy_seasonality_array)
@@ -314,12 +429,12 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
         proxy_data['metadata'][i,6] = str(np.median(proxy_ages[1:]-proxy_ages[:-1]))
         proxy_data['metadata'][i,7] = collection_selected[i]
         proxy_data['metadata'][i,8] = data_units
-        proxy_data['metadata'][i,9] = proxy_ts_selected[i]['interpretation1_variable'][0]
+        proxy_data['metadata'][i,9] = interp_variable
         proxy_data['metadata'][i,10] = interp_direction
         proxy_data['lats'][i] = proxy_lat
         proxy_data['lons'][i] = proxy_lon
         proxy_data['lons'][i] = proxy_lon
-    #
+    #%%
     # Convert data types
     proxy_data['archivetype'] = np.array(proxy_data['archivetype'])
     proxy_data['proxytype']   = np.array(proxy_data['proxytype'])
@@ -334,7 +449,7 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
     print('Proxies loaded        (n='+str(len(proxy_ts_selected))+')')
     print('---')
     print('Proxies without data in reference period (n='+str(no_ref_data)+')')
-    print('Proxies without uncertainty value        (n='+str(missing_uncertainty)+'). Set to '+str(missing_uncertainty_value))
+    #print('Proxies without uncertainty value        (n='+str(missing_uncertainty)+'). Set to '+str(missing_uncertainty_value))
     print('---')
     print('Data stored in dictionary "proxy_data", with keys and dimensions:')
     for key in list(proxy_data.keys()):

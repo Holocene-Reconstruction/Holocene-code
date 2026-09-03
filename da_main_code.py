@@ -11,7 +11,7 @@
 
 # Change working directory
 import os
-os.chdir('C:/Users/erbm/Documents/GitHub/Holocene-code/')
+os.chdir('/Users/christopherhancock/Library/CloudStorage/OneDrive-NorthernArizonaUniversity/ECS_DA/Holocene-code/')
 
 # Import libraries
 import sys
@@ -345,10 +345,9 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     #  - Proxies have values and uncertainties for the age of interest
     proxies_to_assimilate = proxy_ind_selected &\
                             np.isfinite(proxy_values_for_age) &\
-                            np.isfinite(proxy_uncertainties_for_age)
-                            #&\
-                            #np.isfinite(proxy_resolution_for_age) &\
-                            #np.isfinite(prior_proxy_means[age_counter,:])
+                            np.isfinite(proxy_uncertainties_for_age) &\
+                            np.isfinite(proxy_resolution_for_age) &\
+                            np.isfinite(prior_proxy_means[age_counter,:])
     #
     # Keep a record of which proxies are assimilated
     proxies_to_assimilate_all[age_counter,:] = proxies_to_assimilate
