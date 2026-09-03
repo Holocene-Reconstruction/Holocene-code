@@ -5,6 +5,7 @@ more/*
 prepare_input_models/more/*
 prepare_input_proxies/more/*
 prepare_input_proxies/figures/*
+prepare_input_proxies/extra_code.py
 process_output/*
 sensitivity_experiments/figures/*
 sensitivity_experiments/more/*

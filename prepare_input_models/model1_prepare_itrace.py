@@ -16,9 +16,9 @@ var_selected = "d18Op_unweighted"
 #%% LOAD DATA
 
 # Directories
-data_dir_holocene  = 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/models/itrace_holocene/'
-data_dir_deglacial = 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/models/itrace/'
-output_dir         = "C:/Users/erbm/Documents/data_climate/data_paleoclimate/models/itrace_combined/"
+data_dir_holocene  = 'P:/data_paleoclimate/models/itrace_holocene/'
+data_dir_deglacial = 'P:/data_paleoclimate/models/itrace/'
+output_dir         = "P:/data_paleoclimate/models/itrace_combined/"
 
 # Load data: Holocene
 if   var_selected == "tas":              file_txt = "TREFHT";    var_txt = "TREFHT"

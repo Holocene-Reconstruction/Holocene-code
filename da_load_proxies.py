@@ -145,7 +145,9 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
         # Get proxy data
         print('Processing proxies:',i)
         proxy_values = np.array(proxy_ts_selected[i]['paleoData_values']).astype(float)
-        proxy_ages = np.array(proxy_ts_selected[i]['age']).astype(float)
+        proxy_ages = proxy_ts_selected[i]['age'].astype(float)
+        if np.ma.isMaskedArray(proxy_ages): proxy_ages = proxy_ages.filled(np.nan)
+        else:                               proxy_ages = np.array(proxy_ages)
         #
         # If any NaNs exist in the ages, remove those values
         proxy_values = proxy_values[np.isfinite(proxy_ages)]

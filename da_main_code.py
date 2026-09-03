@@ -29,8 +29,8 @@ import da_psms
 import da_plot_results
 
 # Make maps of proxy-by-proxy updates
-age_ind_to_map = []
-#age_ind_to_map = [0,100,200]
+#age_ind_to_map = []
+age_ind_to_map = [0,100,200]
 
 
 #%% SETTINGS

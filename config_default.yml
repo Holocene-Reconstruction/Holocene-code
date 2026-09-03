@@ -5,7 +5,7 @@
 #==============================================
 
 # Location of data and lipd directories
-data_dir: 'C:/Users/erbm/Documents/data_climate/data_assimilation/'
+data_dir: 'P:/data_paleoclimate/data_assimilation/'
 
 # Primary options
 exp_name: 'eco21ka'  # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.

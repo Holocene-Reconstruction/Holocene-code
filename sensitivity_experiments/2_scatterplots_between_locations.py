@@ -31,7 +31,7 @@ output_dir = "C:/Users/erbm/Documents/GitHub/Holocene-code/sensitivity_experimen
 
 time_res = 100
 options = {}
-options['data_dir']            = 'C:/Users/erbm/Documents/data_climate/data_assimilation/'
+options['data_dir']            = 'P:/data_paleoclimate/data_assimilation/'
 options['model_region']        = [0,85,180,350]
 #options['models_for_prior']    = ['trace']; options['age_range_model'] = [0,22000]
 options['models_for_prior']    = ['itrace']; options['age_range_model'] = [0,20000]

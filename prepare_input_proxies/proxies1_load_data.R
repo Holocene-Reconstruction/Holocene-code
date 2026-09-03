@@ -12,11 +12,11 @@
 library(lipdR)
 library(geoChronR)
 
-proxy_dir <- 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/proxies/dropbox/'
+proxy_dir <- 'P:/data_paleoclimate/proxies/dropbox/'
 
 # LOAD PROXIES =================================================================
 
-proxies_all <- readLipd(proxy_dir+'database/')
+proxies_all <- readLipd(paste0(proxy_dir,'database/'))
 all_ts <- extractTs(proxies_all)
 
 # SAVE DATA ====================================================================

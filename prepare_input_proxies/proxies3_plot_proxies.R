@@ -12,8 +12,8 @@ library(tidyverse)
 library(rnaturalearth)
 library(rnaturalearthdata)
 
-proxy_dir <- 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/proxies/dropbox/'
-da_dir    <- 'C:/Users/erbm/Documents/data_climate/data_assimilation/proxies/ecoclimate/'
+proxy_dir <- 'P:/data_paleoclimate/proxies/dropbox/'
+da_dir    <- 'P:/data_paleoclimate/data_assimilation/proxies/ecoclimate/'
 
 # LOAD PROXIES =================================================================
 

@@ -20,7 +20,7 @@ interp_selected = 'precip';      interp_to_find = ['precipitation','effectivePre
 
 #%% LOAD DATA
 
-da_dir     = 'C:/Users/erbm/Documents/data_climate/data_assimilation/proxies/ecoclimate/'
+da_dir     = 'P:/data_paleoclimate/data_assimilation/proxies/ecoclimate/'
 figure_dir = 'C:/Users/erbm/Documents/GitHub/Holocene-code/prepare_input_proxies/figures/'
 
 # Load the proxy data

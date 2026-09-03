@@ -11,7 +11,7 @@ import math
 
 #%% LOAD MODEL
 
-model_dir = "C:/Users/erbm/Documents/data_climate/data_assimilation/models/processed_model_data/"
+model_dir = "P:/data_paleoclimate/data_assimilation/models/processed_model_data/"
 model_file_ending = ".21999-0BP.tas.timeres_100.nc"
 
 # Load selected variables

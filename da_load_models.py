@@ -181,6 +181,7 @@ def load_trace(var_txt,data_dir_model):
     #
     # Get the names of all files for the given variable
     filenames_model = sorted(glob.glob(data_dir_model+'trace*'+var_txt+'*.nc'))
+    #filenames_model = ["P:/data_models/trace21k/trace.36.400BP-1990CE.cam2.h0.TREFHT.2160101-2204012.nc"]
     #
     # Load the model data
     handle_model = xr.open_mfdataset(filenames_model,decode_times=False,join='override')
@@ -207,8 +208,8 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     var_name           = 'tas'
     time_resolution    = 100
     age_range          = [0,22000]
-    output_dir         = '/projects/pd_lab/data/data_assimilation/models/processed_model_data/'
-    original_model_dir = '/projects/pd_lab/data/data_assimilation/models/original_model_data/'
+    output_dir         = 'P:/data_paleoclimate/data_assimilation/models/processed_model_data/'
+    original_model_dir = 'P:/data_paleoclimate/data_assimilation/models/original_model_data/'
     return_variables   = False
     """
     #
@@ -225,9 +226,9 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     data_dir['trace']  = original_model_dir+'TraCE_21ka/'
     """
     data_dir['trace']  = 'P:/data_models/trace21k/'
-    data_dir['trace2'] = 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/models/trace21k2/'
-    data_dir['itrace'] = 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/models/itrace_combined/'
-    data_dir['hadcm3'] = 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/models/HadCM3/'  #TODO: Transfer the HadCM3 simulation
+    data_dir['trace2'] = 'P:/data_paleoclimate/models/trace21k2/'
+    data_dir['itrace'] = 'P:/data_paleoclimate/models/itrace_combined/'
+    data_dir['hadcm3'] = 'P:/data_paleoclimate/models/HadCM3/'  #TODO: Transfer the HadCM3 simulation
     #
     # Set the names of the variables
     var_names = {}
@@ -363,9 +364,6 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
         age_model_nyearmean             = np.mean(np.reshape(age_model[age_indices_for_model_means],                     (n_means,effective_time_resolution)),   axis=1)
         time_ndays_model_nyearmean      = np.mean(np.reshape(time_ndays_model_yearsmonths[age_indices_for_model_means,:],(n_means,effective_time_resolution,12)),axis=1)
     #
-    # Regrid the models
-    var_model_regrid,lat_model_regrid,lon_model_regrid = da_utils.regrid_model(var_model_yearsmonths_nyearmean,lat_model,lon_model,age_model_nyearmean)
-    #
     #
     #%% SAVE DATA
     #
@@ -394,7 +392,12 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     outputfile.close()
     #
     #
-    # Save regridded HadCM3 output
+    #%% REGRID MODEL
+    """
+    # Regrid the model
+    var_model_regrid,lat_model_regrid,lon_model_regrid = da_utils.regrid_model(var_model_yearsmonths_nyearmean,lat_model,lon_model,age_model_nyearmean)
+    #
+    # Save regridded model output
     outputfile = netCDF4.Dataset(output_dir+model_name+'_regrid.'+age_range_txt+'BP.'+var_name+'.timeres_'+str(time_resolution)+'.nc','w')
     outputfile.createDimension('age',  age_model_nyearmean.shape[0])
     outputfile.createDimension('month',12)
@@ -416,3 +419,4 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     output_ndays_all[:] = time_ndays_model_nyearmean
     #
     outputfile.close()
+    """

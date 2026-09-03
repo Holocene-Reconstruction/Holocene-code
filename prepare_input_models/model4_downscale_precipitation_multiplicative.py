@@ -1,7 +1,6 @@
 #==============================================================================
-# Downscaling the modeled temperature. This is based on the method described
-# in Lorenz et al., 2016. It starts with model output in a standard format with
-# annual resolution.
+# Downscaling the modeled precipitation, method 2. This is a multiplicative
+# linear scaling method.
 #
 # Method:
 #  - Load model data and ERA5 reference data.
@@ -12,7 +11,7 @@
 #    otherwise the files are too large.
 #  - Use bilinear interpolation to put the model on the same resolution as the
 #    reference dataset (ERA5)
-#  - Add the modeled anomalies to the reference dataset, which has been
+#  - Multiply the modeled anomalies by the reference dataset, which has been
 #    averaged over the reference period.
 #  - Save the output.
 #
@@ -31,8 +30,8 @@ model_to_downscale = "trace"
 model_dir = "P:/data_paleoclimate/data_assimilation/models/processed_model_data/"
 era5_dir  = "P:/data_reanalyses/data_ERA5/"
 
-filename_input  = model_to_downscale+".21999--100BP.tas.timeres_1.nc"
-filename_output = model_to_downscale+"_downscaled.21999-0BP.tas.timeres_100.nc"
+filename_input  = model_to_downscale+".21999--100BP.precip.timeres_1.nc"
+filename_output = model_to_downscale+"_downscaled_multiplicative.21999-0BP.precip.timeres_100.nc"
 
 print(" === Processing model data. Downscaling, debiasing, and summing to 100 year resolution ===")
 #print(filename_input)
@@ -42,7 +41,7 @@ print(" === Processing model data. Downscaling, debiasing, and summing to 100 ye
 
 # Load the model data
 xarray_model = xr.open_dataset(model_dir+filename_input)
-xarray_era5  = xr.open_dataset(era5_dir+'era5_monthly_t2m_NorthAmerica.nc')
+xarray_era5  = xr.open_dataset(era5_dir+'era5_monthly_tp_NorthAmerica.nc')
 
 # Trim the region, to save memory later
 if max(xarray_model['lon'].values) > 270: xarray_model['lon'] = xarray_model['lon'] - 360
@@ -52,7 +51,7 @@ xarray_model = xarray_model.sel(lat=slice(-5,90),lon=slice(-180,0))
 xarray_model['year'] = 1950 - xarray_model['age']
 
 # Convert units
-xarray_era5['t2m'] = xarray_era5['t2m'] - 273.15  # K to C
+xarray_era5['tp'] = xarray_era5['tp'] * 1000  # m/day to mm/day
 
 
 #%% STEP 1: COMPUTE MEANS OVER THE YEARS OF OVERLAP
@@ -78,8 +77,8 @@ era5_mean_common_period = xarray_era5.sel(valid_time=slice(str(year_min)+'-01-01
 
 #%% STEP 2: REMOVE MODEL MEAN
 
-# Remove the model mean
-xarray_model['tas'] = xarray_model['tas'] - model_mean_common_period['tas']
+# Divide by the model mean
+xarray_model['precip'] = xarray_model['precip'] / model_mean_common_period['precip']
 
 
 #%% STEP 3: COMPUTE 100-YEAR MEANS (TO MAKE A SMALLER FILE)
@@ -91,14 +90,14 @@ lon_model = xarray_model['lon'].values
 
 # Select years to keep and compute 100-year means
 ind_selected = np.where((age_model < 22000) & (age_model >= 0))[0]
-tas_model_fraction_100yr = np.nanmean(np.reshape(xarray_model['tas'][ind_selected,:,:,:].values,(220,100,12,len(lat_model),len(lon_model))),axis=1)
+precip_model_fraction_100yr = np.nanmean(np.reshape(xarray_model['precip'][ind_selected,:,:,:].values,(220,100,12,len(lat_model),len(lon_model))),axis=1)
 age_100yr = np.nanmean(np.reshape(age_model[ind_selected],(220,100)),axis=1)
 days_per_month_all = np.nanmean(np.reshape(xarray_model['days_per_month_all'][ind_selected,:].values,(220,100,12)),axis=1)
 
 # Construct the variable to save
 xarray_model_100year = xr.Dataset(
     {
-        "tas":(["age","month","lat","lon"],tas_model_fraction_100yr),
+        "precip":(["age","month","lat","lon"],precip_model_fraction_100yr),
         "days_per_month":    (["month"],      xarray_model['days_per_month'].values,{"units":"days"}),
         "days_per_month_all":(["age","month"],days_per_month_all,                   {"units":"days"}),
     },
@@ -115,10 +114,10 @@ xarray_model_100year = xr.Dataset(
 
 # Interpolate model to ERA5
 xarray_model_100year_downscaled = xarray_model_100year.interp(lat=xarray_era5["latitude"].values,lon=xarray_era5["longitude"].values)
-#xarray_model_100year_downscaled.tas[0,0,:,:].plot()
+#xarray_model_100year_downscaled.precip[0,0,:,:].plot()
 
-# Add the bias correction to each timestep
-xarray_model_100year_downscaled['tas'] = xarray_model_100year_downscaled['tas'] + era5_mean_common_period['t2m'].values[np.newaxis,:,:,:]
+# Multiply by the ERA5 mean to bias correct
+xarray_model_100year_downscaled['precip'] = xarray_model_100year_downscaled['precip'] * era5_mean_common_period['tp'].values[np.newaxis,:,:,:]
 
 
 #%% MAKE MAPS TO CHECK
@@ -127,10 +126,10 @@ import matplotlib.pyplot as plt
 # Plot time series
 f, ax = plt.subplots(2,2,figsize=(16,10))
 ax = ax.ravel()
-model_mean_common_period.tas[0,:,:].plot(ax=ax[0])
-era5_mean_common_period.t2m[0,:,:].plot(ax=ax[1])
-xarray_model_100year.tas[-1,0,:,:].plot(ax=ax[2])
-xarray_model_100year_downscaled.tas[-1,0,:,:].plot(ax=ax[3])
+model_mean_common_period.precip[0,:,:].plot(ax=ax[0])
+era5_mean_common_period.tp[0,:,:].plot(ax=ax[1])
+xarray_model_100year.precip[-1,0,:,:].plot(ax=ax[2])
+xarray_model_100year_downscaled.precip[-1,0,:,:].plot(ax=ax[3])
 """
 
 #%% STEP 5: SAVE THE OUTPUT
