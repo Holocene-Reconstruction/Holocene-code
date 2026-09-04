@@ -7,7 +7,7 @@
 
 #Load Packages
 #import cartopy.crs         as ccrs        # Packages for mapping in python
-#import matplotlib.pyplot   as plt         # Packages for making figures
+import matplotlib.pyplot   as plt         # Packages for making figures
 import numpy as np
 import os
 import xarray as xr
@@ -17,7 +17,8 @@ import metpy.calc as mpcalc
 #from scipy.stats import rankdata
 
 #setup file locations
-wd='/Users/christopherhancock/Library/CloudStorage/OneDrive-NorthernArizonaUniversity/ECS_DA/data/models/'
+#wd='/Users/christopherhancock/Library/CloudStorage/OneDrive-NorthernArizonaUniversity/ECS_DA/data/models/'
+wd='P:/data_paleoclimate/models/'
 
 #Set up standardized names
 #Format = name, conversion multiply, conversion shift, new units
@@ -192,7 +193,7 @@ def LakePercentile(LakeStatus=False,runoff=False,precip=False,levap=False,mask=F
 #%%
 model = 'TraCE_21ka'
 #model = 'HadCM3B_transient21k'
-wdir=f'{wd}original_model_data/{model}/decadal/'
+wdir=f'{wd}{model}/decadal/'
 
 model_data={}
 for var in [x for x in varkey[model].keys() if varkey[model][x]]:
@@ -285,7 +286,7 @@ model_data['LakeStatus'].attrs['long_name'] = 'Lake Status (Runoff / (Lake Evapo
 print('Saving processed .nc files')
 if model == 'TraCE_21ka':             filename = 'trace.01-36.22000BP.cam2.LakeStatus.22000BP_decavg_400BCE'
 elif model == 'HadCM3B_transient21k': filename = 'deglh.vn1_0.LakeStatus.monthly.ANN.001.nc'
-model_data['LakeStatus'].to_dataset(name='LakeStatus').to_netcdf(f'{wd}/original_model_data/{model}/{filename}.nc')
+model_data['LakeStatus'].to_dataset(name='LakeStatus').to_netcdf(f'{wd}{model}/{filename}.nc')
 
 #%%
 lat,lon=44.648,252.554
@@ -310,14 +311,6 @@ loni = np.argmin(abs(model_data['LakeStatus'].lon.data-lon))
 
 #%%
 LakeStatus = model_data['runoff']/(model_data['PET']-model_data['precip'])
-
-#%%
-model_data['LakeStatus2'] = LakePercentile2(runoff=model_data['runoff'],
-                                          precip=model_data['precip'],
-                                          levap=model_data['PET'],
-                                          mask=(landmask & snowmask),
-                                          time=time)
-model_data['LakeStatus2'].attrs['long_name'] = 'Lake Status (Runoff / (Lake Evaporation - Precipitation))'
 
 #%%
 # Calculate lake values
@@ -346,10 +339,17 @@ def LakePercentile2(LakeStatus=False,runoff=False,precip=False,levap=False,mask=
     return(out)
 
 LakeStatus[:300,lati,loni].plot()
-    
+
+#%%
+model_data['LakeStatus2'] = LakePercentile2(runoff=model_data['runoff'],
+                                          precip=model_data['precip'],
+                                          levap=model_data['PET'],
+                                          mask=(landmask & snowmask),
+                                          time=time)
+model_data['LakeStatus2'].attrs['long_name'] = 'Lake Status (Runoff / (Lake Evaporation - Precipitation))'    
         
 #%% Create TraCE wind vectors at desired atmospheric levels (only need to do this once)
-# wdir = wd+'original_model_data/DAMP_TraCE/'
+# wdir = wd+'DAMP_TraCE/'
 # for var in ['U','V' ]:
 #     filenames = [fn for fn in os.listdir(wdir) if '.'+var+'.' in fn]
 #     for fn in filenames:
@@ -387,28 +387,4 @@ LakeStatus[:300,lati,loni].plot()
 # #
 # model_data[var].attrs['units']     = model_data['V'].attrs['units']
 # model_data[var].attrs['long_name'] = 'Surface wind speed'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

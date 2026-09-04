@@ -13,7 +13,7 @@ import cartopy.feature as cfeature
 plt.style.use('ggplot')
 
 # Make a map of the current state of the reconstruction
-def make_map(var_toplot,model_data,proxy_value,proxy_lat,proxy_lon,proxy_uncertainty,proxy,age,stage,exp_name_full,bounds=5,save_instead_of_plot=False):
+def make_map(var_toplot,model_data,proxy_value,proxy_lat,proxy_lon,proxy_units,proxy_uncertainty,proxy,age,stage,exp_name_full,bounds=5,save_instead_of_plot=False):
     #
     # Make a map
     plt.figure(figsize=(10,12))
@@ -27,7 +27,7 @@ def make_map(var_toplot,model_data,proxy_value,proxy_lat,proxy_lon,proxy_uncerta
     colorbar1 = plt.colorbar(map1,orientation='horizontal',ax=ax1,fraction=0.08,pad=0.02)
     colorbar1.ax.tick_params(labelsize=14)
     colorbar1.ax.set_facecolor('none')
-    ax1.set_title('Proxy '+str(proxy)+': value='+str('%1.2f' % proxy_value)+', uncertainty='+str('%1.2f' % proxy_uncertainty)+', '+stage,loc='center',fontsize=18)
+    ax1.set_title('Proxy '+str(proxy)+': value='+str('%1.2f' % proxy_value)+' '+proxy_units+', uncertainty='+str('%1.2f' % proxy_uncertainty)+', '+stage,loc='center',fontsize=14)
     ax1.coastlines()
     ax1.add_feature(cfeature.LAKES,facecolor='none',edgecolor='k')
     ax1.gridlines(color='k',linewidth=1,linestyle=(0,(1,5)))

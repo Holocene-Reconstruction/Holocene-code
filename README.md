@@ -1,17 +1,17 @@
-# README FOR HOLOCENE RECONSTRUCTION PROJECT
-Written by: Michael P. Erb, Contact: michael.erb@nau.edu
+# README FOR NORTH AMERICAN ECOCLIMATE RECONSTRUCTION PROJECT
+Written by: Michael Erb, Contact: michael.erb@nau.edu
 
 ## 1. Introduction
 
-Data and models are two methods of exploring past climate.  Data (such as proxy records) provide point data and models simulate climate changes and climate-system interactions.  The goal of this Holocene Reconstruction project is to use paleoclimate data assimilation--a method of combining information from proxy data and model results--to reconstruct climate over the past 12,000 years.
+Data and models are two methods of exploring past climate.  Data (such as proxy records) provide point data and models simulate climate changes and climate-system interactions.  The goal of this project is to use paleoclimate data assimilation--a method of combining information from proxy data and model results--to reconstruct North American climate over the past 21,000 years.
 
-This GitHub repository contains the Holocene Reconstruction code, and this readme file explains how to set it up and use it.
+This GitHub repository contains the reconstruction code, and this readme file explains how to set it up and use it.
 
-This code and readme are still under development. To read about the Holocene reconstruction made using v1.0.0 of this code, see Erb et al., in press: "Reconstructing Holocene temperatures in time and space using paleoclimate data assimilation"
+This code and readme are still under development. To read about the Holocene reconstruction made using v1.0.0 of this code, see Erb et al., 2022: "Reconstructing Holocene temperatures in time and space using paleoclimate data assimilation"
 
 ## 2. Getting started
 
-The Holocene Reconstruction code is written in Python 3.  The instructions below will help you download the Holocene Reconstruction code, download the necessary data files, install Python 3, and start using the code.
+The code is written in Python 3.  The instructions below will help you download the Holocene Reconstruction code, download the necessary data files, install Python 3, and start using the code.
 
 ### 2.1. Getting the Holocene Reconstruction code
 

@@ -20,10 +20,10 @@ def psm_main(model_data,proxy_data,options):
         #
         # Calculate the model-based proxy estimate depending on the PSM (or variable to compare, if the proxy is already calibrated)
         # Model values are in units of degree C (for tas) and mm/day (for precip)
-        if   psm_selected == 'calibrated_tas':            proxy_estimate = get_model_values_bilinear(model_data,proxy_data,'tas',i)
-        elif psm_selected == 'calibrated_precip':         proxy_estimate = get_model_values_bilinear(model_data,proxy_data,'precip',i)
-        elif psm_selected == 'calibrated_tas_nearest':    proxy_estimate = get_model_values_nearest(model_data,proxy_data,'tas',i)
-        elif psm_selected == 'calibrated_precip_nearest': proxy_estimate = get_model_values_nearest(model_data,proxy_data,'precip',i)
+        if psm_selected[:10] == 'calibrated': proxy_estimate = get_model_values_bilinear(model_data,proxy_data,psm_selected[11:],i)
+        #elif psm_selected == 'calibrated_precip':         proxy_estimate = get_model_values_bilinear(model_data,proxy_data,'precip',i)
+        #elif psm_selected == 'calibrated_tas_nearest':    proxy_estimate = get_model_values_nearest(model_data,proxy_data,'tas',i)
+        #elif psm_selected == 'calibrated_precip_nearest': proxy_estimate = get_model_values_nearest(model_data,proxy_data,'precip',i)
         elif psm_selected[:10] == 'rank_based':
             proxy_estimate,proxy_update = rank_based(model_data,proxy_data,psm_selected[11:],i,options)
             proxy_data['values_binned'][i,:] = proxy_update
@@ -42,12 +42,13 @@ def psm_main(model_data,proxy_data,options):
         proxy_res_12ka_unique_sorted = np.sort(proxy_res_12ka_unique[np.isfinite(proxy_res_12ka_unique)]).astype(int)
         #
         #Allow for proxy estimate and estimate to have same reference window if data does not cover entire window (allows for more flexibility with larger windows)
-        if options['reconstruction_type']=='relative':
-            age_model    = model_data['age']
-            proxy_ages_valid   = proxy_data['age_centers'][np.isfinite(proxy_data['values_binned'][i])]
-            ind_model_proxy = ((age_model >= proxy_ages_valid[0]  - (options['time_resolution']/2)) & (age_model <= proxy_ages_valid[-1] + (options['time_resolution']/2)))
-            ind_model_refwindow = ((age_model >= options['reference_period'][0]) & (age_model  < options['reference_period'][1]))
-            proxy_estimate     = proxy_estimate - np.mean(proxy_estimate[ind_model_proxy & ind_model_refwindow])
+        if options['reconstruction_type'] == 'relative':
+            age_model = model_data['age']
+            proxy_ages_valid = proxy_data['age_centers'][np.isfinite(proxy_data['values_binned'][i])]
+            if len(proxy_ages_valid) > 0:
+                ind_model_proxy     = ((age_model >= proxy_ages_valid[0] - (options['time_resolution']/2)) & (age_model <= proxy_ages_valid[-1] + (options['time_resolution']/2)))
+                ind_model_refwindow = ((age_model >= options['reference_period'][0]) & (age_model  < options['reference_period'][1]))
+                proxy_estimate = proxy_estimate - np.mean(proxy_estimate[ind_model_proxy & ind_model_refwindow])
         #
         # Loop through each time resolution, computing a running mean of the selected duration and save the values to a common variable
         # Note: While convolve may average across different models, those values won't be used (because of the model_data['valid_inds'] variable).
@@ -135,7 +136,7 @@ def get_model_values_nearest(model_data,proxy_data,var_name,i,verbose=False):
 
 
 # A function to do rank-based comparison with model data
-#var_name,verbose = 'tas',False
+#var_name,verbose = 'LakeStatus',False
 def rank_based(model_data,proxy_data,var_name,i,options,verbose=False):
     #
     age_model    = model_data['age']

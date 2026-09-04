@@ -186,6 +186,7 @@ def detrend_model_data(model_data,options):
 
 
 # Load the data from the TraCE simulation
+#var_txt,data_dir_model = var_txt,data_dir[model_name]
 def load_trace(var_txt,data_dir_model):
     #
     # Get the names of all files for the given variable
@@ -223,8 +224,8 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     #
     """
     # Variables for testing the code
-    model_name         = 'itrace'
-    var_name           = 'tas'
+    model_name         = 'trace'
+    var_name           = 'LakeStatus'
     time_resolution    = 100
     age_range          = [0,22000]
     output_dir         = 'P:/data_paleoclimate/data_assimilation/models/processed_model_data/'
@@ -235,18 +236,18 @@ def process_models(model_name,var_name,time_resolution,age_range,output_dir,orig
     # If the model name has an option (regrid or downscaled), remove it from the model name.
     model_name_split = model_name.split('_')
     model_name   = model_name_split[0]
-    if len(model_name_split) == 1: model_option = 'none'
-    else:                          model_option = model_name_split[1]
+    #if len(model_name_split) == 1: model_option = 'none'
+    #else:                          model_option = model_name_split[1]
     #
     # Set directories
     data_dir = {}
-    
-    data_dir['hadcm3'] = original_model_dir+'HadCM3B_transient21k/'
-    data_dir['trace']  = original_model_dir+'TraCE_21ka/'
     """
+    data_dir['trace']  = original_model_dir+'TraCE_21ka/'
+    data_dir['hadcm3'] = original_model_dir+'HadCM3B_transient21k/'
     data_dir['trace']  = 'P:/data_models/trace21k/'
     data_dir['itrace'] = 'C:/Users/erbm/Documents/data_climate/data_paleoclimate/models/itrace_combined/'
     """
+    data_dir['trace']  = 'P:/data_paleoclimate/models/TraCE_21ka/'
     data_dir['trace2'] = 'P:/data_paleoclimate/models/trace21k2/'
     data_dir['itrace'] = 'P:/data_paleoclimate/models/itrace_combined/'
     data_dir['hadcm3'] = 'P:/data_paleoclimate/models/HadCM3/'  #TODO: Transfer the HadCM3 simulation
