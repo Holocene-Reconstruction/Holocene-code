@@ -42,8 +42,12 @@ def psm_main(model_data,proxy_data,options):
         #Allow for proxy estimate and estimate to have same reference window if data does not cover entire window (allows for more flexibility with larger windows)
         if options['reconstruction_type']=='relative':
             age_model    = model_data['age']
-            proxy_ages_valid   = proxy_data['age_centers'][np.isfinite(proxy_data['values_binned'][i])]
-            if len(proxy_ages_valid) == 0: 
+            ind_model_refwindow = []
+            for a,age in enumerate(age_model):
+                if (age >= options['reference_period'][0]) & (age  < options['reference_period'][1]):
+                    if np.isfinite(proxy_data['values_binned'][i,proxy_data['age_centers']==age]):
+                        ind_model_refwindow.append(a)                
+            if len(ind_model_refwindow) == 0:
                 proxy_estimate[:] *= np.nan
             else: 
                 ind_model_proxy = ((age_model >= proxy_ages_valid[0]  - (options['time_resolution']/2)) & (age_model <= proxy_ages_valid[-1] + (options['time_resolution']/2)))
@@ -142,10 +146,10 @@ def rank_based(model_data,proxy_data,var_name,i,options,verbose=False):
     age_model    = model_data['age']
     proxy_ages   = proxy_data['age_centers']
     proxy_values = proxy_data['values_binned'][i]
-    var_model_location_season = get_model_values_nearest(model_data,proxy_data,var_name,i)
+    var_model_location_season = get_model_values_bilinear(model_data,proxy_data,var_name,i)
     # Get the model values corresponding to the valid data of the proxy
     logical_proxy_valid = (np.isfinite(proxy_values) & [np.isfinite(var_model_location_season[age_model==age])[0] for age in proxy_ages])
-    if sum(logical_proxy_valid) == 0: return use_nans(model_data,var_name),proxy_values
+    if sum(logical_proxy_valid) == 0: return use_nans(model_data,var_name),proxy_values[:]*np.nan
     proxy_values_valid = proxy_values[logical_proxy_valid]
     proxy_ages_valid   = proxy_ages[logical_proxy_valid]
     proxy_ages_valid_start = proxy_ages_valid[0]  - (options['time_resolution']/2)

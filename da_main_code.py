@@ -106,9 +106,9 @@ if options['reconstruction_type'] == 'relative':
         ind_for_model = (model_data['number'] == (i+1))
         ind_ref = (model_data['age'] >= options['reference_period'][0]) & (model_data['age'] < options['reference_period'][1]) & ind_for_model
         for var in options['vars_root']:
-            model_data[var][ind_for_model,:,:,:] = model_data[var][ind_for_model,:,:,:] - np.mean(model_data[var][ind_ref,:,:,:],axis=0)
+            model_data[var][ind_for_model,:,:,:] = model_data[var][ind_for_model,:,:,:] - np.nanmean(model_data[var][ind_ref,:,:,:],axis=0)
         for var in options['vars_to_reconstruct']:
-            model_data[var][ind_for_model,:,:]   = model_data[var][ind_for_model,:,:]   - np.mean(model_data[var][ind_ref,:,:],axis=0)
+            model_data[var][ind_for_model,:,:]   = model_data[var][ind_for_model,:,:]   - np.nanmean(model_data[var][ind_ref,:,:],axis=0)
 
 # Do more prior processing, if requested
 if options['model_processing'] != 'None':
