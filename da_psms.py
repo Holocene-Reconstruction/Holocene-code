@@ -50,9 +50,8 @@ def psm_main(model_data,proxy_data,options):
             if len(ind_model_refwindow) == 0:
                 proxy_estimate[:] *= np.nan
             else: 
-                ind_model_proxy = ((age_model >= proxy_ages_valid[0]  - (options['time_resolution']/2)) & (age_model <= proxy_ages_valid[-1] + (options['time_resolution']/2)))
                 ind_model_refwindow = ((age_model >= options['reference_period'][0]) & (age_model  < options['reference_period'][1]))
-                proxy_estimate     = proxy_estimate - np.mean(proxy_estimate[ind_model_proxy & ind_model_refwindow])
+                proxy_estimate     = proxy_estimate - np.nanmean(proxy_estimate[ind_model_refwindow])
         #
         # Loop through each time resolution, computing a running mean of the selected duration and save the values to a common variable
         # Note: While convolve may average across different models, those values won't be used (because of the model_data['valid_inds'] variable).
@@ -146,7 +145,7 @@ def rank_based(model_data,proxy_data,var_name,i,options,verbose=False):
     age_model    = model_data['age']
     proxy_ages   = proxy_data['age_centers']
     proxy_values = proxy_data['values_binned'][i]
-    var_model_location_season = get_model_values_bilinear(model_data,proxy_data,var_name,i)
+    var_model_location_season = get_model_values_nearest(model_data,proxy_data,var_name,i)
     # Get the model values corresponding to the valid data of the proxy
     logical_proxy_valid = (np.isfinite(proxy_values) & [np.isfinite(var_model_location_season[age_model==age])[0] for age in proxy_ages])
     if sum(logical_proxy_valid) == 0: return use_nans(model_data,var_name),proxy_values[:]*np.nan
@@ -176,7 +175,7 @@ def rank_based(model_data,proxy_data,var_name,i,options,verbose=False):
     ind_ref_proxy = np.where((proxy_ages >= options['reference_period'][0]) & (proxy_ages < options['reference_period'][1]))[0]
     ind_ref_prior = np.where((age_model  >= options['reference_period'][0]) & (age_model  < options['reference_period'][1]))[0]
     percentile_proxy_values_all = percentile_proxy_values_all - np.nanmean(percentile_proxy_values_all[ind_ref_proxy])
-    percentile_prior_values     = percentile_prior_values     - np.mean(percentile_prior_values[ind_ref_prior])
+    percentile_prior_values     = percentile_prior_values     - np.nanmean(percentile_prior_values[ind_ref_prior])
     if np.isnan(percentile_proxy_values_all[ind_ref_proxy]).all(): print('No data in reference period, index: '+str(i))
     #
     """

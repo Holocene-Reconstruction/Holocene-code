@@ -8,7 +8,7 @@
 data_dir: '/Users/christopherhancock/Library/CloudStorage/OneDrive-NorthernArizonaUniversity/ECS_DA/data/'
 
 # Primary options
-exp_name: 'eco21ka_trace'  # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
+exp_name: 'eco21ka_trace_onlyHydro'  # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
 #CH - Is there a way to load model data that's not vars_to_reconstruct? Maybe from proxies to use? We want to load lake status but don't need to reconstruct it? Same for SST?
 vars_to_reconstruct:   ['tas_annual','precip_annual','LakeStatus_annual']  # The variables to reconstruct {['tas','precip']}, then season after underscore (e.g., "annual", "jja", "djf", "month_01", "month_02").
 #vars_to_reconstruct:   ['tas_annual','tas_month_01','tas_month_02','tas_month_03','tas_month_04','tas_month_05','tas_month_06','tas_month_07','tas_month_08','tas_month_09','tas_month_10','tas_month_11','tas_month_12']
@@ -21,7 +21,7 @@ percent_of_prior:      100      # What percentage of the prior states to assimil
 seed_for_prior:        0        # This seed is only used if 'percent_of_prior' is below 100 {0}
 
 # Proxies to assimilate
-proxies_to_use:                 ['temperature|temperature|any|any|degC|calibrated_tas','precipitation|precipitation|any|any|mm/yr|calibrated_precip','precipitation|accumulation|any|any|mm/yr|calibrated_precip','precipitation|accumulation|any|any|g/cm2/yr|calibrated_precip','effectivePrecipitation|lakeLevel|any|any|any|rank_based_LakeStatus']  # Proxies to assimilate, in the format of interp|variable|archive|proxy|units|psm. Use "any" to select anything in a category. "psm" specifies the PSM to use. Use commas to select multiple values in a category. Available psms: calibrated_tas, calibrated_precip, rank_based_tas, rank_based_precip
+proxies_to_use:                 ['effectivePrecipitation|lakeLevel|any|any|any|rank_based_LakeStatus']  # Proxies to assimilate, in the format of interp|variable|archive|proxy|units|psm. Use "any" to select anything in a category. "psm" specifies the PSM to use. Use commas to select multiple values in a category. Available psms: calibrated_tas, calibrated_precip, rank_based_tas, rank_based_precip
 assimilate_selected_seasons:    ['annual','summer','winter']  # Assimilate proxies with the selected seasonality. Note, the reconstruction will still try to represent annual means. {False, ['annual','summeronly','winteronly','summer+','winter+'], 'jja_preferred', 'djf_preferred'}
 assimilate_selected_archives:   False  # Provide a list of one or more archive types to assimilate {False, ['LakeSediment','MarineSediment','Peat','GlacierIce','Midden','Speleothem','Wood','Ice-other']}
 assimilate_selected_region:     False  # Provide bounds to assimilate only proxies in a given region {False, [lat_min,lat_max,lon_min,lon_max]} using lons between 0-360.
@@ -39,7 +39,7 @@ proxy_datasets_to_assimilate: ['NAm21k-noPollen/0_1_0']
 
 # Age ranges
 age_range_to_reconstruct: [0,21000]
-reference_period:         [3000,5000]  # This is only used if 'reconstruction_type' is set to 'relative'
+reference_period:         [0,21000]  # This is only used if 'reconstruction_type' is set to 'relative'
 age_range_model:          [0,22000]
 
 # Experimental options (These options are less well-tested or may not be fully implemented. Edit with care.)
@@ -53,4 +53,6 @@ change_uncertainty:  '/Users/christopherhancock/Library/CloudStorage/OneDrive-No
    # 'all_#'   Set uncertainty values to a constant number.
    # 'stdev_#' Set uncertainty of each record to the standard deviation of that record, multiplied by the value given.
    # 'path/to/file.txt' Use uncertainty values from a text file. The file must contain TSids and new MSE values for each proxy.
+remove_nans:        True        # Choice to retain NaNs (choose if reperesent an age gap in data) or not (choose if reperesent a measurment gap)
+spread_limit:       1000      # Only retain interpolated values within specified number years of an actual observation {float or False)
 

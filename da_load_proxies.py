@@ -233,6 +233,11 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
         proxy_values = proxy_values[np.isfinite(proxy_ages)]
         proxy_ages   = proxy_ages[np.isfinite(proxy_ages)]
         #
+        # If any NaNs exist in the paleoData_values, remove those values if options['remove_nans'] == True
+        if options['remove_nans'] == True:
+            proxy_ages   = proxy_ages[np.isfinite(proxy_values)]
+            proxy_values = proxy_values[np.isfinite(proxy_values)]
+        #
         # Sort the data so that ages go from newest to oldest
         ind_sorted = np.argsort(proxy_ages)
         proxy_values = proxy_values[ind_sorted]
@@ -276,7 +281,7 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
             proxy_values_ann = []
             proxy_ages_ann   = []
             for int_age in np.arange(int(np.floor(proxy_ages[0])),int(np.ceil(proxy_ages[-1])+1)):
-                ind_in_year = np.where((proxy_ages > int_age) & (proxy_ages <= (int_age+1)))[0]
+                ind_in_year = np.where((proxy_ages >= int_age) & (proxy_ages < (int_age+1)))[0]
                 if len(ind_in_year) > 0:
                     proxy_values_ann.append(np.nanmean(proxy_values[ind_in_year]))
                     proxy_ages_ann.append(np.nanmean(proxy_ages[ind_in_year]))
@@ -311,6 +316,11 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
         interp_function = interpolate.interp1d(proxy_ages_ann,proxy_values_ann,kind='nearest',bounds_error=False,fill_value='extrapolate')
         proxy_ages_interp = np.arange(int(np.ceil(end_newest)),int(np.floor(end_oldest))+interp_res,interp_res)
         proxy_values_interp = interp_function(proxy_ages_interp)
+        #
+        # Only retain interpolated values within specified number years of an actual observation
+        if options['spread_limit'] != False:
+            nearest_dist = np.min(np.abs(proxy_ages_interp[:, None] - proxy_ages_ann[None, :]), axis=1)
+            proxy_values_interp[nearest_dist > options['spread_limit']] = np.nan
         #
         # Use nearest neighbor interpolation to get the resolution to annual
         interp_function_res = interpolate.interp1d(proxy_ages_ann,proxy_res_ann,kind='nearest',bounds_error=False,fill_value='extrapolate')
