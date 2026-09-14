@@ -50,7 +50,6 @@ def psm_main(model_data,proxy_data,options):
             if len(ind_model_refwindow) == 0:
                 proxy_estimate[:] *= np.nan
             else: 
-                ind_model_refwindow = ((age_model >= options['reference_period'][0]) & (age_model  < options['reference_period'][1]))
                 proxy_estimate     = proxy_estimate - np.nanmean(proxy_estimate[ind_model_refwindow])
         #
         # Loop through each time resolution, computing a running mean of the selected duration and save the values to a common variable
