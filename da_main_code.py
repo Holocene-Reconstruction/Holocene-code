@@ -362,7 +362,7 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
                 proxy_uncertainty = proxy_uncertainties_for_age[ind_proxy]
                 proxy_lat         = proxy_data['lats'][ind_proxy]
                 proxy_lon         = proxy_data['lons'][ind_proxy]
-                model_estimates   = model_estimates_for_age[:,ind_proxy]
+                model_estimates   = Xb[n_varslatlon+ind_proxy,:]
                 if options['localization_radius'] != 'None': loc = proxy_localization_all[ind_proxy,:]
                 else: loc = None
                 #
