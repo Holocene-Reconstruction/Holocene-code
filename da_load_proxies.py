@@ -207,7 +207,7 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
     proxy_data = {}
     proxy_data['values_binned']     = np.zeros((n_proxies,n_ages));          proxy_data['values_binned'][:]     = np.nan
     proxy_data['resolution_binned'] = np.zeros((n_proxies,n_ages));          proxy_data['resolution_binned'][:] = np.nan
-    proxy_data['metadata']          = np.zeros((n_proxies,11),dtype=object); proxy_data['metadata'][:]          = np.nan
+    proxy_data['metadata']          = np.zeros((n_proxies,12),dtype=object); proxy_data['metadata'][:]          = np.nan
     proxy_data['lats']              = np.zeros((n_proxies));                 proxy_data['lats'][:]              = np.nan
     proxy_data['lons']              = np.zeros((n_proxies));                 proxy_data['lons'][:]              = np.nan
     proxy_data['uncertainty']       = []
@@ -450,6 +450,7 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
         proxy_data['metadata'][i,8] = data_units
         proxy_data['metadata'][i,9] = interp_variable
         proxy_data['metadata'][i,10] = interp_direction
+        proxy_data['metadata'][i,11] = psms_selected[i]
         proxy_data['lats'][i] = proxy_lat
         proxy_data['lons'][i] = proxy_lon
         proxy_data['lons'][i] = proxy_lon
