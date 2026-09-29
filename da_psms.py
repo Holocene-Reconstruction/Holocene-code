@@ -148,7 +148,7 @@ def rank_based(model_data,proxy_data,var_name,i,options,verbose=False):
     # Get the model values corresponding to the valid data of the proxy
     logical_proxy_valid = (np.isfinite(proxy_values) & [np.isfinite(var_model_location_season[age_model==age])[0] for age in proxy_ages])
     if sum(logical_proxy_valid) == 0: return use_nans(model_data,var_name),proxy_values[:]*np.nan
-    proxy_values_valid = proxy_values[logical_proxy_valid]
+    proxy_values_valid = np.round(proxy_values[logical_proxy_valid],9)
     proxy_ages_valid   = proxy_ages[logical_proxy_valid]
     proxy_ages_valid_start = proxy_ages_valid[0]  - (options['time_resolution']/2)
     proxy_ages_valid_end   = proxy_ages_valid[-1] + (options['time_resolution']/2)
