@@ -265,7 +265,7 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
             print('Proxy '+str(i)+': Updating units from mm/yr to mm/day')
         elif data_units == 'g/cm2/yr':
             proxy_values      = (proxy_values*1000)/365.25
-            proxy_uncertainty = proxy_uncertainty/365.25
+            proxy_uncertainty = (proxy_uncertainty*1000)/365.25
             data_units = 'mm/day'
             print('Proxy '+str(i)+': Updating units from g/cm2/yr to mm/day')
         #

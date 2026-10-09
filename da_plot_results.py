@@ -13,7 +13,7 @@ import cartopy.feature as cfeature
 plt.style.use('ggplot')
 
 # Make a map of the current state of the reconstruction
-def make_map(var_toplot,model_data,proxy_value,proxy_lat,proxy_lon,proxy_uncertainty,proxy,age,stage,exp_name_full,bounds=5,save_instead_of_plot=False):
+def make_map(var_toplot,model_data,proxy_value,proxy_lat,proxy_lon,proxy_uncertainty,proxy_var,proxy,age,stage,exp_name_full,bounds=5,save_instead_of_plot=False):
     #
     # Make a map
     plt.figure(figsize=(10,12))
@@ -22,8 +22,10 @@ def make_map(var_toplot,model_data,proxy_value,proxy_lat,proxy_lon,proxy_uncerta
     ax1 = plt.subplot2grid((1,1),(0,0),projection=ccrs.LambertConformal(central_longitude=region_center)); ax1.set_extent(region_to_plot,ccrs.PlateCarree())
     #
     recon_period_cyclic,lon_cyclic = cutil.add_cyclic_point(var_toplot,coord=model_data['lon'])
-    map1 = ax1.contourf(lon_cyclic,model_data['lat'],recon_period_cyclic,np.linspace(-bounds,bounds,21),extend='both',cmap='bwr',transform=ccrs.PlateCarree())
-    ax1.scatter(proxy_lon,proxy_lat,100,c=proxy_value,vmin=-bounds,vmax=bounds,marker='o',edgecolor='k',alpha=1,cmap='bwr',transform=ccrs.PlateCarree())
+    if proxy_var == 'tas': cmap='bwr'
+    else: cmap='BrBG'
+    map1 = ax1.contourf(lon_cyclic,model_data['lat'],recon_period_cyclic,np.linspace(-bounds,bounds,21),extend='both',cmap=cmap,transform=ccrs.PlateCarree())
+    ax1.scatter(proxy_lon,proxy_lat,100,c=proxy_value,vmin=-bounds,vmax=bounds,marker='o',edgecolor='k',alpha=1,cmap=cmap,transform=ccrs.PlateCarree())
     colorbar1 = plt.colorbar(map1,orientation='horizontal',ax=ax1,fraction=0.08,pad=0.02)
     colorbar1.ax.tick_params(labelsize=14)
     colorbar1.ax.set_facecolor('none')
