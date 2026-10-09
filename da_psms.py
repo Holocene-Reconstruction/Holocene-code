@@ -156,15 +156,16 @@ def rank_based(model_data,proxy_data,var_name,i,options,verbose=False):
     #
     # Calculate ranks for the proxy and prior data and scale them between 0 and 100 - CH change to allow 0-100 or smaller range given repeat values (important for Lake status) 
     ranks_proxy_values = rankdata(proxy_values_valid, nan_policy='omit') - 1
-    ranks_prior_values = rankdata(np.where(ind_model_selected,var_model_location_season,np.nan), nan_policy='omit') - 1
+    ranks_prior_values = rankdata(var_model_location_season, nan_policy='omit') - 1
     percentile_proxy_values = (ranks_proxy_values / (np.sum(np.isfinite(ranks_proxy_values))-1)) * 100
     percentile_prior_values = []
     for model_n in np.unique(model_data['number']):
         ranks_prior_values_by_model = rankdata(ranks_prior_values[model_data['number']==model_n], nan_policy='omit') - 1
-        percentile_prior_values.append((ranks_prior_values_by_model / (np.sum(np.isfinite(ranks_prior_values_by_model))-1)) * 100)
+        ranks_prior_values_by_model = (ranks_prior_values_by_model / (np.sum(np.isfinite(ranks_prior_values_by_model))-1)) * 100
+        ranks_prior_values_by_model -= np.nanmin(ranks_prior_values_by_model[ind_model_selected[model_data['number']==model_n]])
+        ranks_prior_values_by_model *= (100/np.nanmax(ranks_prior_values_by_model[ind_model_selected[model_data['number']==model_n]]))
+        percentile_prior_values.append(ranks_prior_values_by_model)
     percentile_prior_values = np.array(percentile_prior_values).flatten()
-    #percentile_proxy_values2 = ((ranks_proxy_values-min(ranks_proxy_values)) / (max(ranks_proxy_values)-min(ranks_proxy_values))) * 100
-    #percentile_prior_values = ((ranks_prior_values-min(ranks_prior_values[ind_model_selected])) / (max(ranks_prior_values[ind_model_selected])-min(ranks_prior_values[ind_model_selected]))) * 100
     #
     # Put the proxy data into the same length array as it was originally
     percentile_proxy_values_all = np.zeros((len(proxy_values))); percentile_proxy_values_all[:] = np.nan
