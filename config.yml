@@ -8,9 +8,13 @@
 #data_dir: '/Users/christopherhancock/Library/CloudStorage/OneDrive-NorthernArizonaUniversity/ECS_DA/data/'
 data_dir: 'P:/data_paleoclimate/data_assimilation/'
 
-exp_name: 'eco21ka_trace_temp'
-vars_to_reconstruct: ['tas_annual']
-proxies_to_use: ['temperature|temperature|any|any|degC|calibrated_tas'] 
+#exp_name: 'eco21ka_trace_sst'
+#vars_to_reconstruct: ['tas_annual']
+#proxies_to_use: ['temperature|temperature|any|any|degC|calibrated_tas','temperature|temperature|MarineSediment|any|degC|calibrated_sst'] 
+
+exp_name: 'eco21ka_trace_temp_precip_lakes'
+vars_to_reconstruct: ['tas_annual','precip_annual','LakeStatus_annual']
+proxies_to_use: ['temperature|temperature|any|any|degC|calibrated_tas','temperature|temperature|MarineSediment|any|degC|calibrated_sst','effectivePrecipitation|lakeLevel|any|any|any|rank_based_LakeStatus']
 
 # Primary optionsdata_paleoclimate
 #exp_name: 'eco21ka_trace'  # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
@@ -33,18 +37,19 @@ assimilate_selected_region:     False  # Provide bounds to assimilate only proxi
 assimilate_selected_resolution: False  # Assimilate proxies with median resolutions in a given band {False, [0,100]}.  Bounds are [inclusive,exclusive].
 percent_to_assimilate:          100    # What percentage of proxies to assimilate {100}
 seed_for_proxy_choice:          0      # This seed is only used if 'percent_to_assimilate' is below 100 {0}
-average_nearby_proxies:         False  # If True, average together proxy records within 1km of each other {True,False}  NOTE: Not yet implemented
 
 # Models for prior
 models_for_prior: ['trace']   # The model to use {['trace','trace2','itrace','hadcm3','trace_downscaled']}
-model_region: [-5,89,180,360]  # The region to reconstruct {[-90,90,0,360]}
+model_region: [-5,89,180,360]  # The region to reconstruct {[-90,90,0,360]}  # TODO: Do I use this?
 
 # Proxy datasets
-proxy_datasets_to_assimilate: ['NAm21k-noPollen/0_3_0']
+proxy_datasets_to_assimilate: ['NAm21k-noPollen/0_3_0']  #TODO: Is the version filtering working right in the code?
 #proxy_datasets_to_assimilate: ['ecoclimate_selected_ts_2026-08-31']
 
 # Age ranges
 age_range_to_reconstruct: [0,21000]
+#reference_period:         [0,12000]  # This is only used if 'reconstruction_type' is set to 'relative'
+#reference_period:         [0,21000]  # This is only used if 'reconstruction_type' is set to 'relative'
 reference_period:         [3000,5000]  # This is only used if 'reconstruction_type' is set to 'relative'
 age_range_model:          [0,22000]
 

@@ -92,15 +92,15 @@ def load_model_data(options):
             for key in list(model_individual.keys()):
                 if i == 0: model_data[key] = model_individual[key]
                 else:      model_data[key] = np.concatenate((model_data[key],model_individual[key]),axis=0)
+            #
     if n_models > 1:
         for var in list(options['vars_root'])+options['vars_to_reconstruct']:
-            models_na =[]
+            models_na = []
             for i in range(n_models):
                 ind_for_model = (model_data['number'] == (i+1))
                 models_na.append(np.isfinite(model_data[var][ind_for_model]))
             models_na = np.sum(models_na,axis=0)==n_models        
             model_data[var] = np.where(np.concatenate([models_na, models_na], axis=0),model_data[var],np.nan)
-        
     #
     print('\n=== MODEL DATA LOADED ===')
     print('Models loaded    (n='+str(n_models)+'):'+str(options['models_for_prior']))

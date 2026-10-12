@@ -12,12 +12,14 @@
 library(lipdR)
 library(geoChronR)
 
-proxy_dir <- 'P:/data_paleoclimate/proxies/dropbox/'
+#proxy_dir <- 'P:/data_paleoclimate/proxies/dropbox/'
+proxy_dir <- 'P:/data_paleoclimate/data_assimilation/proxies/'
 
 # LOAD PROXIES =================================================================
 
-proxies_all <- readLipd(paste0(proxy_dir,'database/'))
-all_ts <- extractTs(proxies_all)
+#proxies_all <- readLipd(paste0(proxy_dir,'database/'))
+proxies_all <- readLipd(paste0(proxy_dir,'NAm21k-noPollen0_3_0/'))
+#all_ts <- extractTs(proxies_all)
 
 # SAVE DATA ====================================================================
 

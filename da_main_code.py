@@ -11,13 +11,11 @@
 
 # Change working directory
 import os
-#os.chdir('/Users/christopherhancock/Library/CloudStorage/OneDrive-NorthernArizonaUniversity/ECS_DA/Holocene-code/')
 os.chdir('C:/Users/erbm/Documents/GitHub/Holocene-code/')
 
 # Import libraries
 import sys
 import numpy as np
-#import matplotlib.pyplot as plt
 import xarray as xr
 import yaml
 import time
@@ -28,12 +26,21 @@ import da_load_models
 import da_load_proxies
 import da_psms
 import da_plot_results
+import matplotlib.pyplot as plt
 
 # Make maps of proxy-by-proxy updates
 #age_ind_to_map = []
-age_ind_to_map = [100]
-#age_ind_to_map = [0,100,200]
+age_ind_to_map = [0,100,200]
 
+#TODO:
+# Figure out hydro percentile PSM
+# Figure out uncertainty values, especially for unitless (~900)
+# Look at options for rank-based PSMs again. If I use the "newer" verion, make sure to update the uncertainty as well (to the 30 minus 0 percentile?)
+# Why do different reference periods produce somewhat different results?
+# Figure out best use of lake level PSMs
+# Simplify model code, especially for the PSM portion
+# For lake PSM, if the nearest cell has nans, make sure to find the nearest cell without nans, as long as its within X degrees
+# Try using a localization radius of 10000 km rather than 5000 km
 
 #%% SETTINGS
 
@@ -77,24 +84,40 @@ proxy_ts,collection_all = da_load_proxies.load_proxies(options)
 
 # Print summaries of proxy data
 # (Use this to look for useful proxies and iterate the experimental design)
-#da_utils.print_proxy_metadata(proxy_ts,'interpretation1_variable')
-#da_utils.print_proxy_metadata(proxy_ts,'paleoData_variableName')
-#da_utils.print_proxy_metadata(proxy_ts,'archiveType')
-#da_utils.print_proxy_metadata(proxy_ts,'paleoData_proxy')
-#da_utils.print_proxy_metadata(proxy_ts,'paleoData_units')
-#da_utils.print_proxy_metadata(proxy_ts,'interpretation1_direction')
+"""
+da_utils.print_proxy_metadata(proxy_ts,'interpretation1_variable')
+da_utils.print_proxy_metadata(proxy_ts,'paleoData_variableName')
+da_utils.print_proxy_metadata(proxy_ts,'archiveType')
+da_utils.print_proxy_metadata(proxy_ts,'paleoData_proxy')
+da_utils.print_proxy_metadata(proxy_ts,'paleoData_units')
+da_utils.print_proxy_metadata(proxy_ts,'interpretation1_direction')
+"""
 
 # Filter the proxies and set PSMs
 proxy_ts_selected,psms_selected,collection_selected = da_load_proxies.filter_proxies_and_set_psms(proxy_ts,collection_all,options)
+"""
+da_utils.print_proxy_metadata(proxy_ts_selected,'interpretation1_variable')
+da_utils.print_proxy_metadata(proxy_ts_selected,'paleoData_variableName')
+da_utils.print_proxy_metadata(proxy_ts_selected,'archiveType')
+da_utils.print_proxy_metadata(proxy_ts_selected,'paleoData_proxy')
+da_utils.print_proxy_metadata(proxy_ts_selected,'paleoData_units')
+da_utils.print_proxy_metadata(proxy_ts_selected,'interpretation1_direction')
+da_utils.print_proxy_metadata(proxy_ts_selected,'paleoData_datum')
+"""
 
 # Process the proxy data
 proxy_data = da_load_proxies.process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
-
-# Average nearby proxies, if selected
-if options['average_nearby_proxies']:
-    proxy_data = da_load_proxies.average_nearby_records(proxy_data,options)
-
 n_proxies = proxy_data['values_binned'].shape[0]
+"""
+# Save the proxy dictionary
+proxy_filename = options['data_dir']+"results/proxies_"+exp_name_full
+np.save(proxy_filename+".npy",proxy_data)
+proxy_data2 = np.load(proxy_filename+".npy",allow_pickle=True)
+import pickle
+file_pickle = open(proxy_filename+".pckl",'wb')
+pickle.dump(proxy_data,file_pickle)
+proxy_data2 = pickle.load(file_pickle)
+"""
 
 
 #%% LOAD AND PROCESS MODEL DATA
@@ -103,7 +126,7 @@ n_proxies = proxy_data['values_binned'].shape[0]
 model_data = da_load_models.load_model_data(options)
 n_models_in_prior = len(options['models_for_prior'])
 
-# If the prior is allowed to change through time, remove the mean of the reference period from each model.
+# If doing a relative reconstruction, remove the mean of the reference period from each model.
 if options['reconstruction_type'] == 'relative':
     print('Processing model: relative reconstruction')
     for i in range(n_models_in_prior):
@@ -120,9 +143,8 @@ if options['model_processing'] != 'None':
     print("WARNING MODEL PROCESSING STILL IN DEVELOPMENT")
     model_data = da_load_models.detrend_model_data(model_data,options)
 
-#TODO: In the code above, is there a way to apply the filtering above only to covariances but not means?
-
 # Use PSMs to get model-based proxy estimates
+options['plot_proxies'] = True
 proxy_estimates_all,_,proxy_data = da_psms.psm_main(model_data,proxy_data,options)
 
 
@@ -330,10 +352,13 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     #
     # Make the prior (Xb)
     prior = np.reshape(model_values_for_prior_all,(n_ens,n_varslatlon))
+    #print(prior.shape)
     #
     # Append the proxy estimate to the prior, so that proxy estimates are reconstructed too
     prior = np.append(prior,model_estimates_for_age,axis=1)
+    #print(prior.shape)
     Xb = np.transpose(prior)
+    #print(Xb.shape)
     Xb_original = Xb
     #
     # Save some values for later
@@ -369,17 +394,8 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
             #
             Xa,_,_ = da_utils.damup(Xb,np.transpose(model_estimates_selected),R_diagonal,proxy_values_selected)
         else:
-            ind_proxy = proxy_ind_to_assimilate[0]
+            num_proxy = 0; ind_proxy = proxy_ind_to_assimilate[num_proxy]
             for num_proxy,ind_proxy in enumerate(proxy_ind_to_assimilate):
-                if ((age_counter == 100) & (ind_proxy == 13)): sys.exit() 
-                
-                
-                #TODO: Fix this
-                # Why are the model estimates so cold in this situation?
-                # It looks like the estimates are never updated based on the reconstruction.
-                # These estimates need to be calculated from the prior again
-
-                
                 #print('Time step '+str(age_counter)+'/'+str(len(proxy_data['age_centers']))+', Proxy '+str(num_proxy)+'/'+str(len(proxy_ind_to_assimilate)))
                 #
                 # Get values for proxy
@@ -388,7 +404,9 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
                 proxy_lat         = proxy_data['lats'][ind_proxy]
                 proxy_lon         = proxy_data['lons'][ind_proxy]
                 proxy_units       = proxy_data['units'][ind_proxy]
-                model_estimates   = model_estimates_for_age[:,ind_proxy]
+                proxy_psm         = proxy_data['psm'][ind_proxy]
+                #model_estimates   = model_estimates_for_age[:,ind_proxy]
+                model_estimates   = Xb[n_varslatlon+ind_proxy,:]
                 if options['localization_radius'] != 'None': loc = proxy_localization_all[ind_proxy,:]
                 else: loc = None
                 #
@@ -400,13 +418,12 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
                 # If desired, make a map of the current state of the reconstruction for this age
                 if age_counter in age_ind_to_map:
                     # Make an updated map
-                    var_toplot_start   = np.mean(np.reshape(Xb[:n_varslatlon,:],        (n_vars,n_lat,n_lon,n_ens))[0,:,:,:],axis=2)
-                    var_toplot_updated = np.mean(np.reshape(Xb_updated[:n_varslatlon,:],(n_vars,n_lat,n_lon,n_ens))[0,:,:,:],axis=2)
-                    var_toplot_change  = var_toplot_updated-var_toplot_start
-                    if vars_to_reconstruct_root[0] == "precip": bounds = 0.1
-                    else: bounds = 5
-                    da_plot_results.make_map(var_toplot_updated,model_data,proxy_value,proxy_lat,proxy_lon,proxy_units,proxy_uncertainty,ind_proxy,age,'after',exp_name_full,bounds=bounds,save_instead_of_plot=True)
-                    #da_plot_results.make_map(var_toplot_change, model_data,proxy_value,proxy_lat,proxy_lon,proxy_units,proxy_uncertainty,ind_proxy,age,'C_diff',exp_name_full,bounds=.25,save_instead_of_plot=True)
+                    Xb_updated_reshape = np.reshape(Xb_updated[:n_varslatlon,:],(n_vars,n_lat,n_lon,n_ens))
+                    var_toplot_updated = {}
+                    for var_num,var_txt in enumerate(options['vars_to_reconstruct']):
+                        var_toplot_updated[var_txt] = np.mean(Xb_updated_reshape[var_num,:,:,:],axis=2)
+                    da_plot_results.make_map(var_toplot_updated,model_data,proxy_value,proxy_lat,proxy_lon,proxy_units,proxy_uncertainty,proxy_psm,ind_proxy,age,exp_name_full,save_instead_of_plot=True)
+                    da_plot_results.make_map_simple(var_toplot_updated,model_data,proxy_value,proxy_lat,proxy_lon,proxy_units,proxy_uncertainty,proxy_psm,ind_proxy,age,exp_name_full,save_instead_of_plot=True)
                 #
                 Xb = Xb_updated
             #
