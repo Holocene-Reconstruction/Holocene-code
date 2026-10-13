@@ -27,6 +27,7 @@ import da_load_proxies
 import da_psms
 import da_plot_results
 import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 # Make maps of proxy-by-proxy updates
 age_ind_to_map = []
@@ -133,9 +134,9 @@ if options['reconstruction_type'] == 'relative':
         ind_for_model = (model_data['number'] == (i+1))
         ind_ref = (model_data['age'] >= options['reference_period'][0]) & (model_data['age'] < options['reference_period'][1]) & ind_for_model
         for var in options['vars_root']:
-            model_data[var][ind_for_model,:,:,:] = model_data[var][ind_for_model,:,:,:] - np.mean(model_data[var][ind_ref,:,:,:],axis=0)
+            model_data[var][ind_for_model,:,:,:] = model_data[var][ind_for_model,:,:,:] - np.nanmean(model_data[var][ind_ref,:,:,:],axis=0)
         for var in options['vars_to_reconstruct']:
-            model_data[var][ind_for_model,:,:]   = model_data[var][ind_for_model,:,:]   - np.mean(model_data[var][ind_ref,:,:],axis=0)
+            model_data[var][ind_for_model,:,:]   = model_data[var][ind_for_model,:,:]   - np.nanmean(model_data[var][ind_ref,:,:],axis=0)
 
 # Do more prior processing, if requested
 if options['model_processing'] != 'None':
@@ -362,7 +363,7 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     Xb_original = Xb
     #
     # Save some values for later
-    prior_mean[:,age_counter]        = np.mean(Xb,axis=1)                                 # Prior mean
+    prior_mean[:,age_counter]        = np.nanmean(Xb,axis=1)                                 # Prior mean
     prior_ens[:,:,age_counter]       = Xb[:,ind_random_ens_to_save]                       # Prior ensembles
     prior_proxy_means[age_counter,:] = np.mean(model_estimates_for_age,axis=0)            # Prior proxy mean
     prior_proxy_ens[age_counter,:,:] = model_estimates_for_age[ind_random_ens_to_save,:]  # Prior proxy ensembles
@@ -413,17 +414,22 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
                 # Do data assimilation
                 if options['change_uncertainty'][0:9] == 'varmodel_': proxy_uncertainty = np.var(model_estimates) * uncertainty_multiplier
                 Xb_updated = da_utils_lmr.enkf_update_array(Xb,proxy_value,model_estimates,proxy_uncertainty,options,loc=loc,inflate=None)
-                if np.isnan(Xb).all(): print(' !!! ERROR.  ALL RECONSTRUCTION VALUES SET TO NAN.  Age='+str(age)+', proxy number='+str(ind_proxy)+' !!!')
+                #if (np.nansum(abs(Xb_updated-Xb_updated2)))>0.0000001:print('error: '+str(i))
+                if np.isnan(Xb).all(): print(' !!! ERROR.  ALL RECONSTRUCTION VALUES SET TO NAN.  Age='+str(age)+' (counter ='+str(age_counter)+'), proxy number='+str(ind_proxy)+' !!!')
                 #
                 # If desired, make a map of the current state of the reconstruction for this age
                 if age_counter in age_ind_to_map:
                     # Make an updated map
-                    Xb_updated_reshape = np.reshape(Xb_updated[:n_varslatlon,:],(n_vars,n_lat,n_lon,n_ens))
-                    var_toplot_updated = {}
-                    for var_num,var_txt in enumerate(options['vars_to_reconstruct']):
-                        var_toplot_updated[var_txt] = np.mean(Xb_updated_reshape[var_num,:,:,:],axis=2)
-                    da_plot_results.make_map(var_toplot_updated,model_data,proxy_value,proxy_lat,proxy_lon,proxy_units,proxy_uncertainty,proxy_psm,ind_proxy,age,exp_name_full,save_instead_of_plot=True)
-                    da_plot_results.make_map_simple(var_toplot_updated,model_data,proxy_value,proxy_lat,proxy_lon,proxy_units,proxy_uncertainty,proxy_psm,ind_proxy,age,exp_name_full,save_instead_of_plot=True)
+                    if proxy_data['direction'][ind_proxy]=='negative': proxy_value_to_plot = -1*proxy_value
+                    else:                                              proxy_value_to_plot = proxy_value
+                    var_toplot_name = proxy_data['psm'][ind_proxy].split('_')[-1]
+                    #var_toplot_name='tas'
+                    var_to_plot_i = np.where(np.array(options['vars_to_reconstruct'])==var_toplot_name+'_annual')[0][0]
+                    var_toplot_start   = np.nanmean(np.reshape(Xb[:n_varslatlon,:],        (n_vars,n_lat,n_lon,n_ens))[var_to_plot_i,:,:,:],axis=2)
+                    var_toplot_updated = np.nanmean(np.reshape(Xb_updated[:n_varslatlon,:],(n_vars,n_lat,n_lon,n_ens))[var_to_plot_i,:,:,:],axis=2)
+                    var_toplot_change  = var_toplot_updated-var_toplot_start
+                    da_plot_results.make_map(var_toplot_updated,model_data,proxy_value_to_plot,proxy_lat,proxy_lon,proxy_uncertainty,var_toplot_name,ind_proxy,age,'after', exp_name_full,bounds=[5,0.1,0.5][var_to_plot_i],  save_instead_of_plot=False)
+                    #da_plot_results.make_map(var_toplot_change, model_data,proxy_value,proxy_lat,proxy_lon,proxy_uncertainty,ind_proxy,age,'C_diff',exp_name_full,bounds=.25,save_instead_of_plot=True)
                 #
                 Xb = Xb_updated
             #
@@ -444,7 +450,7 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     recon_global_all[age_counter,:,:] = np.transpose(recon_global)
     #
     # Get the mean of all ensemble members and the values of some
-    recon_mean[:,age_counter]  = np.mean(Xa,axis=1)
+    recon_mean[:,age_counter]  = np.nanmean(Xa,axis=1)
     recon_ens[:,:,age_counter] = Xa[:,ind_random_ens_to_save]
     #
     # Note progression of the reconstruction
@@ -528,3 +534,4 @@ data_xarray_output.to_netcdf(output_dir+output_filename+'.nc')
 endtime_total = time.time()  # End timer
 print('Total time: '+str('%1.2f' % ((endtime_total-starttime_total)/60))+' minutes')
 print(' === Reconstruction complete ===')
+#%%

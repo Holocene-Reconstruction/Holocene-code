@@ -66,4 +66,6 @@ change_uncertainty:  'P:/data_paleoclimate/data_assimilation/proxies/NAm21k-noPo
    # 'var_#' Set uncertainty of each record to the variance of that record, multiplied by the value given.
    # 'varmodel_#' Set uncertainty of each record to the variance of the model at that point (time varying), multiplied by the value given.
    # 'path/to/file.txt' Use uncertainty values from a text file. The file must contain TSids and new MSE values for each proxy.
+remove_nans:        True        # Choice to retain NaNs (choose if reperesent an age gap in data) or not (choose if reperesent a measurment gap)
+spread_limit:       1000      # Only retain interpolated values within specified number years of an actual observation {float or False)
 

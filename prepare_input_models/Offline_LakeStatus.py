@@ -286,17 +286,7 @@ model_data['LakeStatus'].attrs['long_name'] = 'Lake Status (Runoff / (Lake Evapo
 print('Saving processed .nc files')
 if model == 'TraCE_21ka':             filename = 'trace.01-36.22000BP.cam2.LakeStatus.22000BP_decavg_400BCE'
 elif model == 'HadCM3B_transient21k': filename = 'deglh.vn1_0.LakeStatus.monthly.ANN.001.nc'
-model_data['LakeStatus'].to_dataset(name='LakeStatus').to_netcdf(f'{wd}{model}/{filename}.nc')
-
-#%%
-lat,lon=44.648,252.554
-lati = np.argmin(abs(model_data['LakeStatus'].lat.data-lat))
-loni = np.argmin(abs(model_data['LakeStatus'].lon.data-lon))
-(model_data['precip'][:,lati,loni]).plot()
-model_data['LakeStatus'][:,lati,loni].plot()
-#(model_data['LakeStatus2'][:,lati,loni]*-1).plot()
-#(model_data['precip'][:,lati,loni]/model_data['evap'][:,lati,loni]).plot(label='p-e')
-plt.legend()
+model_data['LakeStatus'].to_dataset(name='LakeStatus').to_netcdf(f'{wd}/original_model_data/{model}/{filename}.nc')
 
 #%%
 lat,lon=44.648,252.554
@@ -310,81 +300,21 @@ loni = np.argmin(abs(model_data['LakeStatus'].lon.data-lon))
 #plt.legend()
 
 #%%
-LakeStatus = model_data['runoff']/(model_data['PET']-model_data['precip'])
 
-#%%
-# Calculate lake values
-def LakePercentile2(LakeStatus=False,runoff=False,precip=False,levap=False,mask=False, time='time'):
-    #Calculate lake status if not given
-    if len(np.shape(LakeStatus))==0:
-        LakeStatus = runoff/(levap-precip)
-    #Mask data
-    if len(np.shape(mask))>0:
-        LakeStatus.data = np.where(mask,LakeStatus,np.nan)
-    LakeStatus.rename('LakeStatus')
-    #Calculate ranks
-    ranks =  LakeStatus.rank(dim=time)
-    ranks -= 1
-    ranks /= (np.isfinite(ranks).sum(dim=time)-1)
-    #Reformat for negative data
-    positive_ranks = ranks.where(LakeStatus>=0).rank(dim=time)
-    negative_ranks = ranks.where(LakeStatus<0).rank(dim=time)
-    positive_ranks +=1.1
-    #
-    ranks.data = np.where(np.isfinite(negative_ranks),negative_ranks,negative_ranks)
-    out =  ranks.rank(dim=time)
-    out -= 1
-    out /= (np.isfinite(out).sum(dim=time)-1)
-    out.attrs['units'] = 'percentile'
-    return(out)
 
-LakeStatus[:300,lati,loni].plot()
 
-#%%
-model_data['LakeStatus2'] = LakePercentile2(runoff=model_data['runoff'],
-                                          precip=model_data['precip'],
-                                          levap=model_data['PET'],
-                                          mask=(landmask & snowmask),
-                                          time=time)
-model_data['LakeStatus2'].attrs['long_name'] = 'Lake Status (Runoff / (Lake Evaporation - Precipitation))'    
-        
-#%% Create TraCE wind vectors at desired atmospheric levels (only need to do this once)
-# wdir = wd+'DAMP_TraCE/'
-# for var in ['U','V' ]:
-#     filenames = [fn for fn in os.listdir(wdir) if '.'+var+'.' in fn]
-#     for fn in filenames:
-#         print(fn)
-#         wind =  handle_model=xr.open_dataset(wdir+fn, decode_times=False)
-#         #Create new datasets
-#         windSurface = xr.Dataset({'time': wind['time'],
-#                               'lat':wind['lat'],
-#                               'lon':wind['lon'],
-#                               var+'surface': wind[var][:,np.argmax(wind.lev.data),:,:]
-#                               })
-#         wind200 = xr.Dataset({'time': wind['time'],
-#                               'lat':wind['lat'],
-#                               'lon':wind['lon'],
-#                               var+'200': wind[var][:,np.argmin(np.abs(wind.lev.data-200)),:,:]
-#                               })
-#         #Save
-#         windSurface.to_netcdf(wdir+fn.replace("cam2."+var+".", "cam2."+var+"surface."))
-#         wind200.to_netcdf(wdir+fn.replace("cam2."+var+".", "cam2."+var+"200."))
-#         wind.close()
 
-#%%
-# #Calculate wind speed from U and V vectors (not needed for Penman method)
-# var = 'UV'
-# model_data[var] = np.sqrt(model_data['V']**2+model_data['U']**2).rename(var)
-# #HadCM has a different spatial pattern. Fix this 
-# if model=='DAMP_HadCM':
-#     if model_data[var].lat.data != model_data['tas'].lat.data:#HadCM on a slighly different grid
-#         data_format = xr.Dataset(
-#             {'lat': (['lat'],model_data['tas'].lat.data,{'units':'degrees_north'}),
-#               'lon': (['lon'],model_data['tas'].lon.data,{'units':'degrees_east'})})
-#         #regrid the data
-#         regridder = xe.Regridder(model_data[var].to_dataset(),data_format,'conservative_normed',periodic=True)
-#         model_data[var]=regridder(model_data[var].to_dataset(),keep_attrs=True).to_array()[0]
-# #
-# model_data[var].attrs['units']     = model_data['V'].attrs['units']
-# model_data[var].attrs['long_name'] = 'Surface wind speed'
+
+
+
+
+
+
+
+
+
+
+
+
+
 

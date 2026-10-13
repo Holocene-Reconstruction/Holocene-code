@@ -171,6 +171,8 @@ def interpret_seasonality(seasonality_txt,lat,unknown_option,print_summary=False
                     'sh': ['-12 1 2','summer']},
         'dec-apr': {'nh': ['-12 1 2 3 4','winter'],
                     'sh': ['-12 1 2 3 4','summer']},
+        'nov-mar': {'nh': ['-11 -12 1 2 3','winter'],
+                    'sh': ['-11 -12 1 2 3','summer']},
         'nov-jun': {'nh': ['-11 -12 1 2 3 4 5 6','winter'],
                     'sh': ['-11 -12 1 2 3 4 5 6','summer']},
         # NH/SH dependant

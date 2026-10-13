@@ -69,42 +69,18 @@ def psm_main(model_data,proxy_data,options):
         proxy_res_12ka_unique = np.unique(proxy_data['resolution_binned'][i,:])
         proxy_res_12ka_unique_sorted = np.sort(proxy_res_12ka_unique[np.isfinite(proxy_res_12ka_unique)]).astype(int)
         #
-        # Allow for proxy estimate and estimate to have same reference window if data does not cover entire window (allows for more flexibility with larger windows)
-        if options['reconstruction_type'] == 'relative':
-            age_model = model_data['age']
-            proxy_ages_valid = proxy_data['age_centers'][np.isfinite(proxy_data['values_binned'][i,:])]
-            if len(proxy_ages_valid) > 0:
-                ind_model_proxy     = ((age_model >= proxy_ages_valid[0] - (options['time_resolution']/2)) & (age_model <= proxy_ages_valid[-1] + (options['time_resolution']/2)))
-                ind_model_refwindow = ((age_model >= options['reference_period'][0]) & (age_model  < options['reference_period'][1]))
-                proxy_estimate = proxy_estimate - np.mean(proxy_estimate[ind_model_proxy & ind_model_refwindow])
-        #
-        if options['plot_proxies']:
-
-            # Specify subplots
-            plt.figure(figsize=(16,3))
-            region_to_plot = [-160,-40,0,80]; region_center = (region_to_plot[0]+region_to_plot[1])/2
-            ax1 = plt.subplot2grid((1,3),(0,0),projection=ccrs.LambertConformal(central_longitude=region_center)); ax1.set_extent(region_to_plot,ccrs.PlateCarree())
-            ax2 = plt.subplot2grid((1,3),(0,1),colspan=2)
-            #
-            # Make a map of the proxy location
-            ax1.scatter(proxy_data['lons'][i],proxy_data['lats'][i],100,marker='o',facecolor='y',edgecolor='k',linewidth=3,alpha=1,zorder=1,transform=ccrs.PlateCarree())
-            ax1.set_title('Proxy location',fontsize=9)
-            ax1.coastlines(zorder=2)
-            ax1.add_feature(cfeature.LAKES,facecolor='none',edgecolor='k')
-            ax1.gridlines(zorder=3,color='k',linewidth=1,linestyle=(0,(1,5)))
-
-            ax2.plot(proxy_data['age_centers'],proxy_orig,c='tab:blue',label='Proxy, original')
-            if psm_name == 'rank_based': ax2.plot(proxy_data['age_centers'],proxy_update,c='tab:green',label='Proxy, updated')
-            ax2.plot(model_data['age'],proxy_estimate,c='tab:red',label='Model at proxy location')
-            ax2.legend(fontsize=7)  # loc="upper right"
-            ax2.set_title(proxy_description+'\nLat = '+str("{:.2f}".format(proxy_data['lats'][i]))+'$^\circ$N, lon='+str("{:.2f}".format(proxy_data['lons'][i]))+'$^\circ$E, uncertainty='+str(proxy_data['uncertainty'][i]),fontsize=9)
-            ax2.axvspan(options['reference_period'][0],options['reference_period'][1],alpha=.25)
-            ax2.set_xlim(options["age_range_to_reconstruct"][1],options["age_range_to_reconstruct"][0])
-            ax2.set_xlabel("Age (yr BP)")
-            ax2.set_ylabel(proxy_data['units'][i])
-            #plt.show()
-            plt.savefig('figures/psm_'+str(psm_selected)+'_proxy_'+str(i).zfill(3)+'.png',dpi=200,format='png',bbox_inches='tight')
-            plt.close()
+        #Allow for proxy estimate and estimate to have same reference window if data does not cover entire window (allows for more flexibility with larger windows)
+        if options['reconstruction_type']=='relative':
+            age_model    = model_data['age']
+            ind_model_refwindow = []
+            for a,age in enumerate(age_model):
+                if (age >= options['reference_period'][0]) & (age  < options['reference_period'][1]):
+                    if np.isfinite(proxy_data['values_binned'][i,proxy_data['age_centers']==age]):
+                        ind_model_refwindow.append(a)                
+            if len(ind_model_refwindow) == 0:
+                proxy_estimate[:] *= np.nan
+            else: 
+                proxy_estimate     = proxy_estimate - np.nanmean(proxy_estimate[ind_model_refwindow])
         #
         # Loop through each time resolution, computing a running mean of the selected duration and save the values to a common variable
         # Note: While convolve may average across different models, those values won't be used (because of the model_data['valid_inds'] variable).
@@ -262,65 +238,8 @@ def rank_based(model_data,proxy_data,var_name,i,options,verbose=False):
     var_model_location_season = get_model_values_nearest(model_data,proxy_data,var_name,i)
     # Get the model values corresponding to the valid data of the proxy
     logical_proxy_valid = (np.isfinite(proxy_values) & [np.isfinite(var_model_location_season[age_model==age])[0] for age in proxy_ages])
-    if sum(logical_proxy_valid) == 0: return use_nans(model_data,var_name),proxy_values
-    proxy_values_valid = proxy_values[logical_proxy_valid]
-    proxy_ages_valid   = proxy_ages[logical_proxy_valid]
-    ind_model_selected = [ind for ind in range(len(age_model)) if age_model[ind] in proxy_ages_valid]
-    var_model_selected = var_model_location_season[ind_model_selected]
-    #
-    if sum(np.isfinite(proxy_values_valid)) != sum(np.isfinite(var_model_selected)): print("WARNING: Rank-based PSM: Number of indices don't match")
-    #
-    # Calculate ranks for the proxy and prior data
-    ranks_proxy_values = rankdata(proxy_values_valid)
-    ranks_prior_values = rankdata(var_model_selected, method="ordinal")
-    #
-    # Assign ranked values from the model to the proxy
-    proxy_values_valid_new = np.zeros((len(proxy_values_valid))); proxy_values_valid_new[:] = np.nan
-    for counter in range(len(proxy_values_valid_new)):
-        rank_selected = ranks_proxy_values[counter]
-        if rank_selected.is_integer():
-            ind_of_ranked_prior = np.where(ranks_prior_values == rank_selected)[0]
-            proxy_values_valid_new[counter] = var_model_selected[ind_of_ranked_prior]
-        else:
-            rank_lower  = np.floor(rank_selected)
-            rank_higher = np.ceil(rank_selected)
-            ind_rank_lower  = np.where(ranks_prior_values == rank_lower)[0]
-            ind_rank_higher = np.where(ranks_prior_values == rank_higher)[0]
-            ind_combined = np.concatenate((ind_rank_lower,ind_rank_higher),axis=0)
-            proxy_values_valid_new[counter] = np.mean(var_model_selected[ind_combined])
-    #
-    # Put the proxy data into the same length array as it was originally
-    proxy_values_new = np.zeros((len(proxy_values))); proxy_values_new[:] = np.nan
-    proxy_values_new[logical_proxy_valid] = proxy_values_valid_new
-    #
-    # If the proxy has too little varibility (e.g., all initial values were the same), set values to na
-    if np.nanstd(proxy_values_new) < 1e-5: proxy_values_new[:] = np.nan
-    #
-    """
-    import matplotlib.pyplot as plt
-    plt.plot(proxy_ages,proxy_values,'k-')
-    plt.plot(proxy_ages,proxy_values_new,'b-')
-    plt.title("Original")
-    plt.show()
-    """
-    #
-    return var_model_location_season,proxy_values_new
-
-
-# A function to do rank-based comparison with model data - method 2: compute ranks of both the proxy and model
-#var_name,verbose = 'tas',False
-#var_name,verbose = 'LakeStatus',False
-def rank_based_older(model_data,proxy_data,var_name,i,options,verbose=False):
-    #
-    age_model    = model_data['age']
-    proxy_ages   = proxy_data['age_centers']
-    proxy_values = proxy_data['values_binned'][i]
-    var_model_location_season = get_model_values_nearest(model_data,proxy_data,var_name,i)
-    #
-    # Get the model values corresponding to the valid data of the proxy
-    logical_proxy_valid = np.isfinite(proxy_values)
-    if sum(logical_proxy_valid) == 0: return use_nans(model_data,var_name),proxy_values
-    proxy_values_valid = proxy_values[logical_proxy_valid]
+    if sum(logical_proxy_valid) == 0: return use_nans(model_data,var_name),proxy_values[:]*np.nan
+    proxy_values_valid = np.round(proxy_values[logical_proxy_valid],9)
     proxy_ages_valid   = proxy_ages[logical_proxy_valid]
     proxy_ages_valid_start = proxy_ages_valid[0]  - (options['time_resolution']/2)
     proxy_ages_valid_end   = proxy_ages_valid[-1] + (options['time_resolution']/2)
@@ -328,23 +247,16 @@ def rank_based_older(model_data,proxy_data,var_name,i,options,verbose=False):
     #
     # Calculate ranks for the proxy and prior data and scale them between 0 and 100 - CH change to allow 0-100 or smaller range given repeat values (important for Lake status)
     ranks_proxy_values = rankdata(proxy_values_valid, nan_policy='omit') - 1
-    ranks_prior_values = rankdata(np.where(ind_model_selected,var_model_location_season,np.nan), nan_policy='omit') - 1
+    ranks_prior_values = rankdata(var_model_location_season, nan_policy='omit') - 1
     percentile_proxy_values = (ranks_proxy_values / (np.sum(np.isfinite(ranks_proxy_values))-1)) * 100
     percentile_prior_values = []
     for model_n in np.unique(model_data['number']):
         ranks_prior_values_by_model = rankdata(ranks_prior_values[model_data['number']==model_n], nan_policy='omit') - 1
-        percentile_prior_values_by_model = (ranks_prior_values_by_model / (np.sum(np.isfinite(ranks_prior_values_by_model))-1)) * 100
-        proxy_min = np.nanmin(percentile_proxy_values)
-        proxy_max = np.nanmax(percentile_proxy_values)
-        prior_min = np.nanmin(percentile_prior_values_by_model)
-        prior_max = np.nanmax(percentile_prior_values_by_model)
-        #print(proxy_min,proxy_max,prior_min,prior_max)
-        percentile_prior_values_by_model = ((percentile_prior_values_by_model-prior_min) / (prior_max-prior_min))
-        percentile_prior_values_by_model = (percentile_prior_values_by_model * (proxy_max-proxy_min)) + proxy_min
-        percentile_prior_values.append(percentile_prior_values_by_model)
+        ranks_prior_values_by_model = (ranks_prior_values_by_model / (np.sum(np.isfinite(ranks_prior_values_by_model))-1)) * 100
+        ranks_prior_values_by_model -= np.nanmin(ranks_prior_values_by_model[ind_model_selected[model_data['number']==model_n]])
+        ranks_prior_values_by_model *= (100/np.nanmax(ranks_prior_values_by_model[ind_model_selected[model_data['number']==model_n]]))
+        percentile_prior_values.append(ranks_prior_values_by_model)
     percentile_prior_values = np.array(percentile_prior_values).flatten()
-    #percentile_proxy_values2 = ((ranks_proxy_values-min(ranks_proxy_values)) / (max(ranks_proxy_values)-min(ranks_proxy_values))) * 100
-    #percentile_prior_values = ((ranks_prior_values-min(ranks_prior_values[ind_model_selected])) / (max(ranks_prior_values[ind_model_selected])-min(ranks_prior_values[ind_model_selected]))) * 100
     #
     # Put the proxy data into the same length array as it was originally
     percentile_proxy_values_all = np.zeros((len(proxy_values))); percentile_proxy_values_all[:] = np.nan
@@ -354,7 +266,7 @@ def rank_based_older(model_data,proxy_data,var_name,i,options,verbose=False):
     ind_ref_proxy = np.where((proxy_ages >= options['reference_period'][0]) & (proxy_ages < options['reference_period'][1]))[0]
     ind_ref_prior = np.where((age_model  >= options['reference_period'][0]) & (age_model  < options['reference_period'][1]))[0]
     percentile_proxy_values_all = percentile_proxy_values_all - np.nanmean(percentile_proxy_values_all[ind_ref_proxy])
-    percentile_prior_values     = percentile_prior_values     - np.mean(percentile_prior_values[ind_ref_prior])
+    percentile_prior_values     = percentile_prior_values     - np.nanmean(percentile_prior_values[ind_ref_prior])
     if np.isnan(percentile_proxy_values_all[ind_ref_proxy]).all(): print('No data in reference period, index: '+str(i))
     #
     """

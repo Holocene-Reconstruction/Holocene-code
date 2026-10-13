@@ -21,58 +21,94 @@ def load_proxies(options):
         #
         # Load the EcoClimate proxy data
         print('Loading proxy dataset: '+proxy_dataset)
-        proxy_dataset_name,proxy_version = proxy_dataset.split('/')
-        dir_proxies = options['data_dir']+'proxies/'+proxy_dataset_name+proxy_version+'/'
-        filename_proxies = dir_proxies+proxy_dataset_name+proxy_version+'.npy'
-        try:
-            all_ts = np.load(filename_proxies,allow_pickle=True)
-        except:
-            D = lipd.readLipd(dir_proxies)
-            all_ts = lipd.extractTs(D)
-            np.save(filename_proxies,all_ts,allow_pickle=True)
-        proxy_ts_ds = []
+        if proxy_dataset == 'ecoclimate':
+            try: proxy_ts_ecoclimate = rdata.read_rds(options['data_dir']+'proxies/ecoclimate/'+proxy_dataset+'.rds')
+            except: print('ERROR: invalid proxy dataset: '+proxy_dataset)
+            if options['reconstruction_type'] == 'absolute': proxy_ts_ecoclimate = lipd.filterTs(proxy_ts_ecoclimate,'paleoData_datum == abs')
+            # Add these proxies to the full proxy dataset
+            proxy_ts = proxy_ts + proxy_ts_ecoclimate
+            proxy_dataset_short = proxy_dataset.split('_')[0]
         #
-        # Add data based on inCompilation metadata
-        for i in range(len(all_ts)):
-            # Exclude based on geo
-            if all_ts[i]['geo_meanLat'] < options['model_region'][0]: continue
-            if all_ts[i]['geo_meanLat'] > options['model_region'][1]: continue
-            lon = all_ts[i]['geo_meanLon']
-            if lon < 0: lon = 360 + lon
-            if lon < options['model_region'][2]: continue
-            if lon > options['model_region'][3]: continue
-            # Exclude relative data for absolute reconsutriction
-            if options['reconstruction_type'] == 'absolute':
-                if ('paleoData_datum' not in all_ts[i].keys()): continue     
-                if (all_ts[i]['paleoData_datum'] != 'abs'): continue   
-            if 'paleoData_inCompilation' in all_ts[i].keys():
-                # Include data based on comilation
-                for comp in all_ts[i]['paleoData_inCompilation']:
-                    #if (proxy_version in comp['compilationVersion']) & (proxy_dataset_name == comp['compilationName']):
-                    if (proxy_dataset_name == comp['compilationName']):  # Temporary change to get code working.
-                        proxy_ts_ds.append(all_ts[i])
-        print(f'Number of {proxy_dataset_name} records selected:',len(proxy_ts_ds))
-        #
-        # For each proxy, change data to float and rename some variables needed later in the code
-        for i in range(len(proxy_ts_ds)):
-            proxy_ts_ds[i]['paleoData_values'] = [float(x) for x in proxy_ts_ds[i]['paleoData_values']]
-            proxy_keys = proxy_ts_ds[i].keys()
-            if 'interpretation1_variable' not in proxy_keys:
-                try:    proxy_ts_ds[i]['interpretation1_variable'] = proxy_ts_ds[i]['paleoData_interpretation'][0]['variable']
-                except: proxy_ts_ds[i]['interpretation1_variable'] = 'Not Given'
-            if 'interpretation1_seasonality' not in proxy_keys:
-                try:    proxy_ts_ds[i]['interpretation1_seasonality'] = proxy_ts_ds[i]['paleoData_interpretation'][0]['seasonality']
-                except: proxy_ts_ds[i]['interpretation1_seasonality'] = 'Not Given'
-            if 'interpretation1_variable' not in proxy_keys:
-                try:    proxy_ts_ds[i]['interpretation1_seasonalityGeneral'] = proxy_ts_ds[i]['paleoData_interpretation'][0]['seasonalityGeneral']
-                except: proxy_ts_ds[i]['interpretation1_seasonalityGeneral'] = 'Not Given'
-            if 'interpretation1_direction' not in proxy_keys:
-                try:    proxy_ts_ds[i]['interpretation1_direction'] = proxy_ts_ds[i]['paleoData_interpretation'][0]['direction']
-                except: proxy_ts_ds[i]['interpretation1_direction'] = 'Not Given'
+        else: # CH - Load compilation data if not in rdata file
+            proxy_dataset_name,proxy_version = proxy_dataset.split('/')
+            dir_proxies = options['data_dir']+'proxies/'+proxy_dataset_name+proxy_version+'/'
+            # load data
+            try: 
+                file_to_open = open(dir_proxies+proxy_dataset_name+proxy_version+'.pkl','rb') #DAMP12k- make more flexible
+                proxies_all = pickle.load(file_to_open)['D']
+                file_to_open.close()
+                # Extract the time series
+                all_ts = lipd.extractTs(proxies_all)
+            except: #pickle not available for 0_7_0. load npy file saved by except code if running the script for the first time #TODO
+                try:
+                    all_ts = np.load(dir_proxies+proxy_dataset_name+proxy_version+'.npy',allow_pickle=True)
+                except:
+                    D = lipd.readLipd(dir_proxies)
+                    all_ts = lipd.extractTs(D)
+                    np.save(dir_proxies+proxy_dataset_name+proxy_version+'.npy',all_ts,allow_pickle=True)
+            proxy_ts_ds = []
+            # If uncertinaity file, use TSids to select data to add to compilation (allows for flexibility for metadata issues)
+            try: 
+                proxy_uncertainties_from_file = np.genfromtxt(options['change_uncertainty'],delimiter=',',dtype='str')
+                proxy_tsids_from_file = [x[0] for x in proxy_uncertainties_from_file]
+            except: proxy_tsids_from_file= False
             #
-        proxy_ts = proxy_ts + proxy_ts_ds
-        collection_all = collection_all + ([proxy_dataset] * len(proxy_ts_ds))
-        #
+            # Add data based on inCompilation metadata
+            for i in range(len(all_ts)):
+                # Exclude based on geo
+                if all_ts[i]['geo_meanLat'] < options['model_region'][0]: continue
+                if all_ts[i]['geo_meanLat'] > options['model_region'][1]: continue
+                lon = all_ts[i]['geo_meanLon']
+                if lon < 0: lon = 360 + lon
+                if lon < options['model_region'][2]: continue
+                if lon > options['model_region'][3]: continue
+                # Exclude include relative data for absolute reconsutriction
+                if options['reconstruction_type'] == 'absolute':
+                    if ('paleoData_datum' not in all_ts[i].keys()): continue     
+                    if (all_ts[i]['paleoData_datum'] != 'abs'): continue  
+                # Include if within provided list 
+                if type(proxy_tsids_from_file) == list:
+                    if all_ts[i]['paleoData_TSid'] in proxy_tsids_from_file:
+                        proxy_ts_ds.append(all_ts[i]) 
+                else: 
+                    if 'paleoData_inCompilation' in all_ts[i].keys():
+                        # Incliude data based on comilation
+                        for comp in all_ts[i]['paleoData_inCompilation']:
+                            if (proxy_version in comp['compilationVersion']) & (proxy_dataset_name == comp['compilationName']):
+                                proxy_ts_ds.append(all_ts[i])
+
+
+            #print(f'Number of {proxy_dataset_name} records selected:',len(proxy_ts_ds))
+            #
+            # Some proxies have problems in the metadata.  Fix them here.
+            for i in range(len(proxy_ts_ds)):
+                proxy_ts_ds[i]['paleoData_values'] = [float(x) for x in proxy_ts_ds[i]['paleoData_values']]
+                if ('paleoData_interpretation' in proxy_ts_ds[i].keys()) & ('interpretation1_variable' not in proxy_ts_ds[i].keys()):
+                    try: proxy_ts_ds[i]['interpretation1_variable'] = proxy_ts_ds[i]['paleoData_interpretation'][0]['variable']
+                    except:  proxy_ts_ds[i]['interpretation1_variable'] = 'Not Given'
+                if ('paleoData_interpretation' in proxy_ts_ds[i].keys()) & ('interpretation1_seasonality' not in proxy_ts_ds[i].keys()):
+                    try: proxy_ts_ds[i]['interpretation1_seasonality'] = proxy_ts_ds[i]['paleoData_interpretation'][0]['seasonality']
+                    except:  proxy_ts_ds[i]['interpretation1_seasonality'] = 'Not Given'
+                if ('paleoData_interpretation' in proxy_ts_ds[i].keys()) & ('interpretation1_variable' not in proxy_ts_ds[i].keys()):
+                    try: proxy_ts_ds[i]['interpretation1_seasonalityGeneral'] = proxy_ts_ds[i]['interpretation1_seasonalityGeneral'][0]['seasonalityGeneral']
+                    except:  proxy_ts_ds[i]['interpretation1_seasonalityGeneral'] = 'Not Given'
+                if ('paleoData_interpretation' in proxy_ts_ds[i].keys()) & ('interpretation1_direction' not in proxy_ts_ds[i].keys()):
+                    try: proxy_ts_ds[i]['interpretation1_direction'] = proxy_ts_ds[i]['paleoData_interpretation'][0]['direction']
+                    except:  proxy_ts_ds[i]['interpretation1_direction'] = 'Not Given'
+                #if ('seasonality'        in proxy_ts_da[i]['paleoData_interpretation'][0].keys())==False: proxy_ts_da[i]['paleoData_interpretation'][0]['seasonality']        = ''
+                #if ('seasonalityGeneral' in proxy_ts_da[i]['paleoData_interpretation'][0].keys())==False: proxy_ts_da[i]['paleoData_interpretation'][0]['seasonalityGeneral'] = ''
+                # Fix the GISP2 ages - Note: this is a temporary fix, since lipd isn't loading the right ages.
+                # for i in range(len(all_ts_12k)):
+                #     if (all_ts_12k[i]['dataSetName'] == 'Alley.GISP2.2000') and (all_ts_12k[i]['paleoData_variableName'] == 'age'): gisp2_ages = all_ts_12k[i]['paleoData_values']
+                # #
+                # for i in range(len(all_ts_12k)):
+                #     if (all_ts_12k[i]['dataSetName'] == 'Alley.GISP2.2000') and (all_ts_12k[i]['paleoData_variableName'] == 'temperature') and (np.max(np.array(all_ts_12k[i]['age']).astype(float)) < 50):
+                #         print('Fixing GISP2 ages:',all_ts_12k[i]['paleoData_variableName'],', Index:',i)
+                #                                 all_ts_hydro12k[i]['paleoData_temperature12kUncertainty'] = 30#round(np.nanmax(np.diff(np.unique(np.append(vals,[0,1])))),3) #Median difference between percentile ranks as unc. value
+                #add uncertainty 
+            proxy_ts = proxy_ts + proxy_ts_ds
+            collection_all = collection_all + ([proxy_dataset] * len(proxy_ts_ds))   #
+            #%%
     # Process proxy data
     return proxy_ts,collection_all
 
@@ -196,6 +232,11 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
         proxy_values = proxy_values[np.isfinite(proxy_ages)]
         proxy_ages   = proxy_ages[np.isfinite(proxy_ages)]
         #
+        # If any NaNs exist in the paleoData_values, remove those values if options['remove_nans'] == True
+        if options['remove_nans'] == True:
+            proxy_ages   = proxy_ages[np.isfinite(proxy_values)]
+            proxy_values = proxy_values[np.isfinite(proxy_values)]
+        #
         # Sort the data so that ages go from newest to oldest
         ind_sorted = np.argsort(proxy_ages)
         proxy_values = proxy_values[ind_sorted]
@@ -221,6 +262,11 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
             proxy_uncertainty = proxy_uncertainty/365.25
             data_units = 'mm/day'
             print('Proxy '+str(i)+': Updating units from mm/yr to mm/day')
+        elif data_units == 'g/cm2/yr':
+            proxy_values      = (proxy_values*1000)/365.25
+            proxy_uncertainty = (proxy_uncertainty*1000)/365.25
+            data_units = 'mm/day'
+            print('Proxy '+str(i)+': Updating units from g/cm2/yr to mm/day')
         #
         # INTERPOLATION
         # To interpolate the proxy data to the base resolution (by default: centennial):
@@ -234,7 +280,7 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
             proxy_values_ann = []
             proxy_ages_ann   = []
             for int_age in np.arange(int(np.floor(proxy_ages[0])),int(np.ceil(proxy_ages[-1])+1)):
-                ind_in_year = np.where((proxy_ages > int_age) & (proxy_ages <= (int_age+1)))[0]
+                ind_in_year = np.where((proxy_ages >= int_age) & (proxy_ages < (int_age+1)))[0]
                 if len(ind_in_year) > 0:
                     proxy_values_ann.append(np.nanmean(proxy_values[ind_in_year]))
                     proxy_ages_ann.append(np.nanmean(proxy_ages[ind_in_year]))
@@ -269,6 +315,11 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
         interp_function = interpolate.interp1d(proxy_ages_ann,proxy_values_ann,kind='nearest',bounds_error=False,fill_value='extrapolate')
         proxy_ages_interp = np.arange(int(np.ceil(end_newest)),int(np.floor(end_oldest))+interp_res,interp_res)
         proxy_values_interp = interp_function(proxy_ages_interp)
+        #
+        # Only retain interpolated values within specified number years of an actual observation
+        if options['spread_limit'] != False:
+            nearest_dist = np.min(np.abs(proxy_ages_interp[:, None] - proxy_ages_ann[None, :]), axis=1)
+            proxy_values_interp[nearest_dist > options['spread_limit']] = np.nan
         #
         # Use nearest neighbor interpolation to get the resolution to annual
         interp_function_res = interpolate.interp1d(proxy_ages_ann,proxy_res_ann,kind='nearest',bounds_error=False,fill_value='extrapolate')
