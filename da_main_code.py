@@ -27,7 +27,6 @@ import da_load_proxies
 import da_psms
 import da_plot_results
 import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
 
 # Make maps of proxy-by-proxy updates
 age_ind_to_map = []
@@ -42,6 +41,7 @@ age_ind_to_map = []
 # Simplify model code, especially for the PSM portion
 # For lake PSM, if the nearest cell has nans, make sure to find the nearest cell without nans, as long as its within X degrees
 # Try using a localization radius of 10000 km rather than 5000 km
+
 
 #%% SETTINGS
 

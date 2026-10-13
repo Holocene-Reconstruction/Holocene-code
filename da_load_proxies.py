@@ -456,8 +456,8 @@ def process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
         proxy_data['metadata'][i,8] = data_units
         proxy_data['metadata'][i,9] = interp_variable
         proxy_data['metadata'][i,10] = interp_direction
-        proxy_data['metadata'][i,11] = archive_type
-        proxy_data['metadata'][i,12] = psms_selected[i]
+        proxy_data['metadata'][i,11] = psms_selected[i]
+        proxy_data['metadata'][i,12] = archive_type
         proxy_data['lats'][i] = proxy_lat
         proxy_data['lons'][i] = proxy_lon
         proxy_data['lons'][i] = proxy_lon
