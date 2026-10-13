@@ -29,8 +29,8 @@ import da_plot_results
 import matplotlib.pyplot as plt
 
 # Make maps of proxy-by-proxy updates
-#age_ind_to_map = []
-age_ind_to_map = [0,100,200]
+age_ind_to_map = []
+#age_ind_to_map = [0,100,200]
 
 #TODO:
 # Figure out hydro percentile PSM
@@ -144,7 +144,7 @@ if options['model_processing'] != 'None':
     model_data = da_load_models.detrend_model_data(model_data,options)
 
 # Use PSMs to get model-based proxy estimates
-options['plot_proxies'] = True
+options['plot_proxies'] = False
 proxy_estimates_all,_,proxy_data = da_psms.psm_main(model_data,proxy_data,options)
 
 
