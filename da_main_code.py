@@ -1,5 +1,5 @@
 #==============================================================================
-# This script contains the main code of the Holocene data assimilation.
+# This script contains the main code of the paleoclimate data assimilation.
 # Options are set in the config yml file. See README.txt for a more complete
 # explanation of the code and setup.
 # ---
@@ -26,21 +26,16 @@ import da_load_models
 import da_load_proxies
 import da_psms
 import da_plot_results
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 # Make maps of proxy-by-proxy updates
 age_ind_to_map = []
-#age_ind_to_map = [0,100,200]
+#age_ind_to_map = [100,200]
 
 #TODO:
-# Figure out hydro percentile PSM
-# Figure out uncertainty values, especially for unitless (~900)
-# Look at options for rank-based PSMs again. If I use the "newer" verion, make sure to update the uncertainty as well (to the 30 minus 0 percentile?)
 # Why do different reference periods produce somewhat different results?
-# Figure out best use of lake level PSMs
-# Simplify model code, especially for the PSM portion
 # For lake PSM, if the nearest cell has nans, make sure to find the nearest cell without nans, as long as its within X degrees
-# Try using a localization radius of 10000 km rather than 5000 km
+# Can I still use the multi-timescale option?
 
 
 #%% SETTINGS
@@ -83,42 +78,29 @@ print('=== END SETTINGS ===')
 # Load the chosen proxy data
 proxy_ts,collection_all = da_load_proxies.load_proxies(options)
 
-# Print summaries of proxy data
-# (Use this to look for useful proxies and iterate the experimental design)
+# Print summaries of proxy data (For looking at proxies and iterating the experimental design)
 """
 da_utils.print_proxy_metadata(proxy_ts,'interpretation1_variable')
-da_utils.print_proxy_metadata(proxy_ts,'paleoData_variableName')
 da_utils.print_proxy_metadata(proxy_ts,'archiveType')
 da_utils.print_proxy_metadata(proxy_ts,'paleoData_proxy')
+da_utils.print_proxy_metadata(proxy_ts,'paleoData_variableName')
 da_utils.print_proxy_metadata(proxy_ts,'paleoData_units')
-da_utils.print_proxy_metadata(proxy_ts,'interpretation1_direction')
 """
 
 # Filter the proxies and set PSMs
 proxy_ts_selected,psms_selected,collection_selected = da_load_proxies.filter_proxies_and_set_psms(proxy_ts,collection_all,options)
 """
 da_utils.print_proxy_metadata(proxy_ts_selected,'interpretation1_variable')
-da_utils.print_proxy_metadata(proxy_ts_selected,'paleoData_variableName')
 da_utils.print_proxy_metadata(proxy_ts_selected,'archiveType')
 da_utils.print_proxy_metadata(proxy_ts_selected,'paleoData_proxy')
+da_utils.print_proxy_metadata(proxy_ts_selected,'paleoData_variableName')
 da_utils.print_proxy_metadata(proxy_ts_selected,'paleoData_units')
 da_utils.print_proxy_metadata(proxy_ts_selected,'interpretation1_direction')
-da_utils.print_proxy_metadata(proxy_ts_selected,'paleoData_datum')
 """
 
 # Process the proxy data
 proxy_data = da_load_proxies.process_proxies(proxy_ts_selected,psms_selected,collection_selected,options)
 n_proxies = proxy_data['values_binned'].shape[0]
-"""
-# Save the proxy dictionary
-proxy_filename = options['data_dir']+"results/proxies_"+exp_name_full
-np.save(proxy_filename+".npy",proxy_data)
-proxy_data2 = np.load(proxy_filename+".npy",allow_pickle=True)
-import pickle
-file_pickle = open(proxy_filename+".pckl",'wb')
-pickle.dump(proxy_data,file_pickle)
-proxy_data2 = pickle.load(file_pickle)
-"""
 
 
 #%% LOAD AND PROCESS MODEL DATA
@@ -183,18 +165,8 @@ if options['change_uncertainty'] != False:
         # Note: Since this is time-varying, it is set later, at the DA step. Setting it to 1 above just ensures that all valid proxies get used.
     
     else:
-        # If using this option, the text file below should contain TSids and MSE for every proxy record
-        print(' --- Processing proxies: uncertainty values SET TO values from the following file ---')
+        print(' --- Processing proxies: uncertainty values already SET TO values from the following file ---')
         print(options['change_uncertainty'])
-        proxy_uncertainties_from_file = np.genfromtxt(options['change_uncertainty'],delimiter=',',dtype='str')
-        #
-        for i in range(n_proxies):
-            index_uncertainty = np.where(proxy_data['metadata'][i,1] == proxy_uncertainties_from_file[:,0])[0]
-            if len(index_uncertainty) == 0:
-                print('No prescribed error value in file for proxy '+str(i)+', TSid: '+str(proxy_data['metadata'][i,1])+'.  Setting to NaN.')
-                proxy_data['uncertainty'][i] = np.nan
-            else:
-                proxy_data['uncertainty'][i] = proxy_uncertainties_from_file[index_uncertainty,1].astype(float)
 
 
 #%% FIND PROXIES TO ASSIMILATE AND MORE
@@ -212,7 +184,7 @@ print(' - Number of records with uncertainty values: '+str(sum(proxy_ind_with_un
 
 # If requested, select only proxies with certain seasonalities
 if options['assimilate_selected_seasons'] in ['jja_preferred','djf_preferred']:
-    proxy_ind_of_seasonality = da_utils.find_seasons(proxy_data,options)
+    proxy_ind_of_seasonality = da_utils.find_seasons(proxy_data,options)  #TODO: Check this, if I use it
 elif options['assimilate_selected_seasons'] != False:
     proxy_ind_of_seasonality = np.full((n_proxies),False,dtype=bool)
     ind_seasons = [i for i, seasontype in enumerate(proxy_data['metadata'][:,5]) if seasontype.lower() in options['assimilate_selected_seasons']]
@@ -353,17 +325,14 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     #
     # Make the prior (Xb)
     prior = np.reshape(model_values_for_prior_all,(n_ens,n_varslatlon))
-    #print(prior.shape)
     #
     # Append the proxy estimate to the prior, so that proxy estimates are reconstructed too
     prior = np.append(prior,model_estimates_for_age,axis=1)
-    #print(prior.shape)
     Xb = np.transpose(prior)
-    #print(Xb.shape)
     Xb_original = Xb
     #
     # Save some values for later
-    prior_mean[:,age_counter]        = np.nanmean(Xb,axis=1)                                 # Prior mean
+    prior_mean[:,age_counter]        = np.nanmean(Xb,axis=1)                              # Prior mean
     prior_ens[:,:,age_counter]       = Xb[:,ind_random_ens_to_save]                       # Prior ensembles
     prior_proxy_means[age_counter,:] = np.mean(model_estimates_for_age,axis=0)            # Prior proxy mean
     prior_proxy_ens[age_counter,:,:] = model_estimates_for_age[ind_random_ens_to_save,:]  # Prior proxy ensembles
@@ -371,6 +340,8 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
     # Select only the proxies which meet the criteria:
     #  - Proxies were selected for analysis
     #  - Proxies have values and uncertainties for the age of interest
+    # Note: Sometimes resolution exist where values don't if the proxy doesn't cover the reference period
+    # NOte: Sometimes prior values don't exist where proxies do because the lake model didn't find an on-land location  #TODO: Fix this
     proxies_to_assimilate = proxy_ind_selected &\
                             np.isfinite(proxy_values_for_age) &\
                             np.isfinite(proxy_uncertainties_for_age) &\
@@ -406,7 +377,6 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
                 proxy_lon         = proxy_data['lons'][ind_proxy]
                 proxy_units       = proxy_data['units'][ind_proxy]
                 proxy_psm         = proxy_data['psm'][ind_proxy]
-                #model_estimates   = model_estimates_for_age[:,ind_proxy]
                 model_estimates   = Xb[n_varslatlon+ind_proxy,:]
                 if options['localization_radius'] != 'None': loc = proxy_localization_all[ind_proxy,:]
                 else: loc = None
@@ -414,22 +384,17 @@ for age_counter,age in enumerate(proxy_data['age_centers']):
                 # Do data assimilation
                 if options['change_uncertainty'][0:9] == 'varmodel_': proxy_uncertainty = np.var(model_estimates) * uncertainty_multiplier
                 Xb_updated = da_utils_lmr.enkf_update_array(Xb,proxy_value,model_estimates,proxy_uncertainty,options,loc=loc,inflate=None)
-                #if (np.nansum(abs(Xb_updated-Xb_updated2)))>0.0000001:print('error: '+str(i))
                 if np.isnan(Xb).all(): print(' !!! ERROR.  ALL RECONSTRUCTION VALUES SET TO NAN.  Age='+str(age)+' (counter ='+str(age_counter)+'), proxy number='+str(ind_proxy)+' !!!')
                 #
                 # If desired, make a map of the current state of the reconstruction for this age
                 if age_counter in age_ind_to_map:
                     # Make an updated map
-                    if proxy_data['direction'][ind_proxy]=='negative': proxy_value_to_plot = -1*proxy_value
-                    else:                                              proxy_value_to_plot = proxy_value
-                    var_toplot_name = proxy_data['psm'][ind_proxy].split('_')[-1]
-                    #var_toplot_name='tas'
-                    var_to_plot_i = np.where(np.array(options['vars_to_reconstruct'])==var_toplot_name+'_annual')[0][0]
-                    var_toplot_start   = np.nanmean(np.reshape(Xb[:n_varslatlon,:],        (n_vars,n_lat,n_lon,n_ens))[var_to_plot_i,:,:,:],axis=2)
-                    var_toplot_updated = np.nanmean(np.reshape(Xb_updated[:n_varslatlon,:],(n_vars,n_lat,n_lon,n_ens))[var_to_plot_i,:,:,:],axis=2)
-                    var_toplot_change  = var_toplot_updated-var_toplot_start
-                    da_plot_results.make_map(var_toplot_updated,model_data,proxy_value_to_plot,proxy_lat,proxy_lon,proxy_uncertainty,var_toplot_name,ind_proxy,age,'after', exp_name_full,bounds=[5,0.1,0.5][var_to_plot_i],  save_instead_of_plot=False)
-                    #da_plot_results.make_map(var_toplot_change, model_data,proxy_value,proxy_lat,proxy_lon,proxy_uncertainty,ind_proxy,age,'C_diff',exp_name_full,bounds=.25,save_instead_of_plot=True)
+                    Xb_updated_reshape = np.reshape(Xb_updated[:n_varslatlon,:],(n_vars,n_lat,n_lon,n_ens))
+                    var_toplot_updated = {}
+                    for var_num,var_txt in enumerate(options['vars_to_reconstruct']):
+                        var_toplot_updated[var_txt] = np.mean(Xb_updated_reshape[var_num,:,:,:],axis=2)
+                    da_plot_results.make_map(       var_toplot_updated,model_data,proxy_value,proxy_lat,proxy_lon,proxy_units,proxy_uncertainty,proxy_psm,ind_proxy,age,exp_name_full,save_instead_of_plot=True)
+                    da_plot_results.make_map_simple(var_toplot_updated,model_data,proxy_value,proxy_lat,proxy_lon,proxy_units,proxy_uncertainty,proxy_psm,ind_proxy,age,exp_name_full,save_instead_of_plot=True)
                 #
                 Xb = Xb_updated
             #
@@ -534,4 +499,4 @@ data_xarray_output.to_netcdf(output_dir+output_filename+'.nc')
 endtime_total = time.time()  # End timer
 print('Total time: '+str('%1.2f' % ((endtime_total-starttime_total)/60))+' minutes')
 print(' === Reconstruction complete ===')
-#%%
+

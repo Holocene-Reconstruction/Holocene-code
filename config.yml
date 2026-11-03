@@ -12,11 +12,12 @@ data_dir: 'P:/data_paleoclimate/data_assimilation/'
 #vars_to_reconstruct: ['tas_annual']
 #proxies_to_use: ['temperature|temperature|any|any|degC|calibrated_tas','temperature|temperature|MarineSediment|any|degC|calibrated_sst'] 
 
-exp_name: 'eco21ka_trace_temp_precip_lakes'
-vars_to_reconstruct: ['tas_annual','precip_annual','LakeStatus_annual']
+exp_name: 'eco21ka_trace_locrad_5k_monthly'
+#vars_to_reconstruct: ['tas_annual','precip_annual','LakeStatus_annual']
+vars_to_reconstruct:   ['tas_annual','tas_month_01','tas_month_02','tas_month_03','tas_month_04','tas_month_05','tas_month_06','tas_month_07','tas_month_08','tas_month_09','tas_month_10','tas_month_11','tas_month_12','precip_annual','precip_month_01','precip_month_02','precip_month_03','precip_month_04','precip_month_05','precip_month_06','precip_month_07','precip_month_08','precip_month_09','precip_month_10','precip_month_11','precip_month_12','LakeStatus_annual']
 proxies_to_use: ['temperature|temperature|any|any|degC|calibrated_tas','temperature|temperature|MarineSediment|any|degC|calibrated_sst','effectivePrecipitation|lakeLevel|any|any|any|rank_based_LakeStatus']
 
-# Primary optionsdata_paleoclimate
+# Primary options
 #exp_name: 'eco21ka_trace'  # The experiment name, which will be appended to the filename. Pick something short & memorable, using only letters, numbers, and underscores.
 #CH - Is there a way to load model data that's not vars_to_reconstruct? Maybe from proxies to use? We want to load lake status but don't need to reconstruct it? Same for SST?
 #vars_to_reconstruct:   ['tas_annual','precip_annual','LakeStatus_annual']  # The variables to reconstruct {['tas','precip']}, then season after underscore (e.g., "annual", "jja", "djf", "month_01", "month_02").
