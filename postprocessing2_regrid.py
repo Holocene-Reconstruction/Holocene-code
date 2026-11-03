@@ -14,6 +14,9 @@ plt.style.use('ggplot')
 save_instead_of_plot = False
 
 
+# NOTE: This is a work in progress.
+
+
 #%% LOAD DATA - RECONSTRUCTION
 
 # Directories
